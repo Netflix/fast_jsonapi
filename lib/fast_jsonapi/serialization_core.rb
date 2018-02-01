@@ -13,7 +13,6 @@ module FastJsonapi
                       :record_type,
                       :cache_length,
                       :cached
-                      :record_type
       end
     end
 
