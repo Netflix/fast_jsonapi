@@ -1,6 +1,6 @@
 # Fast JSON API
 
-[![Build Status](https://travis-ci.org/Netflix/fast_jsonapi.svg?branch=master)](https://travis-ci.org/Netflix/fast_jsonapi)
+[![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/Netflix/osstracker.svg)]()
 
 A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
 
