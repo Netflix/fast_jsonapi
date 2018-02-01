@@ -206,9 +206,9 @@ rake spec
 $ rake install
 ```
 
-The install rake task builds the gem installs it. You're all
+The install rake task builds the gem and then installs it. You're all
 set if you're using [RVM](http://rvm.beginrescueend.com/), but you may
-need to run it with sudo if you have a system-installed ruby:
+need to run it with sudo if you have a system-installed Ruby:
 
 ### Bumping Version
 
