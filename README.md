@@ -11,9 +11,9 @@ We compare serialization times with Active Model Serializer as part of RSpec per
 ## Benchmark times for 250 records
 
 ```bash
-  $ rspec
-  Active Model Serializer serialized 250 records in 138.71 ms
-  Fast JSON API serialized 250 records in 3.01 ms
+$ rspec
+Active Model Serializer serialized 250 records in 138.71 ms
+Fast JSON API serialized 250 records in 3.01 ms
 ```
 
 # Table of Contents
