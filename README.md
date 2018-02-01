@@ -4,16 +4,16 @@
 
 A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
 
-# Performance Comparision
+# Performance Comparison
 
 We compare serialization times with Active Model Serializer as part of RSpec performance tests included on this library. We want to ensure that with every change on this library, serialization time is at least `25 times` faster than Active Model Serializers on up to current benchmark of 1000 records.
 
 ## Benchmark times for 250 records
 
 ```bash
-  $ rspec
-  Active Model Serializer serialized 250 records in 138.71 ms
-  Fast JSON API serialized 250 records in 3.01 ms
+$ rspec
+Active Model Serializer serialized 250 records in 138.71 ms
+Fast JSON API serialized 250 records in 3.01 ms
 ```
 
 # Table of Contents
@@ -32,8 +32,8 @@ We compare serialization times with Active Model Serializer as part of RSpec per
 
 ## Features
 
-* Declaration syntax similar to Active Model serializer
-* Support for belongs_to, has_many and has_one
+* Declaration syntax similar to Active Model Serializer
+* Support for `belongs_to`, `has_many` and `has_one`
 * Support for compound documents (included)
 * Optimized serialization of compound documents
 * Caching
@@ -48,7 +48,7 @@ gem 'fast_jsonapi'
 
 Execute:
 
-```ruby
+```bash
 $ bundle install
 ```
 
@@ -187,14 +187,14 @@ rake -T
 ```
 
 ### Updating Project information
-You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec
+You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec:
 
 ```bash
 rake gemspec
 ```
 
 ### Running Tests
-We use rspec for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task
+We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task:
 
 ```bash
 rake spec
@@ -206,16 +206,16 @@ rake spec
 $ rake install
 ```
 
-The install rake task builds the gem installs it. You're all
+The install rake task builds the gem and then installs it. You're all
 set if you're using [RVM](http://rvm.beginrescueend.com/), but you may
-need to run it with sudo if you have a system-installed ruby:
+need to run it with sudo if you have a system-installed Ruby:
 
 ### Bumping Version
 
 It feels good to release code. Do it, do it often. But before that, bump
 the version. Then release it. There's a few ways to update the version:
 
-```ruby
+```bash
 # version:write like before
 $ rake version:write MAJOR=0 MINOR=3 PATCH=0
 
