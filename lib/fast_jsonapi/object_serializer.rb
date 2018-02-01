@@ -4,22 +4,30 @@ require 'active_support/inflector'
 require 'oj'
 require 'multi_json'
 require 'fast_jsonapi/serialization_core'
-require 'skylight'
+
+begin
+  require 'skylight'
+  SKYLIGHT_ENABLED = true
+rescue LoadError
+  SKYLIGHT_ENABLED = false
+end
 
 module FastJsonapi
   module ObjectSerializer
     extend ActiveSupport::Concern
     include SerializationCore
 
-    # Skylight integration
-    # To remove Skylight
-    # Remove the included do block
-    # Remove the Gemfile entry
     included do
-      include Skylight::Helpers
+      # Skylight integration
+      # To remove Skylight
+      # Remove the included do block
+      # Remove the Gemfile entry
+      if SKYLIGHT_ENABLED
+        include Skylight::Helpers
 
-      instrument_method :serializable_hash
-      instrument_method :to_json
+        instrument_method :serializable_hash
+        instrument_method :to_json
+      end
 
       # Set record_type based on the name of the serializer class
       set_type default_record_type if default_record_type

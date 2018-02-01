@@ -1,3 +1,12 @@
+PATH
+  remote: .
+  specs:
+    fast_jsonapi (1.0.16)
+      activerecord (~> 5.0)
+      activesupport (~> 5.0)
+      multi_json (~> 1.12)
+      oj (~> 3.3)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -134,13 +143,10 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (~> 0.10.4)
-  activerecord (~> 5.0)
-  activesupport (~> 5.0)
   bundler (~> 1.0)
   byebug
+  fast_jsonapi!
   juwelier (~> 2.1.0)
-  multi_json (~> 1.12)
-  oj (~> 3.3)
   rdoc (~> 3.12)
   rspec (~> 3.5.0)
   rspec-benchmark (~> 0.3.0)
