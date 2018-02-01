@@ -194,7 +194,7 @@ rake gemspec
 ```
 
 ### Running Tests
-We use rspec for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task
+We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task:
 
 ```bash
 rake spec
