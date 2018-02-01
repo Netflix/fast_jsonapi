@@ -1,4 +1,4 @@
-# Contributing to Conductor
+# Contributing to Fast JSON API
 
 We are following the Gitflow workflow. The active development branch is [dev](https://github.com/Netflix/fast_jsonapi/tree/dev), the stable branch is [master](https://github.com/Netflix/fast_jsonapi/tree/master).
 
@@ -11,7 +11,7 @@ Contributions will be accepted to the [dev](https://github.com/Netflix/fast_json
 2. If in step 1 you get an acknowledge from the project leaders, use the
    following procedure to submit a patch:
 
-    a. Fork Dynomite on github ( http://help.github.com/fork-a-repo/ )
+    a. Fork Fast JSON API on github ( http://help.github.com/fork-a-repo/ )
 
     b. Create a topic branch (git checkout -b my_branch)
 
