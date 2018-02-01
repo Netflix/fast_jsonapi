@@ -159,7 +159,7 @@ json_string = MovieSerializer.new([movie, movie], options).serialized_json
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
   set_type :movie  # optional
-  cache_options enabled: true cache_length: 12.hours
+  cache_options enabled: true, cache_length: 12.hours
   attributes :name, :year
 end
 ```
