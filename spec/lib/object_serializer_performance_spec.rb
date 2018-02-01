@@ -5,14 +5,14 @@ describe FastJsonapi::ObjectSerializer do
   include_context 'ams movie class'
 
   context 'when testing performance of serialization' do
-    it 'should create a hash of 1000 records in less than 25 ms' do
+    it 'should create a hash of 1000 records in less than 50 ms' do
       movies = 1000.times.map { |_i| movie }
-      expect { MovieSerializer.new(movies).serializable_hash }.to perform_under(25).ms
+      expect { MovieSerializer.new(movies).serializable_hash }.to perform_under(50).ms
     end
 
-    it 'should serialize 1000 records to jsonapi in less than 30 ms' do
+    it 'should serialize 1000 records to jsonapi in less than 60 ms' do
       movies = 1000.times.map { |_i| movie }
-      expect { MovieSerializer.new(movies).serialized_json }.to perform_under(30).ms
+      expect { MovieSerializer.new(movies).serialized_json }.to perform_under(60).ms
     end
 
     it 'should create a hash of 1000 records with includes and meta in less than 75 ms' do
