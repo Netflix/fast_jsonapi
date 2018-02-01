@@ -44,7 +44,7 @@ describe FastJsonapi::ObjectSerializer do
 
   context 'when comparing with AMS 0.10.x' do
     [1, 25, 250, 1000].each do |movie_count|
-      speed_factor = 25
+      speed_factor = 20
       it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
         ams_movies = build_ams_movies(movie_count)
         movies = build_movies(movie_count)
@@ -63,7 +63,7 @@ describe FastJsonapi::ObjectSerializer do
 
   context 'when comparing with AMS 0.10.x and with includes and meta' do
     [1, 25, 250, 1000].each do |movie_count|
-      speed_factor = 25
+      speed_factor = 20
       it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
         ams_movies = build_ams_movies(movie_count)
         movies = build_movies(movie_count)
