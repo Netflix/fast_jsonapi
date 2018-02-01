@@ -215,7 +215,7 @@ need to run it with sudo if you have a system-installed ruby:
 It feels good to release code. Do it, do it often. But before that, bump
 the version. Then release it. There's a few ways to update the version:
 
-```ruby
+```bash
 # version:write like before
 $ rake version:write MAJOR=0 MINOR=3 PATCH=0
 
