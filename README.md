@@ -48,7 +48,7 @@ gem 'fast_jsonapi'
 
 Execute:
 
-```ruby
+```bash
 $ bundle install
 ```
 
