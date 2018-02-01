@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe FastJsonapi::ObjectSerializer do
+describe FastJsonapi::ObjectSerializer, performance: true do
   include_context 'movie class'
   include_context 'ams movie class'
 

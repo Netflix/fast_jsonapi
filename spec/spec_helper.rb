@@ -8,6 +8,9 @@ Dir[File.dirname(__FILE__) + '/shared/contexts/*.rb'].each {|file| require file 
 
 RSpec.configure do |config|
   config.include RSpec::Benchmark::Matchers
+  if ENV['TRAVIS'] == 'true' || ENV['TRAVIS'] == true
+    config.filter_run_excluding performance: true
+  end
 end
 
 ActiveModel::Serializer.config.adapter = :json_api
