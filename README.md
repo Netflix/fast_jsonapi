@@ -228,3 +228,14 @@ $ rake version:bump:minor
 # bump just patch, ie 0.1.0 -> 0.1.1
 $ rake version:bump:patch
 ```
+
+---
+
+### We're Hiring!
+
+Join the Netflix Studio Engineering team and help us build gems like this!
+
+* [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
+* [Senior Platfrom Engineer](https://jobs.netflix.com/jobs/865783)
+
+
