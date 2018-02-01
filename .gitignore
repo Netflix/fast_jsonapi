@@ -1,0 +1,39 @@
+# rcov generated
+coverage
+coverage.data
+
+# rdoc generated
+rdoc
+
+# yard generated
+doc
+.yardoc
+
+# bundler
+.bundle
+.byebug_history
+
+# For MacOS:
+.DS_Store
+
+# juwelier generated
+pkg
+
+# For MacOS:
+.DS_Store
+
+# For TextMate
+#*.tmproj
+#tmtags
+
+# For vim:
+#*.swp
+
+# For redcar:
+#.redcar
+
+# For rubinius:
+#*.rbc
+
+# For the gem
+test.db

@@ -1,0 +1,35 @@
+{
+  "data": [
+    {
+      "id": "232",
+      "type": "movie",
+      "attributes": {
+        "name": "test movie",
+        "year": null
+      },
+      "relationships": {
+        "actors": {
+          "data": [
+            {
+              "id": "1",
+              "type": "actor"
+            },
+            {
+              "id": "2",
+              "type": "actor"
+            }
+          ]
+        },
+        "owner": {
+          "data": {
+            "id": "3",
+            "type": "user"
+          }
+        }
+      }
+    }
+  ],
+  "meta": {
+    "total": 2
+  }
+}
