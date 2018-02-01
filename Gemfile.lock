@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fast_jsonapi (1.0.16)
+    fast_jsonapi (1.0.17)
       activerecord (~> 5.0)
       activesupport (~> 5.0)
       multi_json (~> 1.12)
@@ -96,7 +96,7 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
-    oj (3.3.9)
+    oj (3.4.0)
     public_suffix (3.0.1)
     rack (2.0.3)
     rack-test (0.8.2)
