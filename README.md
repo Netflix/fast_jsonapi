@@ -153,8 +153,6 @@ hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
-[Output String](https://github.com/Netflix/fast_jsonapi/blob/master/docs/collection_serializer_output.md)
-
 ### Caching
 
 ```ruby
