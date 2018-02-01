@@ -62,6 +62,6 @@ describe 'active record' do
 
   # Clean up DB
   after(:all) do
-    File.delete(@db_file) if File.exists?(@db_file)
+    File.delete(@db_file) if File.exist?(@db_file)
   end
 end
