@@ -21,4 +21,6 @@ Contributions will be accepted to the [dev](https://github.com/Netflix/fast_json
 
     e. Done :)
 
+3. Run the tests. We only take pull requests with passing tests, and it's great to know that you have a clean slate
+
 For minor fixes just open a pull request to the [dev]( https://github.com/Netflix/fast_jsonapi/tree/dev ) branch on Github.
