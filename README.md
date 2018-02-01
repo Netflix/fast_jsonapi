@@ -1,6 +1,6 @@
 # Fast JSON API
 
-[![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/Netflix/osstracker.svg)]()
+[![Build Status](https://travis-ci.org/Netflix/fast_jsonapi.svg?branch=master)](https://travis-ci.org/Netflix/fast_jsonapi)
 
 A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
 
@@ -178,7 +178,7 @@ serializer | Set custom Serializer for a relationship | ```has_many :actors, ser
 
 ## Contributing
 
-Please follow the steps on [contribution checklist](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md).
+Please follow the steps on [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md).
 This gem is built using a gem building gem called [juwelier](https://github.com/flajann2/juwelier).
 
 Beyond just editing source code, you’ll be interacting with the gem using rake a lot. To see all the tasks available with a brief description, you can run:
