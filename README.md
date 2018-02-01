@@ -187,7 +187,7 @@ rake -T
 ```
 
 ### Updating Project information
-You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec
+You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec:
 
 ```bash
 rake gemspec
