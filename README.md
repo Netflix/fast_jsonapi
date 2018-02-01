@@ -32,8 +32,8 @@ We compare serialization times with Active Model Serializer as part of RSpec per
 
 ## Features
 
-* Declaration syntax similar to Active Model serializer
-* Support for belongs_to, has_many and has_one
+* Declaration syntax similar to Active Model Serializer
+* Support for `belongs_to`, `has_many` and `has_one`
 * Support for compound documents (included)
 * Optimized serialization of compound documents
 * Caching
