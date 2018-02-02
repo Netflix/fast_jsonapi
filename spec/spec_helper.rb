@@ -4,6 +4,7 @@ require 'multi_json'
 require 'byebug'
 require 'active_model_serializers'
 require 'oj'
+require 'jsonapi/serializable'
 
 Dir[File.dirname(__FILE__) + '/shared/contexts/*.rb'].each {|file| require file }
 
