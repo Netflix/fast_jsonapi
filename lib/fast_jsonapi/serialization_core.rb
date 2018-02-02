@@ -49,11 +49,11 @@ module FastJsonapi
       def record_hash(record)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length) do
-            record_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
-            record_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
-            record_hash[:relationships] = {}
-            record_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
-            record_hash
+            temp_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
+            temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
+            temp_hash[:relationships] = {}
+            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
+            temp_hash
           end
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
           record_hash
