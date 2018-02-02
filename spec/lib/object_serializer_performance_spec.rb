@@ -42,7 +42,7 @@ describe FastJsonapi::ObjectSerializer do
     puts format(format, 'Fast serializer', count, our_time.round(2).to_s + ' ms')
   end
 
-  context 'when comparing with AMS 0.10.x' do
+  context 'when comparing with AMS 0.10.x for serialized json' do
     [1, 25, 250, 1000].each do |movie_count|
       speed_factor = 25
       it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
@@ -61,7 +61,7 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
-  context 'when comparing with AMS 0.10.x and with includes and meta' do
+  context 'when comparing with AMS 0.10.x for serialized json with includes and meta' do
     [1, 25, 250, 1000].each do |movie_count|
       speed_factor = 25
       it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
@@ -80,6 +80,49 @@ describe FastJsonapi::ObjectSerializer do
         ams_time = Benchmark.measure { ams_json = ams_serializer.to_json }.real * 1000
         print_stats(movie_count, ams_time, our_time)
         expect(our_json.length).to eq ams_json.length
+        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
+      end
+    end
+  end
+
+  context 'when comparing with AMS 0.10.x for serializable hash' do
+    [1].each do |movie_count|
+      speed_factor = 25
+      it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
+        ams_movies = build_ams_movies(movie_count)
+        movies = build_movies(movie_count)
+        our_hash = nil
+        ams_hash = nil
+        our_serializer = MovieSerializer.new(movies)
+        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_movies)
+        our_time = Benchmark.measure { our_hash = our_serializer.serializable_hash }.real * 1000
+        ams_time = Benchmark.measure { ams_hash = ams_serializer.as_json }.real * 1000
+        print_stats(movie_count, ams_time, our_time)
+        expect(our_hash.to_json.length).to eq ams_hash.to_json.length
+        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+      end
+    end
+  end
+
+  context 'when comparing with AMS 0.10.x for serializable hash with includes and meta' do
+    [1, 25, 250, 1000].each do |movie_count|
+      speed_factor = 25
+      it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
+        ams_movies = build_ams_movies(movie_count)
+        movies = build_movies(movie_count)
+        our_hash = nil
+        ams_hash = nil
+
+        options = {}
+        options[:meta] = { total: movie_count }
+        options[:include] = [:actors, :movie_type]
+
+        our_serializer = MovieSerializer.new(movies, options)
+        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta])
+        our_time = Benchmark.measure { our_hash = our_serializer.serialized_json }.real * 1000
+        ams_time = Benchmark.measure { ams_hash = ams_serializer.to_json }.real * 1000
+        print_stats(movie_count, ams_time, our_time)
+        expect(our_hash.to_json.length).to eq ams_hash.to_json.length
         expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
       end
     end
