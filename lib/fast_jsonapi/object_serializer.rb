@@ -161,7 +161,7 @@ module FastJsonapi
           key = options[:key] || relationship_name.to_s.dasherize.to_sym
           record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
         end
-        relationship = {
+        add_relationship(name, {
           key: key,
           name: name,
           id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
@@ -170,8 +170,7 @@ module FastJsonapi
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :belongs_to,
           cached: options[:cached] || true
-        }
-        add_relationship(name, relationship)
+        })
       end
 
       def has_one(relationship_name, options = {})
@@ -183,7 +182,7 @@ module FastJsonapi
           key = options[:key] || relationship_name.to_s.dasherize.to_sym
           record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
         end
-        relationship = {
+        add_relationship(name, {
           key: key,
           name: name,
           id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
@@ -192,8 +191,7 @@ module FastJsonapi
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_one,
           cached: options[:cached] || false
-        }
-        add_relationship(name, relationship)
+        })
       end
 
       def compute_serializer_name(serializer_key)

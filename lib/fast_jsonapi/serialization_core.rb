@@ -27,27 +27,23 @@ module FastJsonapi
       end
 
       def attributes_hash(record)
-        attributes_hash = {}
-        attributes_to_serialize.each do |key, method_name|
-          attributes_hash[key] = record.send(method_name)
+        attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
+          attr_hash[key] = record.send(method_name)
         end
-        attributes_hash
       end
 
       def relationships_hash(record, relationships = nil)
-        relationships_hash = {}
         relationships = relationships_to_serialize if relationships.nil?
 
-        relationships.each do |_k, relationship|
+        relationships.each_with_object({}) do |(_k, relationship), hash|
           name = relationship[:key]
           id_method_name = relationship[:id_method_name]
           record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          relationships_hash[name] = {
+          hash[name] = {
             data: ids_hash(record.send(id_method_name), record_type) || empty_case
           }
         end
-        relationships_hash
       end
 
       def record_hash(record)
@@ -76,8 +72,7 @@ module FastJsonapi
       # includes handler
 
       def get_included_records(record, includes_list, known_included_objects)
-        included_records = []
-        includes_list.each do |item|
+        includes_list.each_with_object([]) do |item, included_records|
           object_method_name = @relationships_to_serialize[item][:object_method_name]
           record_type = @relationships_to_serialize[item][:record_type]
           serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
@@ -92,7 +87,6 @@ module FastJsonapi
             included_records << serializer.record_hash(inc_obj)
           end
         end
-        included_records
       end
 
       def has_permitted_includes(requested_includes)
