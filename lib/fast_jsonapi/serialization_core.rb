@@ -28,7 +28,7 @@ module FastJsonapi
 
       def attributes_hash(record)
         attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
-          attr_hash[key] = record.send(method_name)
+          attr_hash[key] = record.public_send(method_name)
         end
       end
 
@@ -41,7 +41,7 @@ module FastJsonapi
           record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
           hash[name] = {
-            data: ids_hash(record.send(id_method_name), record_type) || empty_case
+            data: ids_hash(record.public_send(id_method_name), record_type) || empty_case
           }
         end
       end
