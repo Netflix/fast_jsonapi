@@ -123,9 +123,7 @@ RSpec.shared_context 'movie class' do
       :id, :name, :release_year, :actor_ids, :actors, :owner_id, :owner, :movie_type_id
     )
 
-    ActorStruct = Struct.new(
-      :id, :name, :email
-    )
+    ActorStruct = Struct.new(:id, :name, :email)
   end
 
   after(:context) do
@@ -151,10 +149,7 @@ RSpec.shared_context 'movie class' do
     actors = []
 
     3.times.each do |id|
-      a = ActorStruct.new
-      a[:id] = id
-      a[:name] = id.to_s
-      actors << a
+      actors << ActorStruct.new(id, id.to_s, id.to_s)
     end
 
     m = MovieStruct.new

@@ -94,17 +94,6 @@ module FastJsonapi
         end
         included_records
       end
-
-      def has_permitted_includes(requested_includes)
-        # requested includes should be within relationships defined on serializer
-        allowed_includes = @relationships_to_serialize.keys
-        intersection = allowed_includes & requested_includes
-        if intersection.sort == requested_includes.sort
-          true
-        else
-          raise ArgumentError, "One of keys from #{requested_includes} is not specified as a relationship on the serializer"
-        end
-      end
     end
   end
 end
