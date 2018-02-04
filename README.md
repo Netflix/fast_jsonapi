@@ -25,6 +25,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Serializer Definition](#serializer-definition)
   * [Object Serialization](#object-serialization)
   * [Compound Document](#compound-document)
+  * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
 * [Contributing](#contributing)
@@ -134,6 +135,26 @@ json_string = MovieSerializer.new(movie).serialized_json
 }
 
 ```
+
+### Key Transforms
+By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  # Available options :camel, :camel_lower, :dash, :underscore(default)
+  set_key_transform :camel
+end
+```
+Here are examples of how these options transform the keys
+
+```ruby
+set_key_transform :camel # "some_key" => "SomeKey"
+set_key_transform :camel_lower # "some_key" => "someKey"
+set_key_transform :dash # "some_key" => "some-key"
+set_key_transform :underscore # "some_key" => "some_key"
+```
+
 ### Compound Document
 
 Support for top-level included member through ` options[:include] `.
