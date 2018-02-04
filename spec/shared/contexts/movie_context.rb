@@ -79,6 +79,16 @@ RSpec.shared_context 'movie class' do
       set_type :movie_type
       attributes :name
     end
+
+    class MovieSerializerWithCustomMethod
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name, :release_year, :title_with_year
+
+      def title_with_year
+        "#{record.name} (#{record.release_year})"
+      end
+    end
   end
 
 
@@ -134,6 +144,7 @@ RSpec.shared_context 'movie class' do
       ActorSerializer
       MovieType
       MovieTypeSerializer
+      MovieSerializerWithCustomMethod
       AppName::V1::MovieSerializer
       MovieStruct
       ActorStruct

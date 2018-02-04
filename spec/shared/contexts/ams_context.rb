@@ -37,6 +37,14 @@ RSpec.shared_context 'ams movie class' do
       type 'movie_type'
       attributes :name
     end
+    class AMSMovieSerializerWithCustomMethod < ActiveModel::Serializer
+      type 'movie'
+      attributes :name, :release_year, :title_with_year
+
+      def title_with_year
+        "#{object.name} (#{object.release_year})"
+      end
+    end
   end
 
   after(:context) do
