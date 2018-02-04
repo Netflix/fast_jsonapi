@@ -104,19 +104,6 @@ module FastJsonapi
     end
 
     class_methods do
-      def use_hyphen
-        @hyphenated = true
-      end
-
-      def set_type(type)
-        return unless type
-
-        type = type.to_s.underscore
-        type = type.dasherize if @hyphenated
-
-        self.record_type = type.to_sym
-      end
-
       def reflected_record_type
         return @reflected_record_type if defined?(@reflected_record_type)
 
@@ -125,6 +112,28 @@ module FastJsonapi
             self.name.split('::').last.chomp('Serializer').underscore.to_sym
           end
         end
+      end
+
+      def set_key_transform(transform_name)
+        mapping = {
+          camel: :camelize,
+          camel_lower: [:camelize, :lower],
+          dash: :dasherize,
+          underscore: :underscore
+        }
+        @transform_method = mapping[transform_name.to_sym]
+      end
+
+      def run_key_transform(input)
+        if @transform_method.present?
+          input.to_s.send(*@transform_method).to_sym
+        else
+          input.to_sym
+        end
+      end
+
+      def set_type(type_name)
+        self.record_type = run_key_transform(type_name)
       end
 
       def cache_options(cache_options)
@@ -137,10 +146,7 @@ module FastJsonapi
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
         attributes_list.each do |attr_name|
           method_name = attr_name
-          key = method_name
-          if @hyphenated
-            key = attr_name.to_s.dasherize.to_sym
-          end
+          key = run_key_transform(method_name)
           attributes_to_serialize[key] = method_name
         end
       end
@@ -159,15 +165,11 @@ module FastJsonapi
      end
 
       def has_many(relationship_name, options = {})
-        singular_name = relationship_name.to_s.singularize
-        record_type = options[:record_type] || singular_name.to_sym
         name = relationship_name.to_sym
-        key = options[:key] || name
-        if @hyphenated
-          key = options[:key] || relationship_name.to_s.dasherize.to_sym
-          record_type = options[:record_type] || singular_name.to_s.dasherize.to_sym
-        end
-        serializer_key = options[:serializer] || record_type
+        singular_name = relationship_name.to_s.singularize
+        serializer_key = options[:serializer] || singular_name.to_sym
+        key = options[:key] || run_key_transform(relationship_name)
+        record_type = options[:record_type] || run_key_transform(singular_name)
         relationship = {
           key: key,
           name: name,
@@ -183,13 +185,9 @@ module FastJsonapi
 
       def belongs_to(relationship_name, options = {})
         name = relationship_name.to_sym
-        key = options[:key] || name
-        record_type = options[:record_type] || name
-        serializer_key = options[:serializer] || record_type
-        if @hyphenated
-          key = options[:key] || relationship_name.to_s.dasherize.to_sym
-          record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
-        end
+        serializer_key = options[:serializer] || relationship_name.to_sym
+        key = options[:key] || run_key_transform(relationship_name)
+        record_type = options[:record_type] || run_key_transform(relationship_name)
         add_relationship(name, {
           key: key,
           name: name,
@@ -204,13 +202,9 @@ module FastJsonapi
 
       def has_one(relationship_name, options = {})
         name = relationship_name.to_sym
-        key = options[:key] || name
-        record_type = options[:record_type] || name
-        serializer_key = options[:serializer] || record_type
-        if @hyphenated
-          key = options[:key] || relationship_name.to_s.dasherize.to_sym
-          record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
-        end
+        serializer_key = options[:serializer] || name
+        key = options[:key] || run_key_transform(relationship_name)
+        record_type = options[:record_type] || run_key_transform(relationship_name)
         add_relationship(name, {
           key: key,
           name: name,
