@@ -49,8 +49,6 @@ GEM
     erubi (1.7.0)
     i18n (0.9.1)
       concurrent-ruby (~> 1.0)
-    jsonapi-renderer (0.2.0)
-    json (1.8.6)
     jsonapi-deserializable (0.2.0)
     jsonapi-rb (0.5.0)
       jsonapi-deserializable (~> 0.2.0)
@@ -58,17 +56,6 @@ GEM
     jsonapi-renderer (0.2.0)
     jsonapi-serializable (0.3.0)
       jsonapi-renderer (~> 0.2.0)
-    juwelier (2.1.3)
-      builder
-      bundler (>= 1.13)
-      git (>= 1.2.5)
-      github_api
-      highline (>= 1.6.15)
-      nokogiri (>= 1.5.10)
-      rake
-      rdoc
-      semver
-    jwt (1.5.6)
     loofah (2.1.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -119,12 +106,11 @@ DEPENDENCIES
   byebug
   fast_jsonapi!
   jsonapi-rb (~> 0.5.0)
-  juwelier (~> 2.1.0)
-  rdoc (~> 3.12)
+  oj (~> 3.3)
   rspec (~> 3.5.0)
   rspec-benchmark (~> 0.3.0)
   skylight (~> 1.3)
   sqlite3 (~> 1.3)
 
 BUNDLED WITH
-   1.16.0
+   1.16.1
