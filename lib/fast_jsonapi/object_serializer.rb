@@ -103,7 +103,7 @@ module FastJsonapi
         self.cache_length = cache_options[:cache_length] || 5.minutes
       end
 
-      def attributes(*attributes_list)
+      def attributes(*attributes_list, &block)
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
         attributes_list.each do |attr_name|
@@ -112,9 +112,11 @@ module FastJsonapi
           if @hyphenated
             key = attr_name.to_s.dasherize.to_sym
           end
-          attributes_to_serialize[key] = method_name
+          attributes_to_serialize[key] = block || method_name
         end
       end
+
+      alias_method :attribute, :attributes
 
       def add_relationship(name, relationship)
         self.relationships_to_serialize = {} if relationships_to_serialize.nil?
