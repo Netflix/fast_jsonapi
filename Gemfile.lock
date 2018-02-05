@@ -100,7 +100,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_model_serializers (~> 0.10.4)
+  active_model_serializers (~> 0.10.7)
   activerecord (~> 5.0)
   bundler (~> 1.0)
   byebug
