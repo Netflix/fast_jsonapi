@@ -8,35 +8,35 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   before(:all) { GC.disable }
   after(:all) { GC.enable }
 
-#  context 'when testing performance of serialization' do
-#    it 'should create a hash of 1000 records in less than 50 ms' do
-#      movies = 1000.times.map { |_i| movie }
-#      expect { MovieSerializer.new(movies).serializable_hash }.to perform_under(50).ms
-#    end
-#
-#    it 'should serialize 1000 records to jsonapi in less than 60 ms' do
-#      movies = 1000.times.map { |_i| movie }
-#      expect { MovieSerializer.new(movies).serialized_json }.to perform_under(60).ms
-#    end
-#
-#    it 'should create a hash of 1000 records with includes and meta in less than 75 ms' do
-#      count = 1000
-#      movies = count.times.map { |_i| movie }
-#      options = {}
-#      options[:meta] = { total: count }
-#      options[:include] = [:actors]
-#      expect { MovieSerializer.new(movies, options).serializable_hash }.to perform_under(75).ms
-#    end
-#
-#    it 'should serialize 1000 records to jsonapi with includes and meta in less than 75 ms' do
-#      count = 1000
-#      movies = count.times.map { |_i| movie }
-#      options = {}
-#      options[:meta] = { total: count }
-#      options[:include] = [:actors]
-#      expect { MovieSerializer.new(movies, options).serialized_json }.to perform_under(75).ms
-#    end
-#  end
+  context 'when testing performance of serialization' do
+    it 'should create a hash of 1000 records in less than 50 ms' do
+      movies = 1000.times.map { |_i| movie }
+      expect { MovieSerializer.new(movies).serializable_hash }.to perform_under(50).ms
+    end
+
+    it 'should serialize 1000 records to jsonapi in less than 60 ms' do
+      movies = 1000.times.map { |_i| movie }
+      expect { MovieSerializer.new(movies).serialized_json }.to perform_under(60).ms
+    end
+
+    it 'should create a hash of 1000 records with includes and meta in less than 75 ms' do
+      count = 1000
+      movies = count.times.map { |_i| movie }
+      options = {}
+      options[:meta] = { total: count }
+      options[:include] = [:actors]
+      expect { MovieSerializer.new(movies, options).serializable_hash }.to perform_under(75).ms
+    end
+
+    it 'should serialize 1000 records to jsonapi with includes and meta in less than 75 ms' do
+      count = 1000
+      movies = count.times.map { |_i| movie }
+      options = {}
+      options[:meta] = { total: count }
+      options[:include] = [:actors]
+      expect { MovieSerializer.new(movies, options).serialized_json }.to perform_under(75).ms
+    end
+  end
 
   def print_stats(message, count, ams_time, jsonapi_time, our_time)
     format = '%-15s %-10s %s'
