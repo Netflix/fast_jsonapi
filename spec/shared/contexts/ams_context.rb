@@ -1,34 +1,28 @@
 RSpec.shared_context 'ams movie class' do
   before(:context) do
     # models
-    class AMSMovie < ActiveModelSerializers::Model
-      attr_accessor :id, :name, :release_year, :actors, :owner, :movie_type
+    class AMSModel < ActiveModelSerializers::Model
+      derive_attributes_from_names_and_fix_accessors
+    end
+    class AMSMovie < AMSModel
+      attributes :id, :name, :release_year, :actors, :owner, :movie_type
     end
 
-    class AMSActor < ActiveModelSerializers::Model
-      attr_accessor :id, :name, :email
+    class AMSActor < AMSModel
+      attributes :id, :name, :email
     end
 
-    class AMSUser < ActiveModelSerializers::Model
-      attr_accessor :id, :name
+    class AMSUser < AMSModel
+      attributes :id, :name
     end
-    class AMSMovieType < ActiveModelSerializers::Model
-      attr_accessor :id, :name
+    class AMSMovieType < AMSModel
+      attributes :id, :name
     end
     # serializers
-    class AMSMovieSerializer < ActiveModel::Serializer
-      type 'movie'
-      attributes :name, :release_year
-      has_many :actors
-      has_one :owner
-      belongs_to :movie_type
-    end
-
     class AMSActorSerializer < ActiveModel::Serializer
       type 'actor'
       attributes :name, :email
     end
-
     class AMSUserSerializer < ActiveModel::Serializer
       type 'user'
       attributes :name
@@ -36,6 +30,13 @@ RSpec.shared_context 'ams movie class' do
     class AMSMovieTypeSerializer < ActiveModel::Serializer
       type 'movie_type'
       attributes :name
+    end
+    class AMSMovieSerializer < ActiveModel::Serializer
+      type 'movie'
+      attributes :name, :release_year
+      has_many :actors
+      has_one :owner
+      belongs_to :movie_type
     end
   end
 
