@@ -41,6 +41,27 @@ RSpec.shared_context 'jsonapi movie class' do
       type 'movie_type'
       attributes :name
     end
+
+    class JSONAPISerializer
+      def initialize(data, options = {})
+        @serializer = JSONAPI::Serializable::Renderer.new
+        @options = options.merge(class: {
+          JSONAPIMovie: JSONAPIMovieSerializer,
+          JSONAPIActor: JSONAPIActorSerializer,
+          JSONAPIUser: JSONAPIUserSerializer,
+          JSONAPIMovieType: JSONAPIMovieTypeSerializer
+        })
+        @data = data
+      end
+
+      def to_json
+        @serializer.render(@data, @options).to_json
+      end
+
+      def to_hash
+        @serializer.render(@data, @options)
+      end
+    end
   end
 
   after :context do
