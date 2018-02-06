@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'fast_jsonapi/multi_to_json'
 
 module FastJsonapi
   module SerializationCore
@@ -67,7 +68,7 @@ module FastJsonapi
 
       # Override #to_json for alternative implementation
       def to_json(payload)
-        JSON.fast_generate(payload) if payload.present?
+        FastJsonapi::MultiToJson.to_json(payload) if payload.present?
       end
 
       # includes handler
