@@ -74,8 +74,9 @@ describe FastJsonapi::ObjectSerializer do
       includes_list = [:actors]
       known_included_objects = {}
       included_records = []
+      fields = {}
       [movie, movie].each do |record|
-        included_records.concat MovieSerializer.send(:get_included_records, record, includes_list, known_included_objects)
+        included_records.concat MovieSerializer.send(:get_included_records, record, includes_list, fields, known_included_objects)
       end
       expect(included_records.size).to eq 3
     end

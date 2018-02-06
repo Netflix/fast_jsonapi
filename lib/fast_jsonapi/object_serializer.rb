@@ -50,8 +50,9 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects) if @includes.present?
+      fields = @fields[self.class.record_type]
+      serializable_hash[:data] = self.class.record_hash(@resource, fields)
+      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @fields, @known_included_objects) if @includes.present?
       serializable_hash
     end
 
@@ -60,9 +61,10 @@ module FastJsonapi
 
       data = []
       included = []
+      fields = @fields[self.class.record_type]
       @resource.each do |record|
-        data << self.class.record_hash(record)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects) if @includes.present?
+        data << self.class.record_hash(record, fields)
+        included.concat self.class.get_included_records(record, @includes, @fields, @known_included_objects) if @includes.present?
       end
 
       serializable_hash[:data] = data
@@ -78,10 +80,15 @@ module FastJsonapi
     private
 
     def process_options(options)
+      @fields = {}
       return if options.blank?
 
       @known_included_objects = {}
       @meta = options[:meta]
+
+      options.fetch(:fields, {}).each do |model, fields|
+        @fields[model] = fields.map { |field| self.class.run_key_transform(field) }
+      end
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?)
