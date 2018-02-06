@@ -147,7 +147,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_many,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          polymorphic: options.fetch(:polymorphic, false)
         }
         add_relationship(name, relationship)
       end
@@ -169,7 +170,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :belongs_to,
-          cached: options[:cached] || true
+          cached: options[:cached] || true,
+          polymorphic: options.fetch(:polymorphic, false)
         }
         add_relationship(name, relationship)
       end
@@ -191,7 +193,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_one,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          polymorphic: options.fetch(:polymorphic, false)
         }
         add_relationship(name, relationship)
       end

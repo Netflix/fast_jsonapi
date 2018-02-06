@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
   include_context "movie class"
+  include_context 'group class'
 
   context 'when testing class methods of serialization core' do
     it 'returns correct hash when id_hash is called' do
@@ -14,6 +15,12 @@ describe FastJsonapi::ObjectSerializer do
 
       result_hash = MovieSerializer.send(:id_hash, nil, 'movie')
       expect(result_hash).to be nil
+    end
+
+    it 'returns the correct hash when ids_hash_from_record_and_relationship is called for a polymorphic association' do
+      relationship = { name: :groupees, relationship_type: :has_many, polymorphic: true }
+      results = GroupSerializer.send :ids_hash_from_record_and_relationship, group, relationship
+      expect(results).to include({ id: "1", type: :person }, { id: "2", type: :group })
     end
 
     it 'returns correct hash when ids_hash is called' do
@@ -80,5 +87,4 @@ describe FastJsonapi::ObjectSerializer do
       expect(included_records.size).to eq 3
     end
   end
-
 end

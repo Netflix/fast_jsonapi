@@ -37,6 +37,14 @@ RSpec.shared_context 'ams movie class' do
       type 'movie_type'
       attributes :name
     end
+
+    class AMSRole < ActiveModelSerializers::Model
+      attr_accessor :id, :name, :actor, :target
+    end
+
+    class AMSGroup < ActiveModelSerializers::Model
+      attr_accessor :id, :name
+    end
   end
 
   after(:context) do
