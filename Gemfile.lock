@@ -3,7 +3,6 @@ PATH
   specs:
     fast_jsonapi (1.0.17)
       activesupport (>= 4.2)
-      multi_json (~> 1.12)
 
 GEM
   remote: https://rubygems.org/
@@ -61,7 +60,6 @@ GEM
       nokogiri (>= 1.5.9)
     mini_portile2 (2.3.0)
     minitest (5.10.3)
-    multi_json (1.13.1)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
     oj (3.4.0)
