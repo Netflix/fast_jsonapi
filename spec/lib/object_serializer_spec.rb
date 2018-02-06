@@ -69,6 +69,14 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when has_one returns nil from activerecord' do
+      allow(supplier).to receive(:account_id).and_raise(NoMethodError, "undefined method 'id' for nil:NilClass")
+      allow(supplier).to receive(:account).and_return(nil)
+      json = SupplierSerializer.new(supplier).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['account']['data']).to be nil
+    end
+
     it 'returns correct json when serializing []' do
       json = MovieSerializer.new([]).serialized_json
       serializable_hash = JSON.parse(json)
