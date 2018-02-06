@@ -1,7 +1,6 @@
 require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
-require 'multi_json'
 require 'fast_jsonapi/serialization_core'
 
 begin

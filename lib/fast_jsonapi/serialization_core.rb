@@ -65,8 +65,9 @@ module FastJsonapi
         end
       end
 
+      # Override #to_json for alternative implementation
       def to_json(payload)
-        MultiJson.dump(payload) if payload.present?
+        JSON.fast_generate(payload) if payload.present?
       end
 
       # includes handler
