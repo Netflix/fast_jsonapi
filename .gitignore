@@ -16,9 +16,6 @@ doc
 # For MacOS:
 .DS_Store
 
-# juwelier generated
-pkg
-
 # For MacOS:
 .DS_Store
 
@@ -26,8 +23,7 @@ pkg
 #*.tmproj
 #tmtags
 
-# For vim:
-#*.swp
+*.swp
 
 # For redcar:
 #.redcar

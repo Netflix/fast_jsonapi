@@ -95,37 +95,13 @@ RSpec.shared_context 'movie class' do
     end
   end
 
-
-  # Hyphenated keys for the serializer
-  before(:context) do
-    class HyphenMovieSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :movie
-      attributes :name, :release_year
-      has_many :actors
-      belongs_to :owner, record_type: :user
-      belongs_to :movie_type
-    end
-
-    class HyphenMovieTypeSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :movie_type
-      attributes :name
-    end
-  end
-
-
   # Movie and Actor struct
   before(:context) do
     MovieStruct = Struct.new(
       :id, :name, :release_year, :actor_ids, :actors, :owner_id, :owner, :movie_type_id
     )
 
-    ActorStruct = Struct.new(
-      :id, :name, :email
-    )
+    ActorStruct = Struct.new(:id, :name, :email)
   end
 
   after(:context) do
@@ -151,10 +127,7 @@ RSpec.shared_context 'movie class' do
     actors = []
 
     3.times.each do |id|
-      a = ActorStruct.new
-      a[:id] = id
-      a[:name] = id.to_s
-      actors << a
+      actors << ActorStruct.new(id, id.to_s, id.to_s)
     end
 
     m = MovieStruct.new
