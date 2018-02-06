@@ -28,7 +28,7 @@ module FastJsonapi
 
       def attributes_hash(record)
         attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
-          attr_hash[key] = record.send(method_name)
+          attr_hash[key] = record.public_send(method_name)
         end
       end
 
@@ -43,11 +43,11 @@ module FastJsonapi
           record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
 
-          if relationship_type == :has_one && record.send(object_method_name).nil?
+          if relationship_type == :has_one && record.public_send(object_method_name).nil?
             hash[name] = { data: empty_case }
           else
             hash[name] = {
-              data: ids_hash(record.send(id_method_name), record_type) || empty_case
+              data: ids_hash(record.public_send(id_method_name), record_type) || empty_case
             }
           end
         end
@@ -93,17 +93,6 @@ module FastJsonapi
             known_included_objects[code] = inc_obj
             included_records << serializer.record_hash(inc_obj)
           end
-        end
-      end
-
-      def has_permitted_includes(requested_includes)
-        # requested includes should be within relationships defined on serializer
-        allowed_includes = @relationships_to_serialize.keys
-        intersection = allowed_includes & requested_includes
-        if intersection.sort == requested_includes.sort
-          true
-        else
-          raise ArgumentError, "One of keys from #{requested_includes} is not specified as a relationship on the serializer"
         end
       end
     end
