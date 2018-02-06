@@ -3,7 +3,7 @@ Gem::Specification.new do |gem|
   gem.version = "1.0.17"
 
   gem.required_rubygems_version = Gem::Requirement.new(">= 0") if gem.respond_to? :required_rubygems_version=
-  gem.metadata = { "allowed_push_host" => "https://rubygemgem.org" } if gem.respond_to? :metadata=
+  gem.metadata = { "allowed_push_host" => "https://rubygems.org" } if gem.respond_to? :metadata=
   gem.require_paths = ["lib"]
   gem.authors = ["Shishir Kakaraddi", "Srinivas Raghunathan", "Adam Gross"]
   gem.date = "2018-02-01"
