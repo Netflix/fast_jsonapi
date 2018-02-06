@@ -20,9 +20,9 @@ Gem::Specification.new do |gem|
   gem.rubygems_version = "2.5.1"
   gem.summary = "fast JSON API(jsonapi.org) serializer"
 
-  gem.add_runtime_dependency(%q<activesupport>, ["~> 5.0"])
+  gem.add_runtime_dependency(%q<activesupport>, [">= 4.2"])
   gem.add_runtime_dependency(%q<multi_json>, ["~> 1.12"])
-  gem.add_development_dependency(%q<activerecord>, ["~> 5.0"])
+  gem.add_development_dependency(%q<activerecord>, [">= 4.2"])
   gem.add_development_dependency(%q<skylight>, ["~> 1.3"])
   gem.add_development_dependency(%q<rspec>, ["~> 3.5.0"])
   gem.add_development_dependency(%q<oj>, ["~> 3.3"])
