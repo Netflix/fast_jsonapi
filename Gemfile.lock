@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     fast_jsonapi (1.0.17)
-      activesupport (~> 5.0)
+      activesupport (>= 4.2)
       multi_json (~> 1.12)
 
 GEM
@@ -101,7 +101,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (~> 0.10.7)
-  activerecord (~> 5.0)
+  activerecord (>= 4.2)
   bundler (~> 1.0)
   byebug
   fast_jsonapi!
