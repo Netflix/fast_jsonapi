@@ -26,19 +26,25 @@ module FastJsonapi
         id_hash(ids, record_type) # ids variable is just a single id here
       end
 
-      def id_hash_from_record(record)
-        { id: record.id.to_s, type: record.class.name.underscore.to_sym }
+      def id_hash_from_record(record, record_types = nil)
+        record_type = record_types.respond_to?(:key) ? record_types[record.class] : nil
+        { id: record.id.to_s, type: (record_type || record.class.name.underscore.to_sym) }
       end
 
       def ids_hash_from_record_and_relationship(record, relationship)
+        polymorphic = relationship[:polymorphic]
+
         return ids_hash(record.send(relationship[:id_method_name]), relationship[:record_type]) \
-          unless relationship[:polymorphic]
+          unless polymorphic
 
         object_method_name = relationship.fetch(:object_method_name, relationship[:name])
         return unless associated_object = record.send(object_method_name)
 
-        return id_hash_from_record(associated_object) unless associated_object.respond_to? :map
-        associated_object.map { |object| id_hash_from_record(object) }
+        return associated_object.map do |object|
+          id_hash_from_record object, polymorphic
+        end if associated_object.respond_to? :map
+        
+        id_hash_from_record associated_object, polymorphic
       end
 
       def attributes_hash(record)

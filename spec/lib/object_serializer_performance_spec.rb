@@ -112,7 +112,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
 
   context 'when comparing with AMS 0.10.x and with polymorphic has_many' do
     [1, 25, 250, 1000].each do |group_count|
-      speed_factor = 5
+      speed_factor = 25
       it "should serialize #{group_count} records at least #{speed_factor} times faster than AMS" do
         ams_groups = build_ams_groups(group_count)
         groups = build_groups(group_count)
