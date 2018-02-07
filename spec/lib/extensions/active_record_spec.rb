@@ -29,8 +29,10 @@ describe 'active record' do
     # Insert records
     @account_id = 2
     @supplier_id = 1
+    @supplier_id_without_account = 3
     db.execute_batch <<-SQL
-      insert into suppliers values ('Supplier1', #{@supplier_id});
+      insert into suppliers values ('Supplier1', #{@supplier_id}),
+                                   ('SupplierWithoutAccount', #{@supplier_id_without_account});
       insert into accounts values ('Dollar Account', #{@account_id}, #{@supplier_id});
     SQL
   end
@@ -56,6 +58,10 @@ describe 'active record' do
     it 'has account_id method for a supplier' do
       expect(Supplier.first.respond_to?(:account_id)).to be true
       expect(Supplier.first.account_id).to eq @account_id
+    end
+
+    it 'has account_id method return nil if account not present' do
+      expect(Supplier.find(@supplier_id_without_account).account_id).to eq nil
     end
 
   end
