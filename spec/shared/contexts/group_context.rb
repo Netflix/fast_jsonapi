@@ -22,7 +22,7 @@ RSpec.shared_context 'group class' do
       include FastJsonapi::ObjectSerializer
       set_type :group
       attributes :name
-      has_many :groupees, polymorphic: { Person => :person, Group => :group }
+      has_many :groupees, polymorphic: true
     end
   end
 

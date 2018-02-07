@@ -18,7 +18,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns the correct hash when ids_hash_from_record_and_relationship is called for a polymorphic association' do
-      relationship = { name: :groupees, relationship_type: :has_many, polymorphic: true }
+      relationship = { name: :groupees, relationship_type: :has_many, polymorphic: {} }
       results = GroupSerializer.send :ids_hash_from_record_and_relationship, group, relationship
       expect(results).to include({ id: "1", type: :person }, { id: "2", type: :group })
     end
