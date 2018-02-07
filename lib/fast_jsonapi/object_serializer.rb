@@ -18,7 +18,8 @@ module FastJsonapi
     end
 
     SERIALIZE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'.freeze
-    TO_JSON_HASH_NOTIFICATION = 'render.fast_jsonapi.to_json'.freeze
+    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'.freeze
+    TO_JSON_NOTIFICATION = 'render.fast_jsonapi.to_json'.freeze
 
     extend ActiveSupport::Concern
     include SerializationCore
@@ -32,7 +33,7 @@ module FastJsonapi
 
         def to_json
           if instrumentation_enabled?
-            ActiveSupport::Notifications.instrument(TO_JSON_HASH_NOTIFICATION, { name: self.class.name }) do
+            ActiveSupport::Notifications.instrument(TO_JSON_NOTIFICATION, { name: self.class.name }) do
               to_json_without_instrumentation
             end
           else
@@ -98,6 +99,16 @@ module FastJsonapi
     end
 
     def serialized_json
+      if instrumentation_enabled?
+        ActiveSupport::Notifications.instrument(SERIALIZED_JSON_NOTIFICATION, { name: self.class.name }) do
+          serialized_json!
+        end
+      else
+        serialized_json!
+      end
+    end
+
+    def serialized_json!
       self.class.to_json(serializable_hash)
     end
 
