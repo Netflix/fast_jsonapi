@@ -166,6 +166,21 @@ options[:include] = [:actors]
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
+### Sparse fieldsets
+
+Support for explicit fieldset declaration through ` options[:fields] `. Also works for included records.
+
+```ruby
+options = {}
+options[:meta] = { total: 2 }
+options[:include] = [:actors]
+options[:fields] = {
+  movie: ['name'], # will only include name attribute into attributes hash
+  actor: ['email'] # ...only email for included actors
+}
+MovieSerializer.new([movie, movie], options).serialized_json
+```
+
 ### Collection Serialization
 
 ```ruby

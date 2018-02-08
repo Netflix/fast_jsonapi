@@ -8,6 +8,9 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = [:actors]
+      options[:fields] = {
+        actor: ['name']
+      }
       serializable_hash = MovieSerializer.new([movie, movie], options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
@@ -18,6 +21,7 @@ describe FastJsonapi::ObjectSerializer do
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included][0]).to be_instance_of(Hash)
+      expect(serializable_hash[:included][0][:attributes].keys).to eq [:name]
       expect(serializable_hash[:included].length).to eq 3
 
       serializable_hash = MovieSerializer.new(movie).serializable_hash
@@ -34,6 +38,17 @@ describe FastJsonapi::ObjectSerializer do
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data'].length).to eq 2
       expect(serializable_hash['meta']).to be_instance_of(Hash)
+    end
+
+    it 'returns correct fieldset when serializer instantiated with fields option' do
+      options = {
+        fields: {
+          movie: ['name']
+        }
+      }
+      json = MovieSerializer.new(movie, options).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].keys).to eq ['name']
     end
 
     it 'returns correct id when serialized_json is called for a single object' do
