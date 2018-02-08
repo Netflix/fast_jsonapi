@@ -25,6 +25,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Serializer Definition](#serializer-definition)
   * [Object Serialization](#object-serialization)
   * [Compound Document](#compound-document)
+  * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
 * [Contributing](#contributing)
@@ -134,6 +135,26 @@ json_string = MovieSerializer.new(movie).serialized_json
 }
 
 ```
+
+### Key Transforms
+By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  # Available options :camel, :camel_lower, :dash, :underscore(default)
+  set_key_transform :camel
+end
+```
+Here are examples of how these options transform the keys
+
+```ruby
+set_key_transform :camel # "some_key" => "SomeKey"
+set_key_transform :camel_lower # "some_key" => "someKey"
+set_key_transform :dash # "some_key" => "some-key"
+set_key_transform :underscore # "some_key" => "some_key"
+```
+
 ### Compound Document
 
 Support for top-level included member through ` options[:include] `.
@@ -177,60 +198,14 @@ serializer | Set custom Serializer for a relationship | ```has_many :actors, ser
 
 
 ## Contributing
-
-Please follow the steps on [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md).
-This gem is built using a gem building gem called [juwelier](https://github.com/flajann2/juwelier).
-
-Beyond just editing source code, you’ll be interacting with the gem using rake a lot. To see all the tasks available with a brief description, you can run:
-
-```bash
-rake -T
-```
-
-### Updating Project information
-You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec:
-
-```bash
-rake gemspec
-```
+Please see [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md) for more details on contributing
 
 ### Running Tests
-We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task:
+We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following command:
 
 ```bash
-rake spec
+rspec
 ```
-
-### Installation
-
-```bash
-$ rake install
-```
-
-The install rake task builds the gem and then installs it. You're all
-set if you're using [RVM](http://rvm.beginrescueend.com/), but you may
-need to run it with sudo if you have a system-installed Ruby:
-
-### Bumping Version
-
-It feels good to release code. Do it, do it often. But before that, bump
-the version. Then release it. There's a few ways to update the version:
-
-```bash
-# version:write like before
-$ rake version:write MAJOR=0 MINOR=3 PATCH=0
-
-# bump just major, ie 0.1.0 -> 1.0.0
-$ rake version:bump:major
-
-# bump just minor, ie 0.1.0 -> 0.2.0
-$ rake version:bump:minor
-
-# bump just patch, ie 0.1.0 -> 0.1.1
-$ rake version:bump:patch
-```
-
----
 
 ### We're Hiring!
 

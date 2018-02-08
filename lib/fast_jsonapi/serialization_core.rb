@@ -1,4 +1,5 @@
 require 'active_support/concern'
+require 'fast_jsonapi/multi_to_json'
 
 module FastJsonapi
   module SerializationCore
@@ -35,8 +36,10 @@ module FastJsonapi
       def ids_hash_from_record_and_relationship(record, relationship)
         polymorphic = relationship[:polymorphic]
 
-        return ids_hash(record.send(relationship[:id_method_name]), relationship[:record_type]) \
-          unless polymorphic
+        return ids_hash(
+          record.public_send(relationship[:id_method_name]),
+          relationship[:record_type]
+        ) unless polymorphic
 
         object_method_name = relationship.fetch(:object_method_name, relationship[:name])
         return unless associated_object = record.send(object_method_name)
@@ -49,35 +52,33 @@ module FastJsonapi
       end
 
       def attributes_hash(record)
-        attributes_hash = {}
-        attributes_to_serialize.each do |key, method_name|
-          attributes_hash[key] = record.send(method_name)
+        attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
+          attr_hash[key] = record.public_send(method_name)
         end
-        attributes_hash
       end
 
       def relationships_hash(record, relationships = nil)
-        relationships_hash = {}
         relationships = relationships_to_serialize if relationships.nil?
 
-        relationships.each do |_k, relationship|
+        relationships.each_with_object({}) do |(_k, relationship), hash|
           name = relationship[:key]
+          id_method_name = relationship[:id_method_name]
+          record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          relationships_hash[name] = {
+          hash[name] = {
             data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
           }
         end
-        relationships_hash
       end
 
       def record_hash(record)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length) do
-            record_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
-            record_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
-            record_hash[:relationships] = {}
-            record_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
-            record_hash
+            temp_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
+            temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
+            temp_hash[:relationships] = {}
+            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
+            temp_hash
           end
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
           record_hash
@@ -89,15 +90,15 @@ module FastJsonapi
         end
       end
 
+      # Override #to_json for alternative implementation
       def to_json(payload)
-        MultiJson.dump(payload) if payload.present?
+        FastJsonapi::MultiToJson.to_json(payload) if payload.present?
       end
 
       # includes handler
 
       def get_included_records(record, includes_list, known_included_objects)
-        included_records = []
-        includes_list.each do |item|
+        includes_list.each_with_object([]) do |item, included_records|
           object_method_name = @relationships_to_serialize[item][:object_method_name]
           record_type = @relationships_to_serialize[item][:record_type]
           serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
@@ -111,18 +112,6 @@ module FastJsonapi
             known_included_objects[code] = inc_obj
             included_records << serializer.record_hash(inc_obj)
           end
-        end
-        included_records
-      end
-
-      def has_permitted_includes(requested_includes)
-        # requested includes should be within relationships defined on serializer
-        allowed_includes = @relationships_to_serialize.keys
-        intersection = allowed_includes & requested_includes
-        if intersection.sort == requested_includes.sort
-          true
-        else
-          raise ArgumentError, "One of keys from #{requested_includes} is not specified as a relationship on the serializer"
         end
       end
     end
