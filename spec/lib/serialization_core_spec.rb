@@ -29,7 +29,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct hash when attributes_hash is called' do
-      attributes_hash = MovieSerializer.send(:attributes_hash, movie)
+      attributes_hash = MovieSerializer.new.send(:attributes_hash, movie)
       attribute_names = attributes_hash.keys.sort
       expect(attribute_names).to eq MovieSerializer.attributes_to_serialize.keys.sort
       MovieSerializer.attributes_to_serialize.each do |key, method_name|
@@ -41,13 +41,13 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns the correct empty result when relationships_hash is called' do
       movie.actor_ids = []
       movie.owner_id = nil
-      relationships_hash = MovieSerializer.send(:relationships_hash, movie)
+      relationships_hash = MovieSerializer.new.send(:relationships_hash, movie)
       expect(relationships_hash[:actors][:data]).to eq([])
       expect(relationships_hash[:owner][:data]).to eq(nil)
     end
 
     it 'returns correct keys when relationships_hash is called' do
-      relationships_hash = MovieSerializer.send(:relationships_hash, movie)
+      relationships_hash = MovieSerializer.new.send(:relationships_hash, movie)
       relationship_names = relationships_hash.keys.sort
       relationships_hashes = MovieSerializer.relationships_to_serialize.values
       expected_names = relationships_hashes.map{|relationship| relationship[:key]}.sort
@@ -55,7 +55,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct values when relationships_hash is called' do
-      relationships_hash = MovieSerializer.relationships_hash(movie)
+      relationships_hash = MovieSerializer.new.relationships_hash(movie)
       actors_hash = movie.actor_ids.map { |id|  {id: id.to_s, type: :actor} }
       owner_hash = {id: movie.owner_id.to_s, type: :user}
       expect(relationships_hash[:actors][:data]).to match_array actors_hash
@@ -63,7 +63,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct hash when record_hash is called' do
-      record_hash = MovieSerializer.send(:record_hash, movie)
+      record_hash = MovieSerializer.new.send(:record_hash, movie)
       expect(record_hash[:id]).to eq movie.id.to_s
       expect(record_hash[:type]).to eq MovieSerializer.record_type
       expect(record_hash).to have_key(:attributes) if MovieSerializer.attributes_to_serialize.present?
