@@ -147,6 +147,9 @@ module FastJsonapi
           method_name = attr_name
           key = run_key_transform(method_name)
           attributes_to_serialize[key] = method_name
+          define_method method_name do
+            object.send(method_name)
+          end
         end
       end
 

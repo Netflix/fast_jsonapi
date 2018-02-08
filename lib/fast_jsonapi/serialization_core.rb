@@ -16,13 +16,15 @@ module FastJsonapi
                       :cached
       end
 
+      attr_accessor :object
+
       def klass
         self.class
       end
 
       def attributes_hash(record)
         klass.attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
-          attr_hash[key] = record.public_send(method_name)
+          attr_hash[key] = send(method_name)
         end
       end
 
@@ -41,6 +43,7 @@ module FastJsonapi
       end
 
       def record_hash(record)
+        self.object = record
         if klass.cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: klass.cache_length) do
             temp_hash = klass.id_hash(record.id, klass.record_type) || { id: nil, type: klass.record_type }
