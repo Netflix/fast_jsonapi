@@ -40,26 +40,6 @@ RSpec.shared_context 'group class' do
     end
   end
 
-
-  # Hyphenated keys for the serializer
-  before(:context) do
-    class HyphenPersonSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :person
-      attributes :first_name, :last_name
-    end
-
-    class HyphenGroupSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :group
-      attributes :name
-      has_many :groupees
-    end
-  end
-
-
   # Movie and Actor struct
   before(:context) do
     PersonStruct = Struct.new(
@@ -80,8 +60,6 @@ RSpec.shared_context 'group class' do
       AppName::V1::PersonSerializer
       PersonStruct
       GroupStruct
-      HyphenPersonSerializer
-      HyphenGroupSerializer
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)

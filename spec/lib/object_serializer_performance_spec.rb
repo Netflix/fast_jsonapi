@@ -7,6 +7,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
 
   include_context 'group class'
   include_context 'ams group class'
+  include_context 'jsonapi group class'
 
   before(:all) { GC.disable }
   after(:all) { GC.enable }
@@ -131,12 +132,13 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         options = {}
         our_serializer = GroupSerializer.new(groups, options)
         ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_groups)
+        jsonapi_serializer = JSONAPISerializerB.new(jsonapi_groups)
 
         message = "Serialize to JSON string #{group_count} with polymorphic has_many"
-        our_json, ams_json = run_json_benchmark(message, group_count, our_serializer, ams_serializer)
+        our_json, ams_json, jsonapi_json = run_json_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
 
         message = "Serialize to Ruby Hash #{group_count} with polymorphic has_many"
-        run_hash_benchmark(message, group_count, our_serializer, ams_serializer)
+        run_hash_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
 
         expect(our_json.length).to eq ams_json.length
         expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
