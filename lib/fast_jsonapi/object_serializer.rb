@@ -1,36 +1,46 @@
 require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
+require 'active_support/notifications'
 require 'oj'
 require 'multi_json'
 require 'fast_jsonapi/serialization_core'
 
-begin
-  require 'skylight'
-  SKYLIGHT_ENABLED = true
-rescue LoadError
-  SKYLIGHT_ENABLED = false
-end
-
 module FastJsonapi
   module ObjectSerializer
+
+    if ENV['SERIALIZATION_INSTRUMENTATION_ENABLED'.freeze] == 'true'.freeze
+      INSTRUMENTATION_ENABLED = true
+    elsif ENV['SERIALIZATION_INSTRUMENTATION_DISABLED'.freeze] == 'true'.freeze
+      INSTRUMENTATION_ENABLED = false
+    else
+      INSTRUMENTATION_ENABLED = false
+    end
+
+    SERIALIZE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'.freeze
+    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'.freeze
+    TO_JSON_NOTIFICATION = 'render.fast_jsonapi.to_json'.freeze
+
     extend ActiveSupport::Concern
     include SerializationCore
 
     included do
-      # Skylight integration
-      # To remove Skylight
-      # Remove the included do block
-      # Remove the Gemfile entry
-      if SKYLIGHT_ENABLED
-        include Skylight::Helpers
-
-        instrument_method :serializable_hash
-        instrument_method :to_json
-      end
-
       # Set record_type based on the name of the serializer class
       set_type default_record_type if default_record_type
+
+      self.class_eval do
+        alias_method :to_json_without_instrumentation, :to_json
+
+        def to_json
+          if instrumentation_enabled?
+            ActiveSupport::Notifications.instrument(TO_JSON_NOTIFICATION, { name: self.class.name }) do
+              to_json_without_instrumentation
+            end
+          else
+            to_json_without_instrumentation
+          end
+        end
+      end
     end
 
     def initialize(resource, options = {})
@@ -48,7 +58,21 @@ module FastJsonapi
       end
     end
 
+    def instrumentation_enabled?
+      INSTRUMENTATION_ENABLED
+    end
+
     def serializable_hash
+      if instrumentation_enabled?
+        ActiveSupport::Notifications.instrument(SERIALIZE_HASH_NOTIFICATION, { name: self.class.name }) do
+          serializable_hash!
+        end
+      else
+        serializable_hash!
+      end
+    end
+
+    def serializable_hash!
       serializable_hash = { data: nil }
       serializable_hash[:meta] = @meta_tags if @meta_tags.present?
       return hash_for_one_record(serializable_hash) if @record
@@ -75,6 +99,16 @@ module FastJsonapi
     end
 
     def serialized_json
+      if instrumentation_enabled?
+        ActiveSupport::Notifications.instrument(SERIALIZED_JSON_NOTIFICATION, { name: self.class.name }) do
+          serialized_json!
+        end
+      else
+        serialized_json!
+      end
+    end
+
+    def serialized_json!
       self.class.to_json(serializable_hash)
     end
 
