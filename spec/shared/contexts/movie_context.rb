@@ -103,6 +103,7 @@ RSpec.shared_context 'movie class' do
       attribute :title_with_year do |record|
         "#{record.name} (#{record.release_year})"
       end
+    end
 
     class SupplierSerializer
       include FastJsonapi::ObjectSerializer
