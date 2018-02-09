@@ -12,9 +12,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   before(:all) { GC.disable }
   after(:all) { GC.enable }
 
-  before(:all) { GC.disable }
-  after(:all) { GC.enable }
-
   context 'when testing performance of serialization' do
     it 'should create a hash of 1000 records in less than 50 ms' do
       movies = 1000.times.map { |_i| movie }
@@ -111,7 +108,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         options[:include] = [:actors, :movie_type]
         our_serializer = MovieSerializer.new(movies, options)
         ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta])
-
         jsonapi_serializer = JSONAPISerializer.new(jsonapi_movies, include: options[:include], meta: options[:meta])
 
         message = "Serialize to JSON string #{movie_count} with includes and meta"
