@@ -195,6 +195,8 @@ id_method_name | Set custom method name to get ID of an object | ```has_many :lo
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
+polymorphic | Allows different record types for a polymorphic association | ```has_many :targets, polymorphic: true```
+polymorphic | Sets custom record types for each object class in a polymorphic association | ```has_many :targets, polymorphic: { Person => :person, Group => :group }```
 
 
 ## Contributing
