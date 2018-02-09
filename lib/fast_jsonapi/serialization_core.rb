@@ -27,6 +27,30 @@ module FastJsonapi
         id_hash(ids, record_type) # ids variable is just a single id here
       end
 
+      def id_hash_from_record(record, record_types)
+        # memoize the record type within the record_types dictionary, then assigning to record_type:
+        record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
+        { id: record.id.to_s, type: record_type }
+      end
+
+      def ids_hash_from_record_and_relationship(record, relationship)
+        polymorphic = relationship[:polymorphic]
+
+        return ids_hash(
+          record.public_send(relationship[:id_method_name]),
+          relationship[:record_type]
+        ) unless polymorphic
+
+        object_method_name = relationship.fetch(:object_method_name, relationship[:name])
+        return unless associated_object = record.send(object_method_name)
+
+        return associated_object.map do |object|
+          id_hash_from_record object, polymorphic
+        end if associated_object.respond_to? :map
+
+        id_hash_from_record associated_object, polymorphic
+      end
+
       def attributes_hash(record)
         attributes_to_serialize.each_with_object({}) do |(key, method_name), attr_hash|
           attr_hash[key] = record.public_send(method_name)
@@ -42,7 +66,7 @@ module FastJsonapi
           record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
           hash[name] = {
-            data: ids_hash(record.public_send(id_method_name), record_type) || empty_case
+            data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
           }
         end
       end

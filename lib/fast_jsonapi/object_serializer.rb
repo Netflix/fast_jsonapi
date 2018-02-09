@@ -177,7 +177,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_many,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          polymorphic: fetch_polymorphic_option(options)
         }
         add_relationship(name, relationship)
       end
@@ -195,7 +196,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :belongs_to,
-          cached: options[:cached] || true
+          cached: options[:cached] || true,
+          polymorphic: fetch_polymorphic_option(options)
         })
       end
 
@@ -212,7 +214,8 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_one,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          polymorphic: fetch_polymorphic_option(options)
         })
       end
 
@@ -221,6 +224,13 @@ module FastJsonapi
         serializer_name = serializer_key.to_s.classify + 'Serializer'
         return (namespace + serializer_name).to_sym if namespace.present?
         (serializer_key.to_s.classify + 'Serializer').to_sym
+      end
+
+      def fetch_polymorphic_option(options)
+        option = options[:polymorphic]
+        return false unless option.present?
+        return option if option.respond_to? :keys
+        {}
       end
     end
   end

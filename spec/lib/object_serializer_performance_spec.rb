@@ -5,6 +5,10 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   include_context 'ams movie class'
   include_context 'jsonapi movie class'
 
+  include_context 'group class'
+  include_context 'ams group class'
+  include_context 'jsonapi group class'
+
   before(:all) { GC.disable }
   after(:all) { GC.enable }
 
@@ -111,6 +115,30 @@ describe FastJsonapi::ObjectSerializer, performance: true do
 
         message = "Serialize to Ruby Hash #{movie_count} with includes and meta"
         run_hash_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer)
+
+        expect(our_json.length).to eq ams_json.length
+        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
+        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+      end
+    end
+  end
+
+  context 'when comparing with AMS 0.10.x and with polymorphic has_many' do
+    [1, 25, 250, 1000].each do |group_count|
+      speed_factor = 25
+      it "should serialize #{group_count} records at least #{speed_factor} times faster than AMS" do
+        ams_groups = build_ams_groups(group_count)
+        groups = build_groups(group_count)
+        options = {}
+        our_serializer = GroupSerializer.new(groups, options)
+        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_groups)
+        jsonapi_serializer = JSONAPISerializerB.new(jsonapi_groups)
+
+        message = "Serialize to JSON string #{group_count} with polymorphic has_many"
+        our_json, ams_json, jsonapi_json = run_json_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
+
+        message = "Serialize to Ruby Hash #{group_count} with polymorphic has_many"
+        run_hash_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
 
         expect(our_json.length).to eq ams_json.length
         expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
