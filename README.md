@@ -155,6 +155,45 @@ set_key_transform :dash # "some_key" => "some-key"
 set_key_transform :underscore # "some_key" => "some_key"
 ```
 
+### Attributes
+Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
+
+By default, attributes are read directly from the model property of the same name.  In this example, `name` is expected to be a property of the object being serialized:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attribute :name
+end
+```
+
+Custom attributes that must be serialized but do not exist on the model can be declared using Ruby block syntax:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attributes :name, :year
+  
+  attribute :name_with_year do |object|
+    "#{object.name} (#{object.year})"
+  end
+end
+```
+
+The block syntax can also be used to override the property on the object:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attribute :name do |object|
+    "#{object.name} Part 2"
+  end
+end
+```
+
 ### Compound Document
 
 Support for top-level included member through ` options[:include] `.
