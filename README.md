@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/Netflix/fast_jsonapi.svg?branch=master)](https://travis-ci.org/Netflix/fast_jsonapi)
 
-A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
+A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects. Rails version 5.0+ is required.
 
 # Performance Comparison
 
