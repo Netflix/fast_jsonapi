@@ -23,6 +23,13 @@ RSpec.shared_context 'movie class' do
         mt
       end
 
+      def owner
+        o = User.new
+        o.id = owner_id
+        o.name = 'Jamie'
+        o
+      end
+
       def cache_key
         "#{id}"
       end
@@ -30,6 +37,10 @@ RSpec.shared_context 'movie class' do
 
     class Actor
       attr_accessor :id, :name, :email
+    end
+
+    class User
+      attr_accessor :id, :name
     end
 
     class MovieType

@@ -71,7 +71,7 @@ Gem::Specification.new do |s|
       s.add_development_dependency(%q<simplecov>, [">= 0"])
       s.add_development_dependency(%q<byebug>, [">= 0"])
       s.add_development_dependency(%q<active_model_serializers>, ["~> 0.10.4"])
-      s.add_development_dependency(%q<primalize>, ["~> 0.3.3"])
+      s.add_development_dependency(%q<primalize-jsonapi>, ["~> 0.1"])
       s.add_development_dependency(%q<sqlite3>, ["~> 1.3"])
     else
       s.add_dependency(%q<activesupport>, ["~> 5.0"])
@@ -87,7 +87,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<simplecov>, [">= 0"])
       s.add_dependency(%q<byebug>, [">= 0"])
       s.add_dependency(%q<active_model_serializers>, ["~> 0.10.4"])
-      s.add_dependency(%q<primalize>, ["~> 0.3.3"])
+      s.add_dependency(%q<primalize-jsonapi>, ["~> 0.1"])
       s.add_dependency(%q<sqlite3>, ["~> 1.3"])
     end
   else
@@ -104,7 +104,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<simplecov>, [">= 0"])
     s.add_dependency(%q<byebug>, [">= 0"])
     s.add_dependency(%q<active_model_serializers>, ["~> 0.10.4"])
-    s.add_dependency(%q<primalize>, ["~> 0.3.3"])
+    s.add_dependency(%q<primalize-jsonapi>, ["~> 0.1"])
     s.add_dependency(%q<sqlite3>, ["~> 1.3"])
   end
 end
