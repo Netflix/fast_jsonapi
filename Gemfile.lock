@@ -97,6 +97,9 @@ GEM
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
     oj (3.4.0)
+    primalize (0.3.5)
+    primalize-jsonapi (0.1.2)
+      primalize
     public_suffix (3.0.1)
     rack (2.0.3)
     rack-test (0.8.2)
@@ -147,6 +150,7 @@ DEPENDENCIES
   byebug
   fast_jsonapi!
   juwelier (~> 2.1.0)
+  primalize-jsonapi (~> 0.1)
   rdoc (~> 3.12)
   rspec (~> 3.5.0)
   rspec-benchmark (~> 0.3.0)
