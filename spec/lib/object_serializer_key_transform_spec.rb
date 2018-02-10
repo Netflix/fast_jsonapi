@@ -22,7 +22,7 @@ describe FastJsonapi::ObjectSerializer do
         attributes :name, :release_year
         has_many :actors
         belongs_to :owner, record_type: :user
-        belongs_to :movie_type
+        belongs_to :movie_type, record_type: :movie_type
       end
       movie_type_serializer_class = Object.const_set(
         movie_type_serializer_name,

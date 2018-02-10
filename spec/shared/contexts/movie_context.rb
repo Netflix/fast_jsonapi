@@ -57,18 +57,18 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors
+      has_many :actors, record_type: :actor
       belongs_to :owner, record_type: :user
-      belongs_to :movie_type
+      belongs_to :movie_type, record_type: :movie_type
     end
 
     class CachingMovieSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors
+      has_many :actors, record_type: :actor
       belongs_to :owner, record_type: :user
-      belongs_to :movie_type
+      belongs_to :movie_type, record_type: :movie_type
 
       cache_options enabled: true
     end
@@ -77,9 +77,9 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors, cached: true
+      has_many :actors, record_type: :actor, cached: true
       belongs_to :owner, record_type: :user
-      belongs_to :movie_type
+      belongs_to :movie_type, record_type: :movie_type
 
       cache_options enabled: true
     end

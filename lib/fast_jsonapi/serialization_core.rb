@@ -27,28 +27,49 @@ module FastJsonapi
         id_hash(ids, record_type) # ids variable is just a single id here
       end
 
-      def id_hash_from_record(record, record_types)
-        # memoize the record type within the record_types dictionary, then assigning to record_type:
-        record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
-        { id: record.id.to_s, type: record_type }
+      def id_hash_from(record, record_types)
+        { id: record.id.to_s, type: record_type_for(record, record_types) }
       end
 
-      def ids_hash_from_record_and_relationship(record, relationship)
-        polymorphic = relationship[:polymorphic]
+      # Returns the memoized record type for the record:
+      def record_type_for(record, record_types)
+        record_types[record.class] ||= run_key_transform(record.class.name.underscore)
+      end
 
-        return ids_hash(
-          record.public_send(relationship[:id_method_name]),
-          relationship[:record_type]
-        ) unless polymorphic
+      def id_method_available?(record, relationship)
+        (relationship[:id_method_available_for] ||= {})[record.class] ||= \
+          record.class.method_defined? relationship[:id_method_name]
+      end
+
+      def homogeneous?(relationship)
+        relationship[:record_type].is_a? Symbol
+      end
+
+      def ids_hash_from_homogeneous(record, relationship)
+        record_type = relationship[:record_type]
+
+        return ids_hash(record.public_send(relationship[:id_method_name]), record_type) \
+          if id_method_available?(record, relationship)
+
+        associated_object = record.public_send(relationship[:object_method_name])
+
+        return associated_object
+          .map { |object| id_hash object.id, record_type } if associated_object.respond_to? :map
+
+        id_hash associated_object.id, record_type
+      end
+
+      def ids_hash_from(record, relationship)
+        return ids_hash_from_homogeneous(record, relationship) if homogeneous?(relationship)
 
         object_method_name = relationship.fetch(:object_method_name, relationship[:name])
         return unless associated_object = record.send(object_method_name)
 
         return associated_object.map do |object|
-          id_hash_from_record object, polymorphic
+          id_hash_from object, relationship[:record_type]
         end if associated_object.respond_to? :map
 
-        id_hash_from_record associated_object, polymorphic
+        id_hash_from associated_object, relationship[:record_type]
       end
 
       def attributes_hash(record)
@@ -62,9 +83,7 @@ module FastJsonapi
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
           empty_case = relationship[:is_collection] ? [] : nil
-          hash[relationship[:key]] = {
-            data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
-          }
+          hash[relationship[:key]] = { data: ids_hash_from(record, relationship) || empty_case }
         end
       end
 

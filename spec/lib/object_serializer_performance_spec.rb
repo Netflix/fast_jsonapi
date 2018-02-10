@@ -5,10 +5,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   include_context 'ams movie class'
   include_context 'jsonapi movie class'
 
-  include_context 'group class'
-  include_context 'ams group class'
-  include_context 'jsonapi group class'
-
   before(:all) { GC.disable }
   after(:all) { GC.enable }
 
@@ -123,26 +119,41 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     end
   end
 
-  context 'when comparing with AMS 0.10.x and with polymorphic has_many' do
-    [1, 25, 250, 1000].each do |group_count|
+  context 'when comparing with AMS 0.10.x' do
+    include_context 'heterogeneous associations benchmark classes'
+
+    %w(homogeneous_has_one_with_id homogeneous_has_one heterogeneous_has_one heterogeneous_has_many
+    homogeneous_has_many homogeneous_has_many_with_ids).each do |case_name|
       speed_factor = 25
-      it "should serialize #{group_count} records at least #{speed_factor} times faster than AMS" do
-        ams_groups = build_ams_groups(group_count)
-        groups = build_groups(group_count)
-        options = {}
-        our_serializer = GroupSerializer.new(groups, options)
-        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_groups)
-        jsonapi_serializer = JSONAPISerializerB.new(jsonapi_groups)
+      case_name_segments = case_name.split '_'
+      case_humanized_name = "#{case_name_segments.slice(0, 3).join(' ')} association"
+      case_humanized_name << ' with association_id' if case_name =~ /with_id/i
+      case_humanized_name << 's' if case_name =~ /many/i
 
-        message = "Serialize to JSON string #{group_count} with polymorphic has_many"
-        our_json, ams_json, jsonapi_json = run_json_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
+      context "with #{case_humanized_name}" do
+        [1, 25, 250, 1000].each do |object_count|
+          it "serializes #{object_count} records at least #{speed_factor} times faster than AMS" do
+            test_objects = send "build_#{case_name}_objects".to_sym, object_count
 
-        message = "Serialize to Ruby Hash #{group_count} with polymorphic has_many"
-        run_hash_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer)
+            association_kind = (case_name =~ /has_many/i ? 'has_many' : 'has_one').classify
+            fast_jsonapi_serializer_name = "#{case_name.classify.gsub /WithId(s?)/, ''}Serializer"
+            active_model_serializer_name = "AMS#{association_kind}Serializer"
 
-        expect(our_json.length).to eq ams_json.length
-        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
-        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+            our_serializer = fast_jsonapi_serializer_name.constantize.new(test_objects, {})
+            ams_serializer = ActiveModelSerializers::SerializableResource.new(test_objects, each_serializer: active_model_serializer_name.constantize)
+            jsonapi_serializer = JSONAPIHeterogeneousAssociationsSerializer.new(test_objects)
+
+            message = "Serialize to JSON string #{object_count} with #{case_name.humanize}"
+            our_json, ams_json, jsonapi_json = run_json_benchmark(message, object_count, our_serializer, ams_serializer, jsonapi_serializer)
+
+            message = "Serialize to Ruby Hash #{object_count} with #{case_name.humanize}"
+            run_hash_benchmark(message, object_count, our_serializer, ams_serializer, jsonapi_serializer)
+
+            expect(our_json.length).to eq ams_json.length
+            expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
+            expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+          end
+        end
       end
     end
   end

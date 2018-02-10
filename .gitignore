@@ -33,3 +33,4 @@ doc
 
 # For the gem
 test.db
+spec/examples.txt

@@ -16,7 +16,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(relationship).to be_instance_of(Hash)
       expect(relationship.keys).to all(be_instance_of(Symbol))
       expect(relationship[:id_method_name]).to end_with '_ids'
-      expect(relationship[:record_type]).to eq 'roles'.singularize.to_sym
+      expect(relationship[:record_type]).to eq({})
     end
 
     it 'returns correct relationship hash for a has_many relationship with overrides' do
@@ -32,7 +32,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(relationship).to be_instance_of(Hash)
       expect(relationship.keys).to all(be_instance_of(Symbol))
       expect(relationship[:id_method_name]).to end_with '_id'
-      expect(relationship[:record_type]).to eq 'area'.singularize.to_sym
+      expect(relationship[:record_type]).to eq({})
     end
 
     it 'returns correct relationship hash for a belongs_to relationship with overrides' do
@@ -49,7 +49,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(relationship).to be_instance_of(Hash)
       expect(relationship.keys).to all(be_instance_of(Symbol))
       expect(relationship[:id_method_name]).to end_with '_id'
-      expect(relationship[:record_type]).to eq 'area'.singularize.to_sym
+      expect(relationship[:record_type]).to eq({})
     end
 
     it 'returns correct relationship hash for a has_one relationship with overrides' do

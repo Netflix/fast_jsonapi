@@ -29,6 +29,12 @@ module FastJsonapi
 
       # Set record_type based on the name of the serializer class
       set_type(reflected_record_type) if reflected_record_type
+
+      delegate :to_json,
+               :record_hash,
+               :get_included_records,
+               :relationships_to_serialize,
+               to: :class
     end
 
     def initialize(resource, options = {})
@@ -49,8 +55,8 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects) if @includes.present?
+      serializable_hash[:data] = record_hash(@resource)
+      serializable_hash[:included] = get_included_records(@resource, @includes, @known_included_objects) if @includes.present?
       serializable_hash
     end
 
@@ -60,8 +66,8 @@ module FastJsonapi
       data = []
       included = []
       @resource.each do |record|
-        data << self.class.record_hash(record)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects) if @includes.present?
+        data << record_hash(record)
+        included.concat get_included_records(record, @includes, @known_included_objects) if @includes.present?
       end
 
       serializable_hash[:data] = data
@@ -71,7 +77,7 @@ module FastJsonapi
     end
 
     def serialized_json
-      self.class.to_json(serializable_hash)
+      to_json(serializable_hash)
     end
 
     private
@@ -91,7 +97,7 @@ module FastJsonapi
     def validate_includes!(includes)
       return if includes.blank?
 
-      existing_relationships = self.class.relationships_to_serialize.keys.to_set
+      existing_relationships = relationships_to_serialize.keys.to_set
 
       unless existing_relationships.superset?(includes.to_set)
         raise ArgumentError, "One of keys from #{includes} is not specified as a relationship on the serializer"
@@ -170,17 +176,15 @@ module FastJsonapi
         singular_name = relationship_name.to_s.singularize
         serializer_key = options[:serializer] || singular_name.to_sym
         key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(singular_name)
         relationship = {
           key: key,
           name: name,
           id_method_name: options[:id_method_name] || (singular_name + '_ids').to_sym,
-          record_type: record_type,
+          record_type: fetch_record_type_option(options),
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           is_collection: true,
-          cached: options[:cached] || false,
-          polymorphic: fetch_polymorphic_option(options)
+          cached: options[:cached] || false
         }
         add_relationship(name, relationship)
       end
@@ -189,17 +193,15 @@ module FastJsonapi
         name = relationship_name.to_sym
         serializer_key = options[:serializer] || name
         key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(relationship_name)
         add_relationship(name, {
           key: key,
           name: name,
           id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
-          record_type: record_type,
+          record_type: fetch_record_type_option(options),
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           is_collection: false,
-          cached: options[:cached] || false,
-          polymorphic: fetch_polymorphic_option(options)
+          cached: options[:cached] || false
         })
       end
 
@@ -212,10 +214,23 @@ module FastJsonapi
         (serializer_key.to_s.classify + 'Serializer').to_sym
       end
 
-      def fetch_polymorphic_option(options)
-        option = options[:polymorphic]
-        return false unless option.present?
+      def fetch_record_type_option(options)
+        option = options[:record_type]
+        # Return it right away if it's a symbol or a Hash:
+        return option if option.is_a?(Symbol) || option.respond_to?(:keys)
+        # Return an empty Hash so the autodetect + memoization kicks in
+        {}
+      end
+
+      def fetch_record_type_option(options)
+        option = options[:record_type]
+        # Return it right away if it's a hash:
         return option if option.respond_to? :keys
+
+        # Return the transformed key of option if it is a Symbol:
+        return run_key_transform(option) if option.is_a? Symbol
+        
+        # Return an empty Hash so the autodetect + memoization kicks in
         {}
       end
     end

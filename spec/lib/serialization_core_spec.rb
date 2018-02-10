@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
   include_context "movie class"
-  include_context 'group class'
+  include_context 'heterogeneous associations benchmark classes'
 
   context 'when testing class methods of serialization core' do
     it 'returns correct hash when id_hash is called' do
@@ -17,10 +17,17 @@ describe FastJsonapi::ObjectSerializer do
       expect(result_hash).to be nil
     end
 
-    it 'returns the correct hash when ids_hash_from_record_and_relationship is called for a polymorphic association' do
-      relationship = { name: :groupees, relationship_type: :has_many, polymorphic: {} }
-      results = GroupSerializer.send :ids_hash_from_record_and_relationship, group, relationship
-      expect(results).to include({ id: "1", type: :person }, { id: "2", type: :group })
+    it 'returns the correct hash when ids_hash_from is called for an heterogeneous association' do
+      results = HeterogeneousHasManySerializer.send(
+        :ids_hash_from,
+        build_heterogeneous_has_many_objects(1).last,
+        { name: :tasks, collection: true, record_type: {}, object_method_name: :tasks }
+      )
+
+      expect(results).to include(
+        { id: "1", type: :task }, { id: "1", type: :big_task }, { id: "2", type: :task },
+        { id: "2", type: :big_task }, { id: "3", type: :task }
+      )
     end
 
     it 'returns correct hash when ids_hash is called' do
