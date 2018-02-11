@@ -178,7 +178,7 @@ module FastJsonapi
           record_type: record_type,
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
-          relationship_type: :has_many,
+          is_collection: true,
           cached: options[:cached] || false,
           polymorphic: fetch_polymorphic_option(options)
         }
@@ -197,7 +197,7 @@ module FastJsonapi
           record_type: record_type,
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
-          relationship_type: :has_one,
+          is_collection: false,
           cached: options[:cached] || false,
           polymorphic: fetch_polymorphic_option(options)
         })

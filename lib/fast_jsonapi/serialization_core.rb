@@ -61,11 +61,8 @@ module FastJsonapi
         relationships = relationships_to_serialize if relationships.nil?
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
-          name = relationship[:key]
-          id_method_name = relationship[:id_method_name]
-          record_type = relationship[:record_type]
-          empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          hash[name] = {
+          empty_case = relationship[:is_collection] ? [] : nil
+          hash[relationship[:key]] = {
             data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
           }
         end
@@ -102,10 +99,10 @@ module FastJsonapi
           object_method_name = @relationships_to_serialize[item][:object_method_name]
           record_type = @relationships_to_serialize[item][:record_type]
           serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-          relationship_type = @relationships_to_serialize[item][:relationship_type]
+          is_collection = @relationships_to_serialize[item][:is_collection]
           included_objects = record.send(object_method_name)
           next if included_objects.blank?
-          included_objects = [included_objects] unless relationship_type == :has_many
+          included_objects = [included_objects] unless is_collection
           included_objects.each do |inc_obj|
             code = "#{record_type}_#{inc_obj.id}"
             next if known_included_objects.key?(code)
