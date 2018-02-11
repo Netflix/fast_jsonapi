@@ -21,6 +21,7 @@ Fast JSON API serialized 250 records in 3.01 ms
 * [Features](#features)
 * [Installation](#installation)
 * [Usage](#usage)
+  * [Rails Generator](#rails-generator)
   * [Model Definition](#model-definition)
   * [Serializer Definition](#serializer-definition)
   * [Object Serialization](#object-serialization)
@@ -54,6 +55,14 @@ $ bundle install
 ```
 
 ## Usage
+
+### Rails Generator
+You can use the bundled generator if you are using the library inside of
+a Rails project:
+
+    rails g Serializer Movie name year
+
+This will create a new serializer in `app/serializers/movie_serializer.rb`
 
 ### Model Definition
 
