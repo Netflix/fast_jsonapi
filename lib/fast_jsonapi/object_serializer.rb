@@ -216,20 +216,12 @@ module FastJsonapi
 
       def fetch_record_type_option(options)
         option = options[:record_type]
-        # Return it right away if it's a symbol or a Hash:
-        return option if option.is_a?(Symbol) || option.respond_to?(:keys)
-        # Return an empty Hash so the autodetect + memoization kicks in
-        {}
-      end
-
-      def fetch_record_type_option(options)
-        option = options[:record_type]
         # Return it right away if it's a hash:
         return option if option.respond_to? :keys
 
         # Return the transformed key of option if it is a Symbol:
         return run_key_transform(option) if option.is_a? Symbol
-        
+
         # Return an empty Hash so the autodetect + memoization kicks in
         {}
       end
