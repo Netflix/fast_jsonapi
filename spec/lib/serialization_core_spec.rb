@@ -41,13 +41,13 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns the correct empty result when relationships_hash is called' do
       movie.actor_ids = []
       movie.owner_id = nil
-      relationships_hash = MovieSerializer.send(:relationships_hash, movie)
+      relationships_hash = MovieSerializer.send(:relationships_hash, movie, nil)
       expect(relationships_hash[:actors][:data]).to eq([])
       expect(relationships_hash[:owner][:data]).to eq(nil)
     end
 
     it 'returns correct keys when relationships_hash is called' do
-      relationships_hash = MovieSerializer.send(:relationships_hash, movie)
+      relationships_hash = MovieSerializer.send(:relationships_hash, movie, nil)
       relationship_names = relationships_hash.keys.sort
       relationships_hashes = MovieSerializer.relationships_to_serialize.values
       expected_names = relationships_hashes.map{|relationship| relationship[:key]}.sort
@@ -55,7 +55,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct values when relationships_hash is called' do
-      relationships_hash = MovieSerializer.relationships_hash(movie)
+      relationships_hash = MovieSerializer.relationships_hash(movie, nil)
       actors_hash = movie.actor_ids.map { |id|  {id: id.to_s, type: :actor} }
       owner_hash = {id: movie.owner_id.to_s, type: :user}
       expect(relationships_hash[:actors][:data]).to match_array actors_hash

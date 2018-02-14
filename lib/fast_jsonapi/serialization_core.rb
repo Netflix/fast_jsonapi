@@ -40,17 +40,19 @@ module FastJsonapi
         end
       end
 
-      def relationships_hash(record, relationships = nil)
+      def relationships_hash(record, fields, relationships = nil)
         relationships = relationships_to_serialize if relationships.nil?
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
           name = relationship[:key]
-          id_method_name = relationship[:id_method_name]
-          record_type = relationship[:record_type]
-          empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          hash[name] = {
-            data: ids_hash(record.public_send(id_method_name), record_type) || empty_case
-          }
+          if fields.nil? || fields.include?(name)
+            id_method_name = relationship[:id_method_name]
+            record_type = relationship[:record_type]
+            empty_case = relationship[:relationship_type] == :has_many ? [] : nil
+            hash[name] = {
+              data: ids_hash(record.public_send(id_method_name), record_type) || empty_case
+            }
+          end
         end
       end
 
@@ -60,7 +62,7 @@ module FastJsonapi
             temp_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
             temp_hash[:attributes] = attributes_hash(record, fields) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
-            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
+            temp_hash[:relationships] = relationships_hash(record, fields, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
             temp_hash
           end
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
@@ -68,7 +70,7 @@ module FastJsonapi
         else
           record_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
           record_hash[:attributes] = attributes_hash(record, fields) if attributes_to_serialize.present?
-          record_hash[:relationships] = relationships_hash(record) if relationships_to_serialize.present?
+          record_hash[:relationships] = relationships_hash(record, fields) if relationships_to_serialize.present?
           record_hash
         end
       end

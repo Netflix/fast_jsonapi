@@ -43,12 +43,14 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns correct fieldset when serializer instantiated with fields option' do
       options = {
         fields: {
-          movie: ['name']
+          movie: ['name', 'actors']
         }
       }
       json = MovieSerializer.new(movie, options).serialized_json
       serializable_hash = JSON.parse(json)
+
       expect(serializable_hash['data']['attributes'].keys).to eq ['name']
+      expect(serializable_hash['data']['relationships'].keys).to eq ['actors']
     end
 
     it 'returns correct id when serialized_json is called for a single object' do

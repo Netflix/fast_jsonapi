@@ -91,7 +91,11 @@ module FastJsonapi
       end
 
       if options[:include].present?
+        fields = options.fetch(:fields, {})
+                        .fetch(self.class.record_type, [])
+                        .map(&:to_sym)
         @includes = options[:include].delete_if(&:blank?)
+        @includes -= fields
         validate_includes!(@includes)
       end
     end
