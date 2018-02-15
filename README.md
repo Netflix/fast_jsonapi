@@ -207,6 +207,12 @@ To run tests without the performance tests (for quicker test runs):
 rspec spec --tag ~performance:true
 ```
 
+To run tests only performance tests:
+
+```bash
+rspec spec --tag performance:true
+```
+
 ### Installation
 
 ```bash
