@@ -201,6 +201,18 @@ We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional t
 rake spec
 ```
 
+To run tests without the performance tests (for quicker test runs):
+
+```bash
+rspec spec --tag ~performance:true
+```
+
+To run tests only performance tests:
+
+```bash
+rspec spec --tag performance:true
+```
+
 ### Installation
 
 ```bash
