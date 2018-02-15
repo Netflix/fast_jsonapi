@@ -38,12 +38,13 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   end
 
   def print_stats(message, count, ams_time, our_time)
-    format = '%-15s %-10s %s'
     puts ''
     puts message
-    puts format(format, 'Serializer', 'Records', 'Time')
-    puts format(format, 'AMS serializer', count, ams_time.round(2).to_s + ' ms')
-    puts format(format, 'Fast serializer', count, our_time.round(2).to_s + ' ms')
+    puts format('%-15s %-10s %-10s %s', 'Serializer', 'Records', 'Time', 'Speed Up')
+    report_format = '%-15s %-10s %-10s %sx'
+    puts format(report_format, 'Fast serializer', count, our_time.round(2).to_s + ' ms', '1.00')
+    ams_factor = ams_time / our_time
+    puts format(report_format, 'AMS serializer', count, ams_time.round(2).to_s + ' ms', ams_factor.round(2))
   end
 
   def run_hash_benchmark(message, movie_count, our_serializer, ams_serializer)
