@@ -255,6 +255,18 @@ We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional t
 rspec
 ```
 
+To run tests without the performance tests (for quicker test runs):
+
+```bash
+rspec spec --tag ~performance:true
+```
+
+To run tests only performance tests:
+
+```bash
+rspec spec --tag performance:true
+```
+
 ### We're Hiring!
 
 Join the Netflix Studio Engineering team and help us build gems like this!

@@ -14,6 +14,25 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   before(:all) { GC.disable }
   after(:all) { GC.enable }
 
+  SERIALIZERS = {
+    fast_jsonapi: {
+      name: 'Fast Serializer',
+      hash_method: :serializable_hash,
+      json_method: :serialized_json
+    },
+    ams: {
+      name: 'AMS serializer',
+      speed_factor: 25,
+      hash_method: :as_json
+    },
+    jsonapi: {
+      name: 'jsonapi-rb serializer'
+    },
+    jsonapis: {
+      name: 'jsonapi-serializers'
+    }
+  }
+
   context 'when testing performance of serialization' do
     it 'should create a hash of 1000 records in less than 50 ms' do
       movies = 1000.times.map { |_i| movie }
@@ -44,118 +63,156 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     end
   end
 
-  def print_stats(message, count, ams_time, jsonapi_time, jsonapis_time, our_time)
-    format = '%-15s %-10s %s'
-    puts ''
+  def print_stats(message, count, data)
+    puts
     puts message
-    puts format(format, 'Serializer', 'Records', 'Time')
-    puts format(format, 'AMS serializer', count, ams_time.round(2).to_s + ' ms')
-    puts format(format, 'jsonapi-rb serializer', count, jsonapi_time.round(2).to_s + ' ms')
-    puts format(format, 'jsonapi-serializers', count, jsonapis_time.round(2).to_s + ' ms')
-    puts format(format, 'Fast serializer', count, our_time.round(2).to_s + ' ms')
+
+    name_length = SERIALIZERS.collect { |s| s[1].fetch(:name, s[0]).length }.max
+
+    puts format("%-#{name_length+1}s %-10s %-10s %s", 'Serializer', 'Records', 'Time', 'Speed Up')
+
+    report_format = "%-#{name_length+1}s %-10s %-10s"
+    fast_jsonapi_time = data[:fast_jsonapi][:time]
+    puts format(report_format, 'Fast serializer', count, fast_jsonapi_time.round(2).to_s + ' ms')
+
+    data.reject { |k,v| k == :fast_jsonapi }.each_pair do |k,v|
+      t = v[:time]
+      factor = t / fast_jsonapi_time
+
+      speed_factor = SERIALIZERS[k].fetch(:speed_factor, 1)
+      result = factor >= speed_factor ? '✔' : '✘'
+
+      puts format("%-#{name_length+1}s %-10s %-10s %sx %s", SERIALIZERS[k][:name], count, t.round(2).to_s + ' ms', factor.round(2), result)
+    end
   end
 
-  def run_hash_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
-    our_time = Benchmark.measure { our_serializer.serializable_hash }.real * 1000
-    ams_time = Benchmark.measure { ams_serializer.as_json }.real * 1000
-    jsonapi_time = Benchmark.measure { jsonapi_serializer.to_hash }.real * 1000
-    jsonapis_time = Benchmark.measure { jsonapis_serializer.to_hash }.real * 1000
+  def run_hash_benchmark(message, movie_count, serializers)
+    data = Hash[serializers.keys.collect { |k| [ k, { hash: nil, time: nil, speed_factor: nil }] }]
 
-    print_stats(message, movie_count, ams_time, jsonapi_time, jsonapis_time, our_time)
+    serializers.each_pair do |k,v|
+      hash_method = SERIALIZERS[k].key?(:hash_method) ? SERIALIZERS[k][:hash_method] : :to_hash
+      data[k][:time] = Benchmark.measure { data[k][:hash] = v.send(hash_method) }.real * 1000
+    end
+
+    print_stats(message, movie_count, data)
+
+    data
   end
 
-  def run_json_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
-    our_json = nil
-    ams_json = nil
-    jsonapi_json = nil
-    jsonapis_json = nil
-    our_time = Benchmark.measure { our_json = our_serializer.serialized_json }.real * 1000
-    ams_time = Benchmark.measure { ams_json = ams_serializer.to_json }.real * 1000
-    jsonapi_time = Benchmark.measure { jsonapi_json = jsonapi_serializer.to_json }.real * 1000
-    jsonapis_time = Benchmark.measure { jsonapis_json = jsonapis_serializer.to_json }.real * 1000
+  def run_json_benchmark(message, movie_count, serializers)
+    data = Hash[serializers.keys.collect { |k| [ k, { json: nil, time: nil, speed_factor: nil }] }]
 
-    print_stats(message, movie_count, ams_time, jsonapi_time, jsonapis_time, our_time)
-    return our_json, ams_json, jsonapi_json, jsonapis_json
+    serializers.each_pair do |k,v|
+      json_method = SERIALIZERS[k].key?(:json_method) ? SERIALIZERS[k][:json_method] : :to_json
+      data[k][:time] = Benchmark.measure { data[k][:json] = v.send(json_method) }.real * 1000
+    end
+
+    print_stats(message, movie_count, data)
+
+    data
   end
 
   context 'when comparing with AMS 0.10.x' do
     [1, 25, 250, 1000].each do |movie_count|
-      speed_factor = 25
-      it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
+      it "should serialize #{movie_count} records atleast #{SERIALIZERS[:ams][:speed_factor]} times faster than AMS" do
         ams_movies = build_ams_movies(movie_count)
         movies = build_movies(movie_count)
         jsonapi_movies = build_jsonapi_movies(movie_count)
         jsonapis_movies = build_js_movies(movie_count)
-        our_serializer = MovieSerializer.new(movies)
-        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_movies)
-        jsonapi_serializer = JSONAPISerializer.new(jsonapi_movies)
-        jsonapis_serializer = JSONAPISSerializer.new(jsonapis_movies)
+
+        serializers = {
+          fast_jsonapi: MovieSerializer.new(movies),
+          ams: ActiveModelSerializers::SerializableResource.new(ams_movies),
+          jsonapi: JSONAPISerializer.new(jsonapi_movies),
+          jsonapis: JSONAPISSerializer.new(jsonapis_movies)
+        }
 
         message = "Serialize to JSON string #{movie_count} records"
-        our_json, ams_json, _, _  = run_json_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        json_benchmarks  = run_json_benchmark(message, movie_count, serializers)
 
         message = "Serialize to Ruby Hash #{movie_count} records"
-        run_hash_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        hash_benchmarks = run_hash_benchmark(message, movie_count, serializers)
 
-        expect(our_json.length).to eq ams_json.length
-        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
-        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+        # json
+        expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
+        json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
+        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
+
+        # hash
+        hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
+        expect(hash_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
       end
     end
   end
 
   context 'when comparing with AMS 0.10.x and with includes and meta' do
     [1, 25, 250, 1000].each do |movie_count|
-      speed_factor = 25
-      it "should serialize #{movie_count} records atleast #{speed_factor} times faster than AMS" do
+      it "should serialize #{movie_count} records atleast #{SERIALIZERS[:ams][:speed_factor]} times faster than AMS" do
         ams_movies = build_ams_movies(movie_count)
         movies = build_movies(movie_count)
         jsonapi_movies = build_jsonapi_movies(movie_count)
         jsonapis_movies = build_js_movies(movie_count)
+
         options = {}
         options[:meta] = { total: movie_count }
         options[:include] = [:actors, :movie_type]
-        our_serializer = MovieSerializer.new(movies, options)
-        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta])
-        jsonapi_serializer = JSONAPISerializer.new(jsonapi_movies, include: options[:include], meta: options[:meta])
-        jsonapis_serializer = JSONAPISSerializer.new(jsonapis_movies, include: options[:include].map{|i| i.to_s.dasherize}, meta: options[:meta])
+
+        serializers = {
+          fast_jsonapi: MovieSerializer.new(movies, options),
+          ams: ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta]),
+          jsonapi: JSONAPISerializer.new(jsonapi_movies, include: options[:include], meta: options[:meta]),
+          jsonapis: JSONAPISSerializer.new(jsonapis_movies, include: options[:include].map { |i| i.to_s.dasherize }, meta: options[:meta])
+        }
 
         message = "Serialize to JSON string #{movie_count} with includes and meta"
-        our_json, ams_json = run_json_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        json_benchmarks = run_json_benchmark(message, movie_count, serializers)
 
         message = "Serialize to Ruby Hash #{movie_count} with includes and meta"
-        run_hash_benchmark(message, movie_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        hash_benchmarks = run_hash_benchmark(message, movie_count, serializers)
 
-        expect(our_json.length).to eq ams_json.length
-        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
-        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+        # json
+        expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
+        json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
+        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
+
+        # hash
+        hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
+        expect(hash_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
       end
     end
   end
 
   context 'when comparing with AMS 0.10.x and with polymorphic has_many' do
     [1, 25, 250, 1000].each do |group_count|
-      speed_factor = 25
-      it "should serialize #{group_count} records at least #{speed_factor} times faster than AMS" do
+      it "should serialize #{group_count} records at least #{SERIALIZERS[:ams][:speed_factor]} times faster than AMS" do
         ams_groups = build_ams_groups(group_count)
         groups = build_groups(group_count)
         jsonapi_groups = build_jsonapi_groups(group_count)
         jsonapis_groups = build_jsonapis_groups(group_count)
+
         options = {}
-        our_serializer = GroupSerializer.new(groups, options)
-        ams_serializer = ActiveModelSerializers::SerializableResource.new(ams_groups)
-        jsonapi_serializer = JSONAPISerializerB.new(jsonapi_groups)
-        jsonapis_serializer = JSONAPISSerializerB.new(jsonapis_groups)
+
+        serializers = {
+          fast_jsonapi: GroupSerializer.new(groups, options),
+          ams: ActiveModelSerializers::SerializableResource.new(ams_groups),
+          jsonapi: JSONAPISerializerB.new(jsonapi_groups),
+          jsonapis: JSONAPISSerializerB.new(jsonapis_groups)
+        }
 
         message = "Serialize to JSON string #{group_count} with polymorphic has_many"
-        our_json, ams_json, _, _ = run_json_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        json_benchmarks = run_json_benchmark(message, group_count, serializers)
 
         message = "Serialize to Ruby Hash #{group_count} with polymorphic has_many"
-        run_hash_benchmark(message, group_count, our_serializer, ams_serializer, jsonapi_serializer, jsonapis_serializer)
+        hash_benchmarks = run_hash_benchmark(message, group_count, serializers)
 
-        expect(our_json.length).to eq ams_json.length
-        expect { our_serializer.serialized_json }.to perform_faster_than { ams_serializer.to_json }.at_least(speed_factor).times
-        expect { our_serializer.serializable_hash }.to perform_faster_than { ams_serializer.as_json }.at_least(speed_factor).times
+        # json
+        expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
+        json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
+        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
+
+        # hash
+        hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
+        expect(hash_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
       end
     end
   end
