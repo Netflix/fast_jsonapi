@@ -5,30 +5,15 @@ require 'active_support/concern'
 require 'active_support/inflector'
 require 'fast_jsonapi/serialization_core'
 
-begin
-  require 'skylight'
-  SKYLIGHT_ENABLED = true
-rescue LoadError
-  SKYLIGHT_ENABLED = false
-end
-
 module FastJsonapi
   module ObjectSerializer
     extend ActiveSupport::Concern
     include SerializationCore
 
+    SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'.freeze
+    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'.freeze
+
     included do
-      # Skylight integration
-      # To remove Skylight
-      # Remove the included do block
-      # Remove the Gemfile entry
-      if SKYLIGHT_ENABLED
-        include Skylight::Helpers
-
-        instrument_method :serializable_hash
-        instrument_method :to_json
-      end
-
       # Set record_type based on the name of the serializer class
       set_type(reflected_record_type) if reflected_record_type
     end
