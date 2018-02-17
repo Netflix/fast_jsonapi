@@ -244,6 +244,36 @@ object_method_name | Set custom method name to get related objects | ```has_many
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
 
+### Instrumentation
+
+`fast_jsonapi` also has builtin [Skylight](https://www.skylight.io/) integration. To enable, add the following to an initializer:
+
+```ruby
+require 'fast_jsonapi/instrumentation/skylight'
+```
+
+Skylight relies on `ActiveSupport::Notifications` to track these two core methods. If you would like to use these notifications without using Skylight, simply require the instrumentation integration:
+
+```ruby
+require 'fast_jsonapi/instrumentation'
+```
+
+The two instrumented notifcations are supplied by these two constants:
+* `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
+* `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
+
+It is also possible to instrument one method without the other by using one of the following require statements:
+
+```ruby
+require 'fast_jsonapi/instrumentation/serializable_hash'
+require 'fast_jsonapi/instrumentation/serialized_json'
+```
+
+Same goes for the Skylight integration:
+```ruby
+require 'fast_jsonapi/instrumentation/skylight/normalizers/serializable_hash'
+require 'fast_jsonapi/instrumentation/skylight/normalizers/serialized_json'
+```
 
 ## Contributing
 Please see [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md) for more details on contributing
