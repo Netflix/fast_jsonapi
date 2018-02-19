@@ -42,6 +42,7 @@ module FastJsonapi
 
       hash_for_one_record
     end
+    alias_method :to_hash, :serializable_hash
 
     def hash_for_one_record
       serializable_hash = { data: nil }
