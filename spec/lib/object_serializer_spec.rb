@@ -90,6 +90,20 @@ describe FastJsonapi::ObjectSerializer do
       options[:include] = [nil]
       expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
     end
+
+    # this fails
+    it 'does not throw an error with non-empty string array includes key' do
+      options = {}
+      options[:include] = ['actors']
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
+    end
+
+    # this passes
+    it 'does not throw an error with a symbol array includes key' do
+      options = {}
+      options[:include] = [:actors]
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
+    end
   end
 
   context 'when testing included do block of object serializer' do
