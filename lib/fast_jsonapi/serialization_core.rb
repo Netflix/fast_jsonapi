@@ -97,6 +97,7 @@ module FastJsonapi
 
       def has_permitted_includes(requested_includes)
         # requested includes should be within relationships defined on serializer
+        # but can be strings (even if the relationships are defined as symbols)
         allowed_includes = @relationships_to_serialize.keys
         intersection = allowed_includes & requested_includes
         if intersection.sort == requested_includes.sort

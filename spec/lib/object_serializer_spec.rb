@@ -82,6 +82,12 @@ describe FastJsonapi::ObjectSerializer do
       expect { MovieSerializer.new([movie, movie], options).serializable_hash }.to raise_error(ArgumentError)
     end
 
+    it 'does not throw an error with non-empty string array includes key' do
+      options = {}
+      options[:include] = ['actors']
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
+    end
+
     it 'returns keys when serializing with empty string/nil array includes key' do
       options = {}
       options[:meta] = { total: 2 }
@@ -89,20 +95,6 @@ describe FastJsonapi::ObjectSerializer do
       expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
       options[:include] = [nil]
       expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
-    end
-
-    # this fails
-    it 'does not throw an error with non-empty string array includes key' do
-      options = {}
-      options[:include] = ['actors']
-      expect { MovieSerializer.new(movie, options) }.not_to raise_error
-    end
-
-    # this passes
-    it 'does not throw an error with a symbol array includes key' do
-      options = {}
-      options[:include] = [:actors]
-      expect { MovieSerializer.new(movie, options) }.not_to raise_error
     end
   end
 

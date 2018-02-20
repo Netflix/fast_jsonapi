@@ -36,7 +36,7 @@ module FastJsonapi
     def initialize(resource, options = {})
       if options.present?
         @meta_tags = options[:meta]
-        @includes = options[:include].delete_if(&:blank?) if options[:include].present?
+        @includes = options[:include].delete_if(&:blank?).map(&:to_sym) if options[:include].present?
         self.class.has_permitted_includes(@includes) if @includes.present?
         @known_included_objects = {} # keep track of inc objects that have already been serialized
       end
