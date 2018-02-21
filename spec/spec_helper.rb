@@ -2,9 +2,10 @@ require 'fast_jsonapi'
 require 'rspec-benchmark'
 require 'byebug'
 require 'active_model_serializers'
-require 'oj'
 require 'jsonapi/serializable'
 require 'jsonapi-serializers'
+require 'oj'
+require 'oj_mimic_json'
 
 Dir[File.dirname(__FILE__) + '/shared/contexts/*.rb'].each {|file| require file }
 
@@ -17,5 +18,6 @@ end
 
 Oj.optimize_rails
 ActiveModel::Serializer.config.adapter = :json_api
-ActiveModel::Serializer.config.key_transform = :underscore
-ActiveModelSerializers.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('/dev/null'))
+ActiveModel::Serializer.config.key_transform = :unaltered
+# ActiveModelSerializers.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('/dev/null'))
+ActiveSupport::Notifications.unsubscribe(ActiveModelSerializers::Logging::RENDER_EVENT)
