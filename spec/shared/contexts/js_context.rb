@@ -61,7 +61,7 @@ RSpec.shared_context 'jsonapi-serializers movie class' do
       end
 
       def to_json
-        JSONAPI::Serializer.serialize(@data, @options).to_json
+        FastJsonapi::MultiToJson.to_json(JSONAPI::Serializer.serialize(@data, @options))
       end
 
       def to_hash
