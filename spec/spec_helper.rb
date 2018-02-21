@@ -19,5 +19,5 @@ end
 Oj.optimize_rails
 ActiveModel::Serializer.config.adapter = :json_api
 ActiveModel::Serializer.config.key_transform = :unaltered
-# ActiveModelSerializers.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('/dev/null'))
+ActiveModelSerializers.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('/dev/null'))
 ActiveSupport::Notifications.unsubscribe(ActiveModelSerializers::Logging::RENDER_EVENT)
