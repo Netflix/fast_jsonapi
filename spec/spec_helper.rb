@@ -11,9 +11,10 @@ Dir[File.dirname(__FILE__) + '/shared/contexts/*.rb'].each {|file| require file 
 
 RSpec.configure do |config|
   config.include RSpec::Benchmark::Matchers
-  if ENV['TRAVIS'] == 'true' || ENV['TRAVIS'] == true
-    config.filter_run_excluding performance: true
-  end
+  # For the PR, show the benchmarks.
+  # if ENV['TRAVIS'] == 'true' || ENV['TRAVIS'] == true
+  #   config.filter_run_excluding performance: true
+  # end
 end
 
 Oj.optimize_rails
