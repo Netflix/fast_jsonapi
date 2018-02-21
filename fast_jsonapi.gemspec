@@ -11,8 +11,7 @@ Gem::Specification.new do |gem|
   gem.email = ""
   gem.extra_rdoc_files = [
     "LICENSE.txt",
-    "README.md",
-    "README.rdoc"
+    "README.md"
   ]
   gem.files = Dir["lib/**/*"]
   gem.homepage = "http://github.com/Netflix/fast_jsonapi"
