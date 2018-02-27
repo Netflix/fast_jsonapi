@@ -6,3 +6,4 @@ rvm:
   - 2.5.0
 script:
   - bundle exec rspec
+  - bundle exec rspec spec/lib/instrumentation/as_notifications.rb
