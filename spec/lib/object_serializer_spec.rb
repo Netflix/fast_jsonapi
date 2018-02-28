@@ -69,6 +69,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when has_one returns nil' do
+      supplier.account_id = nil
+      json = SupplierSerializer.new(supplier).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['account']['data']).to be nil
+    end
+
     it 'returns correct json when serializing []' do
       json = MovieSerializer.new([]).serialized_json
       serializable_hash = JSON.parse(json)
