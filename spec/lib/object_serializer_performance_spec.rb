@@ -33,6 +33,9 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     }
   }
 
+  before(:all) { GC.disable }
+  after(:all) { GC.enable }
+
   context 'when testing performance of serialization' do
     it 'should create a hash of 1000 records in less than 50 ms' do
       movies = 1000.times.map { |_i| movie }

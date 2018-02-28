@@ -84,7 +84,7 @@ module FastJsonapi
       @meta = options[:meta]
 
       if options[:include].present?
-        @includes = options[:include].delete_if(&:blank?)
+        @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
         validate_includes!(@includes)
       end
     end
