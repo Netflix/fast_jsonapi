@@ -1,10 +1,23 @@
 require 'spec_helper'
-require 'fast_jsonapi/instrumentation'
 
 describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
 
   context 'instrument' do
+
+    before(:all) do
+      require 'fast_jsonapi/instrumentation'
+    end
+
+    after(:all) do
+      [ :serialized_json, :serializable_hash ].each do |m|
+        alias_command = "alias_method :#{m}, :#{m}_without_instrumentation"
+        FastJsonapi::ObjectSerializer.class_eval(alias_command)
+
+        remove_command = "remove_method :#{m}_without_instrumentation"
+        FastJsonapi::ObjectSerializer.class_eval(remove_command)
+      end
+    end
 
     before(:each) do
       options = {}
