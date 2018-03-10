@@ -82,6 +82,24 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']).to eq []
     end
 
+    describe '#as_json' do
+      it 'returns a json hash' do
+        json_hash = MovieSerializer.new(movie).as_json
+        expect(json_hash['data']['id']).to eq movie.id.to_s
+      end
+
+      it 'returns multiple records' do
+        json_hash = MovieSerializer.new([movie, movie]).as_json
+        expect(json_hash['data'].length).to eq 2
+      end
+
+      it 'removes non-relevant attributes' do
+        movie.director = 'steven spielberg'
+        json_hash = MovieSerializer.new(movie).as_json
+        expect(json_hash['data']['director']).to eq(nil)
+      end
+    end
+
     it 'returns errors when serializing with non-existent includes key' do
       options = {}
       options[:meta] = { total: 2 }

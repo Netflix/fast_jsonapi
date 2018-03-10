@@ -33,3 +33,9 @@ doc
 
 # For the gem
 test.db
+
+# For those using rbenv
+.ruby-version
+
+# For those who install gems locally to a vendor dir
+/vendor

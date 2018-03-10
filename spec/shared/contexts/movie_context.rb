@@ -4,7 +4,13 @@ RSpec.shared_context 'movie class' do
   before(:context) do
     # models
     class Movie
-      attr_accessor :id, :name, :release_year, :actor_ids, :owner_id, :movie_type_id
+      attr_accessor :id,
+                    :name, 
+                    :release_year,
+                    :director,
+                    :actor_ids, 
+                    :owner_id, 
+                    :movie_type_id
 
       def actors
         actor_ids.map do |id|
@@ -56,6 +62,7 @@ RSpec.shared_context 'movie class' do
     class MovieSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
+      # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
       belongs_to :owner, record_type: :user
@@ -135,7 +142,14 @@ RSpec.shared_context 'movie class' do
   # Movie and Actor struct
   before(:context) do
     MovieStruct = Struct.new(
-      :id, :name, :release_year, :actor_ids, :actors, :owner_id, :owner, :movie_type_id
+      :id, 
+      :name, 
+      :release_year, 
+      :actor_ids, 
+      :actors, 
+      :owner_id, 
+      :owner, 
+      :movie_type_id
     )
 
     ActorStruct = Struct.new(:id, :name, :email)
