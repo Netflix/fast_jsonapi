@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Usage:
 #   class Movie
 #     def to_json(payload)
