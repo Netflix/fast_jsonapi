@@ -62,8 +62,6 @@ module FastJsonapi
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
           name = relationship[:key]
-          id_method_name = relationship[:id_method_name]
-          record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
           hash[name] = {
             data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
