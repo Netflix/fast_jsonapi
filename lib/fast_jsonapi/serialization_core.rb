@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/concern'
 require 'fast_jsonapi/multi_to_json'
 
