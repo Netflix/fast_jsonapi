@@ -127,7 +127,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(BlahBlahSerializerBuilder.record_type).to be_nil
     end
 
-    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
+    it 'should set default_type for a namespaced serializer' do
       module V1
         class BlahSerializer
           include FastJsonapi::ObjectSerializer
