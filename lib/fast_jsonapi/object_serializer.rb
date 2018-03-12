@@ -47,6 +47,7 @@ module FastJsonapi
     def hash_for_one_record
       serializable_hash = { data: nil }
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
 
       return serializable_hash unless @resource
 
@@ -68,6 +69,7 @@ module FastJsonapi
       serializable_hash[:data] = data
       serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
       serializable_hash
     end
 
@@ -82,6 +84,7 @@ module FastJsonapi
 
       @known_included_objects = {}
       @meta = options[:meta]
+      @links = options[:links]
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
