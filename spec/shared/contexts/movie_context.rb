@@ -41,7 +41,11 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors
+      has_many :actors do |object|
+        {
+          related: "http://www.test.com/movies/#{object.id}/actors"
+        }
+      end
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
     end
@@ -50,9 +54,21 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors
-      belongs_to :owner, record_type: :user
-      belongs_to :movie_type
+      has_many :actors do |object|
+        {
+          related: "http://www.test.com/movies/#{object.id}/actors"
+        }
+      end
+      belongs_to :owner, record_type: :user do |object|
+        {
+          related: "http://www.test.com/movies/#{object.id}/actors"
+        }
+      end
+      belongs_to :movie_type do |object|
+        {
+          related: "http://www.test.com/movies/#{object.id}/actors"
+        }
+      end
 
       cache_options enabled: true
     end
@@ -61,7 +77,11 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name, :release_year
-      has_many :actors, cached: true
+      has_many :actors, cached: true do |object|
+        {
+          related: "http://www.test.com/movies/#{object.id}/actors"
+        }
+      end
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
 

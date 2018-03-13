@@ -41,11 +41,16 @@ module FastJsonapi
         relationships.each do |_k, relationship|
           name = relationship[:key]
           id_method_name = relationship[:id_method_name]
+
           record_type = relationship[:record_type]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
+
           relationships_hash[name] = {
-            data: ids_hash(record.send(id_method_name), record_type) || empty_case
+            links: relationship[:block].try(:call, record)
           }
+
+          next unless relationship[:include_data]
+          relationships_hash[name][:data] = ids_hash(record.send(id_method_name), record_type) || empty_case
         end
         relationships_hash
       end
@@ -82,6 +87,7 @@ module FastJsonapi
           record_type = @relationships_to_serialize[item][:record_type]
           serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
           relationship_type = @relationships_to_serialize[item][:relationship_type]
+          next unless @relationships_to_serialize[item][:include_data]
           included_objects = record.send(object_method_name)
           next if included_objects.blank?
           included_objects = [included_objects] unless relationship_type == :has_many
