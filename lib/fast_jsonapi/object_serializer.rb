@@ -129,11 +129,12 @@ module FastJsonapi
         self.relationships_to_serialize[name] = relationship
      end
 
-      def has_many(relationship_name, options = {})
+      def has_many(relationship_name, options = {}, &block)
         singular_name = relationship_name.to_s.singularize
         record_type = options[:record_type] || singular_name.to_sym
         name = relationship_name.to_sym
         key = options[:key] || name
+        options[:include_data] = true if options[:include_data].nil?
         if @hyphenated
           key = options[:key] || relationship_name.to_s.dasherize.to_sym
           record_type = options[:record_type] || singular_name.to_s.dasherize.to_sym
@@ -147,16 +148,19 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_many,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          include_data: options[:include_data],
+          block: block
         }
         add_relationship(name, relationship)
       end
 
-      def belongs_to(relationship_name, options = {})
+      def belongs_to(relationship_name, options = {}, &block)
         name = relationship_name.to_sym
         key = options[:key] || name
         record_type = options[:record_type] || name
         serializer_key = options[:serializer] || record_type
+        options[:include_data] = true if options[:include_data].nil?
         if @hyphenated
           key = options[:key] || relationship_name.to_s.dasherize.to_sym
           record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
@@ -169,16 +173,19 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :belongs_to,
-          cached: options[:cached] || true
+          cached: options[:cached] || true,
+          include_data: options[:include_data],
+          block: block
         }
         add_relationship(name, relationship)
       end
 
-      def has_one(relationship_name, options = {})
+      def has_one(relationship_name, options = {}, &block)
         name = relationship_name.to_sym
         key = options[:key] || name
         record_type = options[:record_type] || name
         serializer_key = options[:serializer] || record_type
+        options[:include_data] = true if options[:include_data].nil?
         if @hyphenated
           key = options[:key] || relationship_name.to_s.dasherize.to_sym
           record_type = options[:record_type] || relationship_name.to_s.dasherize.to_sym
@@ -191,7 +198,9 @@ module FastJsonapi
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
           relationship_type: :has_one,
-          cached: options[:cached] || false
+          cached: options[:cached] || false,
+          include_data: options[:include_data],
+          block: block
         }
         add_relationship(name, relationship)
       end
