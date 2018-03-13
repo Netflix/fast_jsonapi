@@ -210,6 +210,11 @@ Support for top-level included member through ` options[:include] `.
 ```ruby
 options = {}
 options[:meta] = { total: 2 }
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
 options[:include] = [:actors]
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
@@ -218,6 +223,11 @@ MovieSerializer.new([movie, movie], options).serialized_json
 
 ```ruby
 options[:meta] = { total: 2 }
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
 hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
