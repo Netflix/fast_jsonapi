@@ -14,6 +14,7 @@ module FastJsonapi
                       :cachable_relationships_to_serialize,
                       :uncachable_relationships_to_serialize,
                       :record_type,
+                      :record_id,
                       :cache_length,
                       :cached
       end
@@ -74,7 +75,8 @@ module FastJsonapi
       def record_hash(record)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length) do
-            temp_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
+            id = record_id ? record.send(record_id) : record.id
+            temp_hash = id_hash(id, record_type) || { id: nil, type: record_type }
             temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
             temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
@@ -83,7 +85,8 @@ module FastJsonapi
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
           record_hash
         else
-          record_hash = id_hash(record.id, record_type) || { id: nil, type: record_type }
+          id = record_id ? record.send(record_id) : record.id
+          record_hash = id_hash(id, record_type) || { id: nil, type: record_type }
           record_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
           record_hash[:relationships] = relationships_hash(record) if relationships_to_serialize.present?
           record_hash
