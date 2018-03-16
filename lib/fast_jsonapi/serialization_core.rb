@@ -22,7 +22,7 @@ module FastJsonapi
 
     class_methods do
       def id_hash(id, record_type)
-        return { id: id.to_s, type: record_type } if id.present?
+        { id: id.to_s, type: record_type } if id.present?
       end
 
       def ids_hash(ids, record_type)
