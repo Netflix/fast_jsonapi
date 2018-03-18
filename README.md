@@ -78,6 +78,7 @@ end
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
   set_type :movie  # optional
+  set_id :owner_id # optional
   attributes :name, :year
   has_many :actors
   belongs_to :owner, record_type: :user
@@ -114,7 +115,7 @@ json_string = MovieSerializer.new(movie).serialized_json
 ```json
 {
   "data": {
-    "id": "232",
+    "id": "3",
     "type": "movie",
     "attributes": {
       "name": "test movie",
@@ -238,6 +239,7 @@ end
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
+set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
