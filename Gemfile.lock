@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    fast_jsonapi (1.0.17)
+    fast_jsonapi (1.1.0)
       activesupport (>= 4.2)
 
 GEM
