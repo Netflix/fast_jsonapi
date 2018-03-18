@@ -21,10 +21,12 @@ Fast JSON API serialized 250 records in 3.01 ms
 * [Features](#features)
 * [Installation](#installation)
 * [Usage](#usage)
+  * [Rails Generator](#rails-generator)
   * [Model Definition](#model-definition)
   * [Serializer Definition](#serializer-definition)
   * [Object Serialization](#object-serialization)
   * [Compound Document](#compound-document)
+  * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
 * [Contributing](#contributing)
@@ -54,6 +56,14 @@ $ bundle install
 
 ## Usage
 
+### Rails Generator
+You can use the bundled generator if you are using the library inside of
+a Rails project:
+
+    rails g Serializer Movie name year
+
+This will create a new serializer in `app/serializers/movie_serializer.rb`
+
 ### Model Definition
 
 ```ruby
@@ -68,6 +78,7 @@ end
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
   set_type :movie  # optional
+  set_id :owner_id # optional
   attributes :name, :year
   has_many :actors
   belongs_to :owner, record_type: :user
@@ -104,7 +115,7 @@ json_string = MovieSerializer.new(movie).serialized_json
 ```json
 {
   "data": {
-    "id": "232",
+    "id": "3",
     "type": "movie",
     "attributes": {
       "name": "test movie",
@@ -134,6 +145,65 @@ json_string = MovieSerializer.new(movie).serialized_json
 }
 
 ```
+
+### Key Transforms
+By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  # Available options :camel, :camel_lower, :dash, :underscore(default)
+  set_key_transform :camel
+end
+```
+Here are examples of how these options transform the keys
+
+```ruby
+set_key_transform :camel # "some_key" => "SomeKey"
+set_key_transform :camel_lower # "some_key" => "someKey"
+set_key_transform :dash # "some_key" => "some-key"
+set_key_transform :underscore # "some_key" => "some_key"
+```
+
+### Attributes
+Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
+
+By default, attributes are read directly from the model property of the same name.  In this example, `name` is expected to be a property of the object being serialized:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attribute :name
+end
+```
+
+Custom attributes that must be serialized but do not exist on the model can be declared using Ruby block syntax:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attributes :name, :year
+  
+  attribute :name_with_year do |object|
+    "#{object.name} (#{object.year})"
+  end
+end
+```
+
+The block syntax can also be used to override the property on the object:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+  
+  attribute :name do |object|
+    "#{object.name} Part 2"
+  end
+end
+```
+
 ### Compound Document
 
 Support for top-level included member through ` options[:include] `.
@@ -169,68 +239,65 @@ end
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
+set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
 
+### Instrumentation
+
+`fast_jsonapi` also has builtin [Skylight](https://www.skylight.io/) integration. To enable, add the following to an initializer:
+
+```ruby
+require 'fast_jsonapi/instrumentation/skylight'
+```
+
+Skylight relies on `ActiveSupport::Notifications` to track these two core methods. If you would like to use these notifications without using Skylight, simply require the instrumentation integration:
+
+```ruby
+require 'fast_jsonapi/instrumentation'
+```
+
+The two instrumented notifcations are supplied by these two constants:
+* `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
+* `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
+
+It is also possible to instrument one method without the other by using one of the following require statements:
+
+```ruby
+require 'fast_jsonapi/instrumentation/serializable_hash'
+require 'fast_jsonapi/instrumentation/serialized_json'
+```
+
+Same goes for the Skylight integration:
+```ruby
+require 'fast_jsonapi/instrumentation/skylight/normalizers/serializable_hash'
+require 'fast_jsonapi/instrumentation/skylight/normalizers/serialized_json'
+```
 
 ## Contributing
-
-Please follow the steps on [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md).
-This gem is built using a gem building gem called [juwelier](https://github.com/flajann2/juwelier).
-
-Beyond just editing source code, you’ll be interacting with the gem using rake a lot. To see all the tasks available with a brief description, you can run:
-
-```bash
-rake -T
-```
-
-### Updating Project information
-You can update the project information of the gem by updating the [Rakefile](Rakefile). Then you need to generate a new gemspec:
-
-```bash
-rake gemspec
-```
+Please see [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md) for more details on contributing
 
 ### Running Tests
-We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following rake task:
+We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following command:
 
 ```bash
-rake spec
+rspec
 ```
 
-### Installation
+To run tests without the performance tests (for quicker test runs):
 
 ```bash
-$ rake install
+rspec spec --tag ~performance:true
 ```
 
-The install rake task builds the gem and then installs it. You're all
-set if you're using [RVM](http://rvm.beginrescueend.com/), but you may
-need to run it with sudo if you have a system-installed Ruby:
-
-### Bumping Version
-
-It feels good to release code. Do it, do it often. But before that, bump
-the version. Then release it. There's a few ways to update the version:
+To run tests only performance tests:
 
 ```bash
-# version:write like before
-$ rake version:write MAJOR=0 MINOR=3 PATCH=0
-
-# bump just major, ie 0.1.0 -> 1.0.0
-$ rake version:bump:major
-
-# bump just minor, ie 0.1.0 -> 0.2.0
-$ rake version:bump:minor
-
-# bump just patch, ie 0.1.0 -> 0.1.1
-$ rake version:bump:patch
+rspec spec --tag performance:true
 ```
-
----
 
 ### We're Hiring!
 

@@ -69,10 +69,35 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when has_one returns nil' do
+      supplier.account_id = nil
+      json = SupplierSerializer.new(supplier).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['account']['data']).to be nil
+    end
+
     it 'returns correct json when serializing []' do
       json = MovieSerializer.new([]).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data']).to eq []
+    end
+
+    describe '#as_json' do
+      it 'returns a json hash' do
+        json_hash = MovieSerializer.new(movie).as_json
+        expect(json_hash['data']['id']).to eq movie.id.to_s
+      end
+
+      it 'returns multiple records' do
+        json_hash = MovieSerializer.new([movie, movie]).as_json
+        expect(json_hash['data'].length).to eq 2
+      end
+
+      it 'removes non-relevant attributes' do
+        movie.director = 'steven spielberg'
+        json_hash = MovieSerializer.new(movie).as_json
+        expect(json_hash['data']['director']).to eq(nil)
+      end
     end
 
     it 'returns errors when serializing with non-existent includes key' do
@@ -80,6 +105,12 @@ describe FastJsonapi::ObjectSerializer do
       options[:meta] = { total: 2 }
       options[:include] = [:blah_blah]
       expect { MovieSerializer.new([movie, movie], options).serializable_hash }.to raise_error(ArgumentError)
+    end
+
+    it 'does not throw an error with non-empty string array includes key' do
+      options = {}
+      options[:include] = ['actors']
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
     end
 
     it 'returns keys when serializing with empty string/nil array includes key' do
@@ -114,7 +145,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(BlahBlahSerializerBuilder.record_type).to be_nil
     end
 
-    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
+    it 'should set default_type for a namespaced serializer' do
       module V1
         class BlahSerializer
           include FastJsonapi::ObjectSerializer

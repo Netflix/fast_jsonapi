@@ -4,7 +4,13 @@ RSpec.shared_context 'movie class' do
   before(:context) do
     # models
     class Movie
-      attr_accessor :id, :name, :release_year, :actor_ids, :owner_id, :movie_type_id
+      attr_accessor :id,
+                    :name, 
+                    :release_year,
+                    :director,
+                    :actor_ids, 
+                    :owner_id, 
+                    :movie_type_id
 
       def actors
         actor_ids.map do |id|
@@ -36,10 +42,27 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id, :name
     end
 
+    class Supplier
+      attr_accessor :id, :account_id
+
+      def account
+        if account_id
+          a = Account.new
+          a.id = account_id
+          a
+        end
+      end
+    end
+
+    class Account
+      attr_accessor :id
+    end
+
     # serializers
     class MovieSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
+      # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
       belongs_to :owner, record_type: :user
@@ -79,6 +102,27 @@ RSpec.shared_context 'movie class' do
       set_type :movie_type
       attributes :name
     end
+
+    class MovieSerializerWithAttributeBlock
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name, :release_year
+      attribute :title_with_year do |record|
+        "#{record.name} (#{record.release_year})"
+      end
+    end
+
+    class SupplierSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :supplier
+      has_one :account
+    end
+
+    class AccountSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :account
+      belongs_to :supplier
+    end
   end
 
 
@@ -95,37 +139,20 @@ RSpec.shared_context 'movie class' do
     end
   end
 
-
-  # Hyphenated keys for the serializer
-  before(:context) do
-    class HyphenMovieSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :movie
-      attributes :name, :release_year
-      has_many :actors
-      belongs_to :owner, record_type: :user
-      belongs_to :movie_type
-    end
-
-    class HyphenMovieTypeSerializer
-      include FastJsonapi::ObjectSerializer
-      use_hyphen
-      set_type :movie_type
-      attributes :name
-    end
-  end
-
-
   # Movie and Actor struct
   before(:context) do
     MovieStruct = Struct.new(
-      :id, :name, :release_year, :actor_ids, :actors, :owner_id, :owner, :movie_type_id
+      :id, 
+      :name, 
+      :release_year, 
+      :actor_ids, 
+      :actors, 
+      :owner_id, 
+      :owner, 
+      :movie_type_id
     )
 
-    ActorStruct = Struct.new(
-      :id, :name, :email
-    )
+    ActorStruct = Struct.new(:id, :name, :email)
   end
 
   after(:context) do
@@ -136,6 +163,7 @@ RSpec.shared_context 'movie class' do
       ActorSerializer
       MovieType
       MovieTypeSerializer
+      MovieSerializerWithAttributeBlock
       AppName::V1::MovieSerializer
       MovieStruct
       ActorStruct
@@ -151,10 +179,7 @@ RSpec.shared_context 'movie class' do
     actors = []
 
     3.times.each do |id|
-      a = ActorStruct.new
-      a[:id] = id
-      a[:name] = id.to_s
-      actors << a
+      actors << ActorStruct.new(id, id.to_s, id.to_s)
     end
 
     m = MovieStruct.new
@@ -176,6 +201,13 @@ RSpec.shared_context 'movie class' do
     m.owner_id = 3
     m.movie_type_id = 1
     m
+  end
+
+  let(:supplier) do
+    s = Supplier.new
+    s.id = 1
+    s.account_id = 1
+    s
   end
 
   def build_movies(count)

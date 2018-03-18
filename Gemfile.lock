@@ -1,11 +1,8 @@
 PATH
   remote: .
   specs:
-    fast_jsonapi (1.0.17)
-      activerecord (~> 5.0)
-      activesupport (~> 5.0)
-      multi_json (~> 1.12)
-      oj (~> 3.3)
+    fast_jsonapi (1.1.0)
+      activesupport (>= 4.2)
 
 GEM
   remote: https://rubygems.org/
@@ -39,8 +36,6 @@ GEM
       i18n (~> 0.7)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
-    addressable (2.5.2)
-      public_suffix (>= 2.0.2, < 4.0)
     arel (8.0.0)
     benchmark-perf (0.2.1)
     builder (3.2.3)
@@ -49,55 +44,27 @@ GEM
       activesupport
     concurrent-ruby (1.0.5)
     crass (1.0.3)
-    descendants_tracker (0.0.4)
-      thread_safe (~> 0.3, >= 0.3.1)
     diff-lcs (1.3)
-    docile (1.1.5)
     erubi (1.7.0)
-    faraday (0.12.2)
-      multipart-post (>= 1.2, < 3)
-    git (1.3.0)
-    github_api (0.18.2)
-      addressable (~> 2.4)
-      descendants_tracker (~> 0.0.4)
-      faraday (~> 0.8)
-      hashie (~> 3.5, >= 3.5.2)
-      oauth2 (~> 1.0)
-    hashie (3.5.6)
-    highline (1.7.10)
     i18n (0.9.1)
       concurrent-ruby (~> 1.0)
-    json (1.8.6)
+    jsonapi-deserializable (0.2.0)
+    jsonapi-rb (0.5.0)
+      jsonapi-deserializable (~> 0.2.0)
+      jsonapi-serializable (~> 0.3.0)
     jsonapi-renderer (0.2.0)
-    juwelier (2.1.3)
-      builder
-      bundler (>= 1.13)
-      git (>= 1.2.5)
-      github_api
-      highline (>= 1.6.15)
-      nokogiri (>= 1.5.10)
-      rake
-      rdoc
-      semver
-    jwt (1.5.6)
+    jsonapi-serializable (0.3.0)
+      jsonapi-renderer (~> 0.2.0)
+    jsonapi-serializers (1.0.0)
+      activesupport
     loofah (2.1.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     mini_portile2 (2.3.0)
     minitest (5.10.3)
-    multi_json (1.12.2)
-    multi_xml (0.6.0)
-    multipart-post (2.0.0)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
-    oauth2 (1.4.0)
-      faraday (>= 0.8, < 0.13)
-      jwt (~> 1.0)
-      multi_json (~> 1.3)
-      multi_xml (~> 0.5)
-      rack (>= 1.2, < 3)
     oj (3.4.0)
-    public_suffix (3.0.1)
     rack (2.0.3)
     rack-test (0.8.2)
       rack (>= 1.0, < 3)
@@ -106,9 +73,6 @@ GEM
       nokogiri (>= 1.6)
     rails-html-sanitizer (1.0.3)
       loofah (~> 2.0)
-    rake (12.3.0)
-    rdoc (3.12.2)
-      json (~> 1.4)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -125,12 +89,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
     rspec-support (3.5.0)
-    semver (1.0.1)
-    simplecov (0.15.1)
-      docile (~> 1.1.0)
-      json (>= 1.8, < 3)
-      simplecov-html (~> 0.10.0)
-    simplecov-html (0.10.2)
     skylight (1.5.0)
       activesupport (>= 3.0.0)
     sqlite3 (1.3.13)
@@ -142,17 +100,18 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_model_serializers (~> 0.10.4)
+  active_model_serializers (~> 0.10.7)
+  activerecord (>= 4.2)
   bundler (~> 1.0)
   byebug
   fast_jsonapi!
-  juwelier (~> 2.1.0)
-  rdoc (~> 3.12)
+  jsonapi-rb (~> 0.5.0)
+  jsonapi-serializers (~> 1.0.0)
+  oj (~> 3.3)
   rspec (~> 3.5.0)
   rspec-benchmark (~> 0.3.0)
-  simplecov
   skylight (~> 1.3)
   sqlite3 (~> 1.3)
 
 BUNDLED WITH
-   1.16.0
+   1.16.1
