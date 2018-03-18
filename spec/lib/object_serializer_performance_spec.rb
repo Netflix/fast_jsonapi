@@ -47,8 +47,8 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   end
 
   def run_hash_benchmark(message, movie_count, our_serializer, ams_serializer)
-    our_time = Benchmark.measure { our_hash = our_serializer.serializable_hash }.real * 1000
-    ams_time = Benchmark.measure { ams_hash = ams_serializer.as_json }.real * 1000
+    our_time = Benchmark.measure { our_serializer.serializable_hash }.real * 1000
+    ams_time = Benchmark.measure { ams_serializer.as_json }.real * 1000
     print_stats(message, movie_count, ams_time, our_time)
   end
 

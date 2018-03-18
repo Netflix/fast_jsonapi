@@ -127,7 +127,7 @@ module FastJsonapi
           self.cachable_relationships_to_serialize[name] = relationship
         end
         self.relationships_to_serialize[name] = relationship
-     end
+      end
 
       def has_many(relationship_name, options = {})
         singular_name = relationship_name.to_s.singularize
