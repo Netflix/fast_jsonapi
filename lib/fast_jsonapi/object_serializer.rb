@@ -119,6 +119,11 @@ module FastJsonapi
         end
       end
 
+      def use_hyphen
+        warn('DEPRECATION WARNING: use_hyphen is deprecated and will be removed from fast_jsonapi 2.0 use (set_key_transform :dash) instead')
+        set_key_transform :dash
+      end
+
       def set_type(type_name)
         self.record_type = run_key_transform(type_name)
       end
