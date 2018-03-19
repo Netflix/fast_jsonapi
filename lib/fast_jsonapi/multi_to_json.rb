@@ -12,7 +12,12 @@ module FastJsonapi
     # e.g. https://github.com/github/github-ds/blob/fbda5389711edfb4c10b6c6bad19311dfcb1bac1/lib/github/result.rb
     class Result
       def initialize(*rescued_exceptions)
-        rescued_exceptions = [StandardError] if rescued_exceptions.empty?
+        @rescued_exceptions = if rescued_exceptions.empty?
+          [StandardError]
+        else
+          rescued_exceptions
+        end
+
         @value = yield
         @error = nil
       rescue *rescued_exceptions => e
@@ -33,7 +38,8 @@ module FastJsonapi
 
       def rescue
         return self if ok?
-        Result.new { yield(@error) }
+
+        Result.new(*@rescued_exceptions) { yield(@error) }
       end
     end
 
