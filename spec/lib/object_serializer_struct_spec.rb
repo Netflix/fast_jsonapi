@@ -33,21 +33,8 @@ describe FastJsonapi::ObjectSerializer do
 
     context 'struct without id' do
       it 'returns correct hash when serializable_hash is called' do
-        options = {}
-        options[:meta] = { total: 2 }
-        serializable_hash = MovieWithoutIdStructSerializer.new([movie_struct_without_id, movie_struct_without_id], options).serializable_hash
-
-        expect(serializable_hash[:data].length).to eq 2
-        expect(serializable_hash[:data][0][:attributes].length).to eq 2
-        expect(serializable_hash[:meta]).to be_instance_of(Hash)
-
-        serializable_hash = MovieWithoutIdStructSerializer.new(movie_struct_without_id).serializable_hash
-
-        expect(serializable_hash[:data]).to be_instance_of(Hash)
-        expect(serializable_hash[:meta]).to be nil
-        expect(serializable_hash[:included]).to be nil
-        expect(serializable_hash[:data][:id]).to be nil
-        expect(serializable_hash[:data][:type]).to be nil
+        serializer = MovieWithoutIdStructSerializer.new(movie_struct_without_id)
+        expect { serializer.serializable_hash }.to raise_error(FastJsonapi::MandatoryField)
       end
     end
   end
