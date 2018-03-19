@@ -103,6 +103,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     data = Hash[serializers.keys.collect { |k| [ k, { json: nil, time: nil, speed_factor: nil }] }]
 
     serializers.each_pair do |k,v|
+    ams_json = nil
       json_method = SERIALIZERS[k].key?(:json_method) ? SERIALIZERS[k][:json_method] : :to_json
       data[k][:time] = Benchmark.measure { data[k][:json] = v.send(json_method) }.real * 1000
     end
