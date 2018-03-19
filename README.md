@@ -60,7 +60,7 @@ $ bundle install
 You can use the bundled generator if you are using the library inside of
 a Rails project:
 
-    rails g Serializer Movie name year
+    rails g serializer Movie name year
 
 This will create a new serializer in `app/serializers/movie_serializer.rb`
 
