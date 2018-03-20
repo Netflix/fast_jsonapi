@@ -234,6 +234,7 @@ json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
 ### Caching
+Requires a `cache_key` method be defined on model:
 
 ```ruby
 class MovieSerializer
