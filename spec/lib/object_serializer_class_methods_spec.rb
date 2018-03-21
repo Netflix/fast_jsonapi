@@ -67,7 +67,6 @@ describe FastJsonapi::ObjectSerializer do
 
     it 'sets the correct transform_method when use_hyphen is used' do
       MovieSerializer.use_hyphen
-      warning_message = 'DEPRECATION WARNING: use_hyphen is deprecated and will be removed from fast_jsonapi 2.0 use (set_key_transform :dash) instead'
       expect { MovieSerializer.use_hyphen }.to output.to_stderr
       expect(MovieSerializer.instance_variable_get(:@transform_method)).to eq :dasherize
     end
