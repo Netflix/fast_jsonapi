@@ -39,3 +39,7 @@ test.db
 
 # For those who install gems locally to a vendor dir
 /vendor
+
+# Don't checkin Gemfile.lock 
+# See: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
+Gemfile.lock
