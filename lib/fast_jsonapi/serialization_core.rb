@@ -44,8 +44,7 @@ module FastJsonapi
           relationship[:record_type]
         ) unless polymorphic
 
-        object_method_name = relationship.fetch(:object_method_name, relationship[:name])
-        return unless associated_object = record.send(object_method_name)
+        return unless associated_object = record.send(relationship[:object_method_name])
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
