@@ -16,6 +16,7 @@ module FastJsonapi
     included do
       # Set record_type based on the name of the serializer class
       set_type(reflected_record_type) if reflected_record_type
+      set_id(:id)
     end
 
     def initialize(resource, options = {})
@@ -131,8 +132,8 @@ module FastJsonapi
         self.record_type = run_key_transform(type_name)
       end
 
-      def set_id(id_name)
-        self.record_id = id_name
+      def set_id(id_method_name)
+        self.id_method_name = id_method_name
       end
 
       def cache_options(cache_options)
@@ -203,23 +204,7 @@ module FastJsonapi
         })
       end
 
-      def has_one(relationship_name, options = {})
-        name = relationship_name.to_sym
-        serializer_key = options[:serializer] || name
-        key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(relationship_name)
-        add_relationship(name, {
-          key: key,
-          name: name,
-          id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
-          record_type: record_type,
-          object_method_name: options[:object_method_name] || name,
-          serializer: compute_serializer_name(serializer_key),
-          relationship_type: :has_one,
-          cached: options[:cached] || false,
-          polymorphic: fetch_polymorphic_option(options)
-        })
-      end
+      alias_method :has_one, :belongs_to
 
       def compute_serializer_name(serializer_key)
         namespace = self.name.gsub(/()?\w+Serializer$/, '')
