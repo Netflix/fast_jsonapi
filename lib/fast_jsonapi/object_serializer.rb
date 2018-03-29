@@ -111,11 +111,11 @@ module FastJsonapi
           dash: :dasherize,
           underscore: :underscore
         }
-        @transform_method = mapping[transform_name.to_sym]
+        self.transform_method = mapping[transform_name.to_sym]
       end
 
       def run_key_transform(input)
-        if @transform_method.present?
+        if self.transform_method.present?
           input.to_s.send(*@transform_method).to_sym
         else
           input.to_sym

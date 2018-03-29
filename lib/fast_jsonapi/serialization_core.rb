@@ -15,6 +15,7 @@ module FastJsonapi
                       :relationships_to_serialize,
                       :cachable_relationships_to_serialize,
                       :uncachable_relationships_to_serialize,
+                      :transform_method,
                       :record_type,
                       :record_id,
                       :cache_length,
