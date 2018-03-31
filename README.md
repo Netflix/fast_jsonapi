@@ -168,10 +168,12 @@ set_key_transform :underscore # "some_key" => "some_key"
 
 ### Scope
 Allows you to include in the serializer access to an external method.
+
 It's intended to provide an authorization context to the serializer, so that you may use the same serializer for different outcomes.
+
 ```ruby
-class MovieSerializer < ActiveModel::Serializer
-  attributes :id, :name
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
 
   attribute :current_user_signed do |movie|
     return movie.signed? unless scope
