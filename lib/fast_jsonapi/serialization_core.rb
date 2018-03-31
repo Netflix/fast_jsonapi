@@ -16,7 +16,8 @@ module FastJsonapi
                       :record_type,
                       :record_id,
                       :cache_length,
-                      :cached
+                      :cached,
+                      :scope
       end
     end
 
