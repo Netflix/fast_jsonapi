@@ -4,6 +4,8 @@ require 'active_support/concern'
 require 'fast_jsonapi/multi_to_json'
 
 module FastJsonapi
+  MandatoryField = Class.new(StandardError)
+
   module SerializationCore
     extend ActiveSupport::Concern
 
@@ -13,6 +15,7 @@ module FastJsonapi
                       :relationships_to_serialize,
                       :cachable_relationships_to_serialize,
                       :uncachable_relationships_to_serialize,
+                      :transform_method,
                       :record_type,
                       :record_id,
                       :cache_length,
@@ -23,7 +26,7 @@ module FastJsonapi
 
     class_methods do
       def id_hash(id, record_type)
-        return { id: id.to_s, type: record_type } if id.present?
+        { id: id.to_s, type: record_type } if id.present?
       end
 
       def ids_hash(ids, record_type)
@@ -45,8 +48,7 @@ module FastJsonapi
           relationship[:record_type]
         ) unless polymorphic
 
-        object_method_name = relationship.fetch(:object_method_name, relationship[:name])
-        return unless associated_object = record.send(object_method_name)
+        return unless associated_object = record.send(relationship[:object_method_name])
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
@@ -76,8 +78,7 @@ module FastJsonapi
       def record_hash(record)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length) do
-            id = record_id ? record.send(record_id) : record.id
-            temp_hash = id_hash(id, record_type) || { id: nil, type: record_type }
+            temp_hash = id_hash(id_from_record(record), record_type) || { id: nil, type: record_type }
             temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
             temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
@@ -86,12 +87,17 @@ module FastJsonapi
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
           record_hash
         else
-          id = record_id ? record.send(record_id) : record.id
-          record_hash = id_hash(id, record_type) || { id: nil, type: record_type }
+          record_hash = id_hash(id_from_record(record), record_type) || { id: nil, type: record_type }
           record_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
           record_hash[:relationships] = relationships_hash(record) if relationships_to_serialize.present?
           record_hash
         end
+      end
+
+      def id_from_record(record)
+         return record.send(record_id) if record_id
+         raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
+         record.id
       end
 
       # Override #to_json for alternative implementation

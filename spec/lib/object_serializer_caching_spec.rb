@@ -13,6 +13,8 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns correct hash when serializable_hash is called' do
       options = {}
       options[:meta] = { total: 2 }
+      options[:links] = { self: 'self' }
+
       options[:include] = [:actors]
       serializable_hash = CachingMovieSerializer.new([movie, movie], options).serializable_hash
 
@@ -21,6 +23,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash[:data][0][:attributes].length).to eq 2
 
       expect(serializable_hash[:meta]).to be_instance_of(Hash)
+      expect(serializable_hash[:links]).to be_instance_of(Hash)
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included][0]).to be_instance_of(Hash)
@@ -30,6 +33,7 @@ describe FastJsonapi::ObjectSerializer do
 
       expect(serializable_hash[:data]).to be_instance_of(Hash)
       expect(serializable_hash[:meta]).to be nil
+      expect(serializable_hash[:links]).to be nil
       expect(serializable_hash[:included]).to be nil
     end
 

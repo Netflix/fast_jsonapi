@@ -34,6 +34,7 @@ module FastJsonapi
     def hash_for_one_record
       serializable_hash = { data: nil }
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
 
       return serializable_hash unless @resource
 
@@ -55,6 +56,7 @@ module FastJsonapi
       serializable_hash[:data] = data
       serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
       serializable_hash
     end
 
@@ -69,6 +71,7 @@ module FastJsonapi
 
       @known_included_objects = {}
       @meta = options[:meta]
+      @links = options[:links]
       self.class.scope = options[:scope]
 
       if options[:include].present?
@@ -109,11 +112,11 @@ module FastJsonapi
           dash: :dasherize,
           underscore: :underscore
         }
-        @transform_method = mapping[transform_name.to_sym]
+        self.transform_method = mapping[transform_name.to_sym]
       end
 
       def run_key_transform(input)
-        if @transform_method.present?
+        if self.transform_method.present?
           input.to_s.send(*@transform_method).to_sym
         else
           input.to_sym
