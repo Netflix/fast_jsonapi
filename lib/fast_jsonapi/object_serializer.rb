@@ -72,6 +72,7 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
+      self.class.scope = options[:scope]
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)

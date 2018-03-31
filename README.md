@@ -27,6 +27,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Object Serialization](#object-serialization)
   * [Compound Document](#compound-document)
   * [Key Transforms](#key-transforms)
+  * [Scope](#scope)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
 * [Contributing](#contributing)
@@ -163,6 +164,23 @@ set_key_transform :camel # "some_key" => "SomeKey"
 set_key_transform :camel_lower # "some_key" => "someKey"
 set_key_transform :dash # "some_key" => "some-key"
 set_key_transform :underscore # "some_key" => "some_key"
+```
+
+### Scope
+Allows you to include in the serializer access to an external method.
+
+It's intended to provide an authorization context to the serializer, so that you may use the same serializer for different outcomes.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attribute :current_user_signed do |movie|
+    return movie.signed? unless scope
+
+    scope.admin? ? scope.admin_signed? : scope.user_signed?
+  end
+end
 ```
 
 ### Attributes
