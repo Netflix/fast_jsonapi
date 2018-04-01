@@ -23,6 +23,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(results).to include({ id: "1", type: :person }, { id: "2", type: :group })
     end
 
+    it 'returns the correct hash when ids_hash_from_record_and_relationship is called with unknown id_method_name' do
+      relationship = { name: :actors, relationship_type: :has_many, id_method_name: :unknown_ids_method, object_method_name: :actors }
+      results = MovieSerializer.ids_hash_from_record_and_relationship(movie, relationship)
+      expect(results.size).to eq 3
+      expect(results).to include({ id: '1', type: nil }, { id: '2', type: nil }, { id: '3', type: nil })
+    end
+
     it 'returns correct hash when ids_hash is called' do
       inputs = [{ids: %w(1 2 3), record_type: :movie}, {ids: %w(x y z), record_type: 'person'}]
       inputs.each do |hash|
