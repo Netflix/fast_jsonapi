@@ -99,21 +99,41 @@ module FastJsonapi
       end
 
       # includes handler
-
       def get_included_records(record, includes_list, known_included_objects)
-        includes_list.each_with_object([]) do |item, included_records|
-          object_method_name = @relationships_to_serialize[item][:object_method_name]
-          record_type = @relationships_to_serialize[item][:record_type]
-          serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-          relationship_type = @relationships_to_serialize[item][:relationship_type]
-          included_objects = record.send(object_method_name)
-          next if included_objects.blank?
-          included_objects = [included_objects] unless relationship_type == :has_many
-          included_objects.each do |inc_obj|
-            code = "#{record_type}_#{inc_obj.id}"
-            next if known_included_objects.key?(code)
-            known_included_objects[code] = inc_obj
-            included_records << serializer.record_hash(inc_obj)
+        return unless includes_list.present?
+
+        includes_list.sort.each_with_object([]) do |include_item, included_records|
+          items = include_item.to_s.include?('.') ? include_item.to_s.split('.').map{|item| item.to_sym} : [include_item]
+          remaining_items = nil
+          if items.size > 1
+            items_copy = items.dup
+            items_copy.delete_at(0)
+            remaining_items = [items_copy.join('.').to_sym]
+          end
+          item_to_serialize = items.last
+
+          items.each do |item|
+            next unless relationships_to_serialize[item]
+
+            serializer = relationships_to_serialize[item][:serializer].to_s.constantize
+            object_method_name = relationships_to_serialize[item][:object_method_name]
+            record_type = relationships_to_serialize[item][:record_type]
+            relationship_type = relationships_to_serialize[item][:relationship_type]
+
+            included_objects = record.send(object_method_name)
+            next if included_objects.blank?
+            included_objects = [included_objects] unless relationship_type == :has_many
+            included_objects.each do |inc_obj|
+              if remaining_items
+                included_records << serializer.get_included_records(inc_obj, remaining_items, known_included_objects)
+              end
+
+              code = "#{record_type}_#{inc_obj.id}"
+              next if known_included_objects.key?(code)
+
+              known_included_objects[code] = inc_obj
+              included_records << serializer.record_hash(inc_obj)
+            end
           end
         end
       end
