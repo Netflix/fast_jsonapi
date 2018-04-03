@@ -82,10 +82,12 @@ module FastJsonapi
     def validate_includes!(includes)
       return if includes.blank?
 
-      existing_relationships = self.class.relationships_to_serialize.keys.to_set
+      primary_existing_relationships = self.class.relationships_to_serialize.keys.to_set
 
-      unless existing_relationships.superset?(includes.to_set)
-        raise ArgumentError, "One of keys from #{includes} is not specified as a relationship on the serializer"
+      includes.detect do |include|
+        unless primary_existing_relationships.include?(include) || self.class.get_serializer(include)
+          raise ArgumentError, "#{include} is not specified as a relationship on the serializer"
+        end
       end
     end
 
@@ -234,6 +236,27 @@ module FastJsonapi
         return false unless option.present?
         return option if option.respond_to? :keys
         {}
+      end
+
+      def get_serializer(item)
+        unless item.to_s.include?('.')
+          raise ArgumentError, "#{item} is not specified as a relationship on the serializer" unless self.relationships_to_serialize[item]
+          return self.relationships_to_serialize[item][:serializer].to_s.constantize
+        end
+
+        relationships = self.relationships_to_serialize.keys.to_set
+        klass = self
+
+        item.to_s.split('.').each do |nested_include|
+          nested_relationship_to_serialize = klass.relationships_to_serialize[nested_include.to_sym]
+          unless nested_relationship_to_serialize
+            raise ArgumentError, "#{nested_include} is not specified as a relationship on the serializer"
+          end
+
+          klass = nested_relationship_to_serialize[:serializer].to_s.constantize
+          relationships = klass.relationships_to_serialize.keys.to_set
+        end
+        klass
       end
     end
   end
