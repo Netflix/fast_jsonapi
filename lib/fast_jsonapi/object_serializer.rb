@@ -240,7 +240,6 @@ module FastJsonapi
           return self.relationships_to_serialize[item][:serializer].to_s.constantize
         end
 
-        relationships = self.relationships_to_serialize.keys.to_set
         klass = self
 
         item.to_s.split('.').each do |nested_include|
@@ -250,7 +249,6 @@ module FastJsonapi
           end
 
           klass = nested_relationship_to_serialize[:serializer].to_s.constantize
-          relationships = klass.relationships_to_serialize.keys.to_set
         end
         klass
       end
