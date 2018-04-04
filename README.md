@@ -249,7 +249,7 @@ end
 ### Scope
 
 In some cases, attribute values might require more information than what is
-available on the record, for example, access privledges/or other information
+available on the record, for example, access privileges or other information
 related to a current authenticated user. The `options[:scope]` value covers these
 cases by allowing you to pass in whatever object shape may be necessary for
 your use case.
