@@ -132,7 +132,8 @@ module FastJsonapi
             included_objects = [included_objects] unless relationship_type == :has_many
             included_objects.each do |inc_obj|
               if remaining_items
-                included_records << serializer.get_included_records(inc_obj, remaining_items, known_included_objects)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items, known_included_objects)
+                included_records << serializer_records unless serializer_records.empty?
               end
 
               code = "#{record_type}_#{inc_obj.id}"
