@@ -91,6 +91,12 @@ module FastJsonapi
     end
 
     class_methods do
+
+      def inherited(subclass)
+        super(subclass)
+        attributes_to_serialize.each { |name, method_or_block| subclass.attribute(name, method_or_block) }
+      end
+
       def reflected_record_type
         return @reflected_record_type if defined?(@reflected_record_type)
 
