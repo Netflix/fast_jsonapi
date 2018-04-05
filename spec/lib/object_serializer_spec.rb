@@ -28,18 +28,21 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct nested includes when serializable_hash is called' do
+      # 3 actors, 1 shared agency
+      include_object_total = 4
+
       options = {}
       options[:include] = [:actors, :'actors.agency']
       serializable_hash = MovieSerializer.new([movie], options).serializable_hash
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
-      expect(serializable_hash[:included].length).to eq 6
+      expect(serializable_hash[:included].length).to eq include_object_total
 
       options[:include] = [:'actors.agency']
       serializable_hash = MovieSerializer.new([movie], options).serializable_hash
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
-      expect(serializable_hash[:included].length).to eq 6
+      expect(serializable_hash[:included].length).to eq include_object_total
     end
 
     it 'returns correct number of records when serialized_json is called for an array' do
