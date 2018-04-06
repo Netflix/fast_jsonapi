@@ -168,13 +168,16 @@ module FastJsonapi
       def has_many(relationship_name, options = {})
         name = relationship_name.to_sym
         singular_name = relationship_name.to_s.singularize
+        id_from_origin = options[:id_from_origin] || false
+        default_id_method_name = id_from_origin ? :id : (singular_name + '_ids').to_sym
         serializer_key = options[:serializer] || singular_name.to_sym
         key = options[:key] || run_key_transform(relationship_name)
         record_type = options[:record_type] || run_key_transform(singular_name)
         relationship = {
           key: key,
           name: name,
-          id_method_name: options[:id_method_name] || (singular_name + '_ids').to_sym,
+          id_from_origin: id_from_origin,
+          id_method_name: options[:id_method_name] || default_id_method_name,
           record_type: record_type,
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
@@ -188,12 +191,15 @@ module FastJsonapi
       def belongs_to(relationship_name, options = {})
         name = relationship_name.to_sym
         serializer_key = options[:serializer] || relationship_name.to_sym
+        id_from_origin = options[:id_from_origin] || false
+        default_id_method_name = id_from_origin ? :id : (relationship_name.to_s + '_id').to_sym
         key = options[:key] || run_key_transform(relationship_name)
         record_type = options[:record_type] || run_key_transform(relationship_name)
         add_relationship(name, {
           key: key,
           name: name,
-          id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
+          id_from_origin: id_from_origin,
+          id_method_name: options[:id_method_name] || default_id_method_name,
           record_type: record_type,
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
@@ -206,12 +212,15 @@ module FastJsonapi
       def has_one(relationship_name, options = {})
         name = relationship_name.to_sym
         serializer_key = options[:serializer] || name
+        id_from_origin = options[:id_from_origin] || false
+        default_id_method_name = id_from_origin ? :id : (relationship_name.to_s + '_id').to_sym
         key = options[:key] || run_key_transform(relationship_name)
         record_type = options[:record_type] || run_key_transform(relationship_name)
         add_relationship(name, {
           key: key,
           name: name,
-          id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
+          id_from_origin: id_from_origin,
+          id_method_name: options[:id_method_name] || default_id_method_name,
           record_type: record_type,
           object_method_name: options[:object_method_name] || name,
           serializer: compute_serializer_name(serializer_key),
