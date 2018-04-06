@@ -120,7 +120,7 @@ module FastJsonapi
           item_to_serialize = items.last
 
           items.each do |item|
-            next unless relationships_to_serialize[item]
+            next unless relationships_to_serialize && relationships_to_serialize[item]
 
             serializer = relationships_to_serialize[item][:serializer].to_s.constantize
             object_method_name = relationships_to_serialize[item][:object_method_name]
