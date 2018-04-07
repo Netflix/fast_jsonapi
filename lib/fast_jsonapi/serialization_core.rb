@@ -19,6 +19,7 @@ module FastJsonapi
                       :record_type,
                       :record_id,
                       :cache_length,
+                      :race_condition_ttl,
                       :cached
       end
     end
@@ -76,7 +77,7 @@ module FastJsonapi
 
       def record_hash(record)
         if cached
-          record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length) do
+          record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
             temp_hash = id_hash(id_from_record(record), record_type) || { id: nil, type: record_type }
             temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
