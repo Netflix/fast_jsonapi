@@ -138,6 +138,7 @@ module FastJsonapi
       def cache_options(cache_options)
         self.cached = cache_options[:enabled] || false
         self.cache_length = cache_options[:cache_length] || 5.minutes
+        self.race_condition_ttl = cache_options[:race_condition_ttl] || 5.seconds
       end
 
       def attributes(*attributes_list, &block)
