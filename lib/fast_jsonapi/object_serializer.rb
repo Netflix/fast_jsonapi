@@ -72,6 +72,7 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
+      @data_links = {}
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
@@ -234,6 +235,11 @@ module FastJsonapi
         return false unless option.present?
         return option if option.respond_to? :keys
         {}
+      end
+
+      def link(name, value = nil, &block)
+        self.data_links = {} unless data_links
+        self.data_links[name] = block || value
       end
     end
   end
