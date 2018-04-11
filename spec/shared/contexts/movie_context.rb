@@ -18,6 +18,7 @@ RSpec.shared_context 'movie class' do
           a.id = id
           a.name = "Test #{a.id}"
           a.email = "test#{a.id}@test.com"
+          a.agency_id = 1
           a
         end
       end
@@ -35,11 +36,22 @@ RSpec.shared_context 'movie class' do
     end
 
     class Actor
-      attr_accessor :id, :name, :email
+      attr_accessor :id, :name, :email, :agency_id
+
+      def agency
+        ag = Agency.new
+        ag.id = agency_id
+        ag.name = 'Talent Agency Inc.'
+        ag
+      end
     end
 
     class MovieType
       attr_accessor :id, :name
+    end
+
+    class Agency
+      attr_accessor :id, :name, :actor_ids
     end
 
     class Supplier
@@ -67,6 +79,10 @@ RSpec.shared_context 'movie class' do
       has_many :actors
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
+
+      def movie_url(movie)
+        "http://movies.com/#{movie.id}"
+      end
     end
 
     class MovieWithoutIdStructSerializer
@@ -100,12 +116,32 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :actor
       attributes :name, :email
+      belongs_to :agency
+
+      def actor_url(actor)
+        "http://movies.com/actors/#{actor.id}"
+      end
     end
 
     class MovieTypeSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie_type
       attributes :name
+    end
+
+    class MovieSerializerWithAttributeBlock
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name, :release_year
+      attribute :title_with_year do |record|
+        "#{record.name} (#{record.release_year})"
+      end
+    end
+
+    class AgencySerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      has_many :actors
     end
 
     class SupplierSerializer
@@ -148,8 +184,9 @@ RSpec.shared_context 'movie class' do
       :movie_type_id
     )
 
-    ActorStruct = Struct.new(:id, :name, :email)
+    ActorStruct = Struct.new(:id, :name, :email, :agency_id)
     MovieWithoutIdStruct = Struct.new(:name, :release_year)
+    AgencyStruct = Struct.new(:id, :name, :actor_ids)
   end
 
   after(:context) do
@@ -166,6 +203,9 @@ RSpec.shared_context 'movie class' do
       MovieWithoutIdStruct
       HyphenMovieSerializer
       MovieWithoutIdStructSerializer
+      Agency
+      AgencyStruct
+      AgencySerializer
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
@@ -174,10 +214,12 @@ RSpec.shared_context 'movie class' do
 
   let(:movie_struct) do
 
+    agency = AgencyStruct
+
     actors = []
 
     3.times.each do |id|
-      actors << ActorStruct.new(id, id.to_s, id.to_s)
+      actors << ActorStruct.new(id, id.to_s, id.to_s, id.to_s)
     end
 
     m = MovieStruct.new

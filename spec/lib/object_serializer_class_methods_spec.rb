@@ -164,16 +164,17 @@ describe FastJsonapi::ObjectSerializer do
 
   describe '#link' do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
-    before(:each) do
-    end
 
     after do
       MovieSerializer.data_links = {}
+      ActorSerializer.data_links = {}
     end
 
-    context 'with block' do
+    context 'with block calling instance method on serializer' do
       before do
-        MovieSerializer.link(:self) { "http://movies.com/#{movie.id}" }
+        MovieSerializer.link(:self) do |movie_object|
+          movie_url(movie_object)
+        end
       end
       let(:url) { "http://movies.com/#{movie.id}" }
 
