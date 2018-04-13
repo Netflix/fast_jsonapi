@@ -29,6 +29,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
+  * [Scope](#scope)
 * [Contributing](#contributing)
 
 
@@ -60,7 +61,7 @@ $ bundle install
 You can use the bundled generator if you are using the library inside of
 a Rails project:
 
-    rails g Serializer Movie name year
+    rails g serializer Movie name year
 
 This will create a new serializer in `app/serializers/movie_serializer.rb`
 
@@ -211,6 +212,11 @@ Support for top-level included member through ` options[:include] `.
 ```ruby
 options = {}
 options[:meta] = { total: 2 }
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
 options[:include] = [:actors]
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
@@ -219,11 +225,17 @@ MovieSerializer.new([movie, movie], options).serialized_json
 
 ```ruby
 options[:meta] = { total: 2 }
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
 hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
 ### Caching
+Requires a `cache_key` method be defined on model:
 
 ```ruby
 class MovieSerializer
@@ -233,6 +245,39 @@ class MovieSerializer
   attributes :name, :year
 end
 ```
+
+### Scope
+
+In some cases, attribute values might require more information than what is
+available on the record, for example, access privileges or other information
+related to a current authenticated user. The `options[:scope]` value covers these
+cases by allowing you to pass in whatever object shape may be necessary for
+your use case.
+
+Leveraging the new scope is easy, when you define a custom attribute with a
+block you opt-in to using scope by adding it as a block parameter.
+
+```ruby
+class MovieSerializer
+  class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name, :year
+  attribute :can_view_early do |movie, scope|
+    # in here, scope is current_user as that's what we assigned in the options
+    # hash.
+    scope.is_employee? ? true : false
+  end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, {scope: current_user})
+serializer.serializable_hash
+```
+
+Custom attributes that only receive the resource are still possible by defining
+the block to only receive one argument.
 
 ### Customizable Options
 
@@ -245,6 +290,8 @@ id_method_name | Set custom method name to get ID of an object | ```has_many :lo
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
+polymorphic | Allows different record types for a polymorphic association | ```has_many :targets, polymorphic: true```
+polymorphic | Sets custom record types for each object class in a polymorphic association | ```has_many :targets, polymorphic: { Person => :person, Group => :group }```
 
 ### Instrumentation
 
