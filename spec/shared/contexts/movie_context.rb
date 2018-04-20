@@ -5,11 +5,11 @@ RSpec.shared_context 'movie class' do
     # models
     class Movie
       attr_accessor :id,
-                    :name, 
+                    :name,
                     :release_year,
                     :director,
-                    :actor_ids, 
-                    :owner_id, 
+                    :actor_ids,
+                    :owner_id,
                     :movie_type_id
 
       def actors
@@ -18,6 +18,7 @@ RSpec.shared_context 'movie class' do
           a.id = id
           a.name = "Test #{a.id}"
           a.email = "test#{a.id}@test.com"
+          a.agency_id = 1
           a
         end
       end
@@ -35,11 +36,22 @@ RSpec.shared_context 'movie class' do
     end
 
     class Actor
-      attr_accessor :id, :name, :email
+      attr_accessor :id, :name, :email, :agency_id
+
+      def agency
+        ag = Agency.new
+        ag.id = agency_id
+        ag.name = 'Talent Agency Inc.'
+        ag
+      end
     end
 
     class MovieType
       attr_accessor :id, :name
+    end
+
+    class Agency
+      attr_accessor :id, :name, :actor_ids
     end
 
     class Supplier
@@ -69,6 +81,11 @@ RSpec.shared_context 'movie class' do
       belongs_to :movie_type
     end
 
+    class MovieWithoutIdStructSerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :name, :release_year
+    end
+
     class CachingMovieSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
@@ -95,6 +112,7 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :actor
       attributes :name, :email
+      belongs_to :agency
     end
 
     class MovieTypeSerializer
@@ -110,6 +128,12 @@ RSpec.shared_context 'movie class' do
       attribute :title_with_year do |record|
         "#{record.name} (#{record.release_year})"
       end
+    end
+
+    class AgencySerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      has_many :actors
     end
 
     class SupplierSerializer
@@ -142,17 +166,19 @@ RSpec.shared_context 'movie class' do
   # Movie and Actor struct
   before(:context) do
     MovieStruct = Struct.new(
-      :id, 
-      :name, 
-      :release_year, 
-      :actor_ids, 
-      :actors, 
-      :owner_id, 
-      :owner, 
+      :id,
+      :name,
+      :release_year,
+      :actor_ids,
+      :actors,
+      :owner_id,
+      :owner,
       :movie_type_id
     )
 
-    ActorStruct = Struct.new(:id, :name, :email)
+    MovieWithoutIdStruct = Struct.new(:name, :release_year)
+    ActorStruct = Struct.new(:id, :name, :email, :agency_id)
+    AgencyStruct = Struct.new(:id, :name, :actor_ids)
   end
 
   after(:context) do
@@ -163,11 +189,15 @@ RSpec.shared_context 'movie class' do
       ActorSerializer
       MovieType
       MovieTypeSerializer
-      MovieSerializerWithAttributeBlock
       AppName::V1::MovieSerializer
       MovieStruct
       ActorStruct
+      MovieWithoutIdStruct
       HyphenMovieSerializer
+      MovieWithoutIdStructSerializer
+      Agency
+      AgencyStruct
+      AgencySerializer
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
@@ -176,10 +206,12 @@ RSpec.shared_context 'movie class' do
 
   let(:movie_struct) do
 
+    agency = AgencyStruct
+
     actors = []
 
     3.times.each do |id|
-      actors << ActorStruct.new(id, id.to_s, id.to_s)
+      actors << ActorStruct.new(id, id.to_s, id.to_s, id.to_s)
     end
 
     m = MovieStruct.new
@@ -191,6 +223,10 @@ RSpec.shared_context 'movie class' do
     m[:movie_type_id] = 2
     m[:actors] = actors
     m
+  end
+
+  let(:movie_struct_without_id) do
+    MovieWithoutIdStruct.new('struct without id', 2018)
   end
 
   let(:movie) do

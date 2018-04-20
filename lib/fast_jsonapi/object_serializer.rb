@@ -34,6 +34,7 @@ module FastJsonapi
     def hash_for_one_record
       serializable_hash = { data: nil }
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
 
       return serializable_hash unless @resource
 
@@ -55,6 +56,7 @@ module FastJsonapi
       serializable_hash[:data] = data
       serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
+      serializable_hash[:links] = @links if @links.present?
       serializable_hash
     end
 
@@ -69,6 +71,7 @@ module FastJsonapi
 
       @known_included_objects = {}
       @meta = options[:meta]
+      @links = options[:links]
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
@@ -79,10 +82,12 @@ module FastJsonapi
     def validate_includes!(includes)
       return if includes.blank?
 
-      existing_relationships = self.class.relationships_to_serialize.keys.to_set
+      primary_existing_relationships = self.class.relationships_to_serialize.keys.to_set
 
-      unless existing_relationships.superset?(includes.to_set)
-        raise ArgumentError, "One of keys from #{includes} is not specified as a relationship on the serializer"
+      includes.detect do |include|
+        unless primary_existing_relationships.include?(include) || self.class.get_serializer(include)
+          raise ArgumentError, "#{include} is not specified as a relationship on the serializer"
+        end
       end
     end
 
@@ -108,11 +113,11 @@ module FastJsonapi
           dash: :dasherize,
           underscore: :underscore
         }
-        @transform_method = mapping[transform_name.to_sym]
+        self.transform_method = mapping[transform_name.to_sym]
       end
 
       def run_key_transform(input)
-        if @transform_method.present?
+        if self.transform_method.present?
           input.to_s.send(*@transform_method).to_sym
         else
           input.to_sym
@@ -135,6 +140,7 @@ module FastJsonapi
       def cache_options(cache_options)
         self.cached = cache_options[:enabled] || false
         self.cache_length = cache_options[:cache_length] || 5.minutes
+        self.race_condition_ttl = cache_options[:race_condition_ttl] || 5.seconds
       end
 
       def attributes(*attributes_list, &block)
@@ -230,6 +236,25 @@ module FastJsonapi
         return false unless option.present?
         return option if option.respond_to? :keys
         {}
+      end
+
+      def get_serializer(item)
+        unless item.to_s.include?('.')
+          raise ArgumentError, "#{item} is not specified as a relationship on the serializer" unless self.relationships_to_serialize[item]
+          return self.relationships_to_serialize[item][:serializer].to_s.constantize
+        end
+
+        klass = self
+
+        item.to_s.split('.').each do |nested_include|
+          nested_relationship_to_serialize = klass.relationships_to_serialize[nested_include.to_sym]
+          unless nested_relationship_to_serialize
+            raise ArgumentError, "#{nested_include} is not specified as a relationship on the serializer"
+          end
+
+          klass = nested_relationship_to_serialize[:serializer].to_s.constantize
+        end
+        klass
       end
     end
   end
