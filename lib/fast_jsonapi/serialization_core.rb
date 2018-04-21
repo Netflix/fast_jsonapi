@@ -17,7 +17,7 @@ module FastJsonapi
                       :uncachable_relationships_to_serialize,
                       :transform_method,
                       :record_type,
-                      :record_id,
+                      :id_method_name,
                       :cache_length,
                       :race_condition_ttl,
                       :cached
@@ -37,7 +37,7 @@ module FastJsonapi
       def id_hash_from_record(record, record_types)
         # memoize the record type within the record_types dictionary, then assigning to record_type:
         record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
-        { id: record.id.to_s, type: record_type }
+        id_hash(record.id, record_type)
       end
 
       def ids_hash_from_record_and_relationship(record, relationship)
@@ -48,7 +48,7 @@ module FastJsonapi
           relationship[:record_type]
         ) unless polymorphic
 
-        return unless associated_object = record.send(relationship[:object_method_name])
+        associated_object = record.send(relationship[:object_method_name])
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
@@ -95,9 +95,9 @@ module FastJsonapi
       end
 
       def id_from_record(record)
-         return record.send(record_id) if record_id
-         raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
-         record.id
+        return record.send(id_method_name)
+      rescue NoMethodError
+        raise MandatoryField, 'id is a mandatory field in the jsonapi spec'
       end
 
       # Override #to_json for alternative implementation
