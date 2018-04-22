@@ -43,9 +43,20 @@ module FastJsonapi
       end
     end
 
-    def self.logger(device=nil)
-      return @logger = Logger.new(device) if device
-      @logger ||= Logger.new(IO::NULL)
+    def self.to_json(object)
+      _fast_to_json(object)
+    rescue NameError
+      define_to_json(FastJsonapi::MultiToJson)
+      _fast_to_json(object)
+    end
+
+    private
+
+    def self.define_to_json(receiver)
+      cl = caller_locations[0]
+      method_body = to_json_method
+      logger.debug { "Defining #{receiver}._fast_to_json as #{method_body.inspect}" }
+      receiver.instance_eval method_body, cl.absolute_path, cl.lineno
     end
 
     # Encoder-compatible with default MultiJSON adapters and defaults
@@ -76,23 +87,9 @@ module FastJsonapi
       encode_method << "\nend"
     end
 
-    def self.to_json(object)
-      _fast_to_json(object)
-    rescue NameError
-      define_to_json(FastJsonapi::MultiToJson)
-      _fast_to_json(object)
-    end
-
-    def self.define_to_json(receiver)
-      cl = caller_locations[0]
-      method_body = to_json_method
-      logger.debug { "Defining #{receiver}._fast_to_json as #{method_body.inspect}" }
-      receiver.instance_eval method_body, cl.absolute_path, cl.lineno
-    end
-
-    def self.reset_to_json!
-      undef :_fast_to_json if method_defined?(:_fast_to_json)
-      logger.debug { "Undefining #{receiver}._fast_to_json" }
+    def self.logger(device=nil)
+      return @logger = Logger.new(device) if device
+      @logger ||= Logger.new(IO::NULL)
     end
   end
 end
