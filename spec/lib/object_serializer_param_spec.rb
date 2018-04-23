@@ -38,7 +38,7 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       it "succeeds creating a serializer with a hash" do
-        expect(-> { MovieSerializer.new(movie, {params: {current_user: User.new([])}}) }).not_to raise_error(ArgumentError)
+        expect(-> { MovieSerializer.new(movie, {params: {current_user: User.new([])}}) }).not_to raise_error
       end
     end
 
