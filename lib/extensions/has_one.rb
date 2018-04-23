@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-begin
-  require 'active_record'
-
+if defined?(::ActiveRecord)
   ::ActiveRecord::Associations::Builder::HasOne.class_eval do
     # Based on
     # https://github.com/rails/rails/blob/master/activerecord/lib/active_record/associations/builder/collection_association.rb#L50
@@ -17,6 +15,4 @@ begin
       CODE
     end
   end
-rescue LoadError
-  # active_record can't be loaded so we shouldn't try to monkey-patch it.
 end
