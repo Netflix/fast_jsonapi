@@ -32,6 +32,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Params](#params)
 * [Contributing](#contributing)
 
+
 ## Features
 
 * Declaration syntax similar to Active Model Serializer
@@ -57,7 +58,6 @@ $ bundle install
 ## Usage
 
 ### Rails Generator
-
 You can use the bundled generator if you are using the library inside of
 a Rails project:
 
@@ -102,13 +102,11 @@ movie
 ### Object Serialization
 
 #### Return a hash
-
 ```ruby
 hash = MovieSerializer.new(movie).serializable_hash
 ```
 
 #### Return Serialized JSON
-
 ```ruby
 json_string = MovieSerializer.new(movie).serialized_json
 ```
@@ -146,10 +144,10 @@ json_string = MovieSerializer.new(movie).serialized_json
     }
   }
 }
+
 ```
 
 ### Key Transforms
-
 By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform
 
 ```ruby
@@ -161,7 +159,6 @@ end
 ```
 
 Here are examples of how these options transform the keys
-
 ```ruby
 set_key_transform :camel # "some_key" => "SomeKey"
 set_key_transform :camel_lower # "some_key" => "someKey"
@@ -171,14 +168,14 @@ set_key_transform :underscore # "some_key" => "some_key"
 
 ### Attributes
 
-Attributes are defined in FastJsonapi using the `attributes` method. This method is also aliased as `attribute`, which is useful when defining a single attribute.
+Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
 
-By default, attributes are read directly from the model property of the same name. In this example, `name` is expected to be a property of the object being serialized:
+By default, attributes are read directly from the model property of the same name.  In this example, `name` is expected to be a property of the object being serialized:
 
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-
+  
   attribute :name
 end
 ```
@@ -188,9 +185,9 @@ Custom attributes that must be serialized but do not exist on the model can be d
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-
+  
   attributes :name, :year
-
+  
   attribute :name_with_year do |object|
     "#{object.name} (#{object.year})"
   end
@@ -202,7 +199,7 @@ The block syntax can also be used to override the property on the object:
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-
+  
   attribute :name do |object|
     "#{object.name} Part 2"
   end
@@ -211,7 +208,7 @@ end
 
 ### Compound Document
 
-Support for top-level included member through `options[:include]`.
+Support for top-level included member through ` options[:include] `.
 
 ```ruby
 options = {}
@@ -239,7 +236,6 @@ json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
 ### Caching
-
 Requires a `cache_key` method be defined on model:
 
 ```ruby
@@ -285,17 +281,17 @@ the block to only receive one argument.
 
 ### Customizable Options
 
-| Option             | Purpose                                                                     | Example                                                                               |
-| ------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| set_type           | Type name of Object                                                         | `set_type :movie`                                                                     |
-| set_id             | ID of Object                                                                | `set_id :owner_id`                                                                    |
-| cache_options      | Hash to enable caching and set cache length                                 | `cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds` |
-| id_method_name     | Set custom method name to get ID of an object                               | `has_many :locations, id_method_name: :place_ids`                                     |
-| object_method_name | Set custom method name to get related objects                               | `has_many :locations, object_method_name: :places`                                    |
-| record_type        | Set custom Object Type for a relationship                                   | `belongs_to :owner, record_type: :user`                                               |
-| serializer         | Set custom Serializer for a relationship                                    | `has_many :actors, serializer: :custom_actor`                                         |
-| polymorphic        | Allows different record types for a polymorphic association                 | `has_many :targets, polymorphic: true`                                                |
-| polymorphic        | Sets custom record types for each object class in a polymorphic association | `has_many :targets, polymorphic: { Person => :person, Group => :group }`              |
+Option | Purpose | Example
+------------ | ------------- | -------------
+set_type | Type name of Object | ```set_type :movie ```
+set_id | ID of Object | ```set_id :owner_id ```
+cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
+id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
+object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
+record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
+serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
+polymorphic | Allows different record types for a polymorphic association | ```has_many :targets, polymorphic: true```
+polymorphic | Sets custom record types for each object class in a polymorphic association | ```has_many :targets, polymorphic: { Person => :person, Group => :group }```
 
 ### Instrumentation
 
@@ -312,7 +308,6 @@ require 'fast_jsonapi/instrumentation'
 ```
 
 The two instrumented notifcations are supplied by these two constants:
-
 * `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
 * `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
 
@@ -324,18 +319,15 @@ require 'fast_jsonapi/instrumentation/serialized_json'
 ```
 
 Same goes for the Skylight integration:
-
 ```ruby
 require 'fast_jsonapi/instrumentation/skylight/normalizers/serializable_hash'
 require 'fast_jsonapi/instrumentation/skylight/normalizers/serialized_json'
 ```
 
 ## Contributing
-
 Please see [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md) for more details on contributing
 
 ### Running Tests
-
 We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following command:
 
 ```bash
