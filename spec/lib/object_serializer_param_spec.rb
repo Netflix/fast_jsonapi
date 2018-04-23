@@ -30,6 +30,18 @@ describe FastJsonapi::ObjectSerializer do
       Object.send(:remove_const, User) if Object.constants.include?(User)
     end
 
+    context "enforces a hash only params" do
+      let(:params) { User.new([]) }
+
+      it "fails when creating a serializer with an object as params" do
+        expect(-> { MovieSerializer.new(movie, {params: User.new([])}) }).to raise_error(ArgumentError)
+      end
+
+      it "succeeds creating a serializer with a hash" do
+        expect(-> { MovieSerializer.new(movie, {params: {current_user: User.new([])}}) }).not_to raise_error(ArgumentError)
+      end
+    end
+
     context "passing params to the serializer" do
       let(:params) { {user: User.new([movie.id])} }
       let(:options_with_params) { {params: params} }
