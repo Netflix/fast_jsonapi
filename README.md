@@ -157,7 +157,6 @@ class MovieSerializer
   set_key_transform :camel
 end
 ```
-
 Here are examples of how these options transform the keys
 ```ruby
 set_key_transform :camel # "some_key" => "SomeKey"
@@ -167,7 +166,6 @@ set_key_transform :underscore # "some_key" => "some_key"
 ```
 
 ### Attributes
-
 Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
 
 By default, attributes are read directly from the model property of the same name.  In this example, `name` is expected to be a property of the object being serialized:
