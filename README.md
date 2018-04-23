@@ -158,6 +158,7 @@ class MovieSerializer
 end
 ```
 Here are examples of how these options transform the keys
+
 ```ruby
 set_key_transform :camel # "some_key" => "SomeKey"
 set_key_transform :camel_lower # "some_key" => "someKey"
