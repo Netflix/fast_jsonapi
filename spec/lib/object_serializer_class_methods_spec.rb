@@ -143,10 +143,6 @@ describe FastJsonapi::ObjectSerializer do
   describe '#attribute' do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
-     after do
-       MovieSerializer.attributes_to_serialize = {}
-     end
-
     context 'with block' do
       before do
         movie.release_year = 2008
@@ -155,10 +151,70 @@ describe FastJsonapi::ObjectSerializer do
         end
       end
 
+      after do
+        MovieSerializer.attributes_to_serialize.delete(:title_with_year)
+      end
+
       it 'returns correct hash when serializable_hash is called' do
         expect(serializable_hash[:data][:attributes][:name]).to eq movie.name
         expect(serializable_hash[:data][:attributes][:title_with_year]).to eq "#{movie.name} (#{movie.release_year})"
       end
+    end
+  end
+
+  describe '#key_transform' do
+    subject(:hash) { movie_serializer_class.new([movie, movie], include: [:movie_type]).serializable_hash }
+
+    let(:movie_serializer_class) { "#{key_transform}_movie_serializer".classify.constantize }
+
+    before(:context) do
+      [:dash, :camel, :camel_lower, :underscore].each do |key_transform|
+        movie_serializer_name = "#{key_transform}_movie_serializer".classify
+        movie_type_serializer_name = "#{key_transform}_movie_type_serializer".classify
+        # https://stackoverflow.com/questions/4113479/dynamic-class-definition-with-a-class-name
+        movie_serializer_class = Object.const_set(movie_serializer_name, Class.new)
+        # https://rubymonk.com/learning/books/5-metaprogramming-ruby-ascent/chapters/24-eval/lessons/67-instance-eval
+        movie_serializer_class.instance_eval do
+          include FastJsonapi::ObjectSerializer
+          set_type :movie
+          set_key_transform key_transform
+          attributes :name, :release_year
+          has_many :actors
+          belongs_to :owner, record_type: :user
+          belongs_to :movie_type, serializer: "#{key_transform}_movie_type"
+        end
+        movie_type_serializer_class = Object.const_set(movie_type_serializer_name, Class.new)
+        movie_type_serializer_class.instance_eval do
+          include FastJsonapi::ObjectSerializer
+          set_key_transform key_transform
+          set_type :movie_type
+          attributes :name
+        end
+      end
+    end
+
+    context 'when key_transform is dash' do
+      let(:key_transform) { :dash }
+
+      it_behaves_like 'returning key transformed hash', :'movie-type', :'release-year'
+    end
+
+    context 'when key_transform is camel' do
+      let(:key_transform) { :camel }
+
+      it_behaves_like 'returning key transformed hash', :MovieType, :ReleaseYear
+    end
+
+    context 'when key_transform is camel_lower' do
+      let(:key_transform) { :camel_lower }
+
+      it_behaves_like 'returning key transformed hash', :movieType, :releaseYear
+    end
+
+    context 'when key_transform is underscore' do
+      let(:key_transform) { :underscore }
+
+      it_behaves_like 'returning key transformed hash', :movie_type, :release_year
     end
   end
 end
