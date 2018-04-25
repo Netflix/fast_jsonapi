@@ -10,8 +10,8 @@ module FastJsonapi
     extend ActiveSupport::Concern
     include SerializationCore
 
-    SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'.freeze
-    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'.freeze
+    SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'
+    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'
 
     included do
       # Set record_type based on the name of the serializer class
