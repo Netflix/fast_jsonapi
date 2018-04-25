@@ -72,10 +72,8 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
-      unless options[:params].nil?
-        @params = options[:params]
-        raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
-      end
+      @params = options[:params] || {}
+      raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
