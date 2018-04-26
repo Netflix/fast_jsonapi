@@ -168,38 +168,36 @@ module FastJsonapi
 
       def has_many(relationship_name, options = {})
         name = relationship_name.to_sym
-        singular_name = relationship_name.to_s.singularize
-        hash = create_relationship_hash(
-          relationship_name, name, options, singular_name, :has_many, '_ids'
-        )
+        hash = create_relationship_hash(relationship_name, :has_many, options)
         add_relationship(name, hash)
       end
 
       def belongs_to(relationship_name, options = {})
         name = relationship_name.to_sym
-        hash = create_relationship_hash(
-          relationship_name, name, options, relationship_name, :belongs_to
-        )
+        hash = create_relationship_hash(relationship_name, :belongs_to, options)
         add_relationship(name, hash)
       end
 
       def has_one(relationship_name, options = {})
         name = relationship_name.to_sym
-        hash = create_relationship_hash(
-          relationship_name, name, options, relationship_name, :has_one
-        )
+        hash = create_relationship_hash(relationship_name, :has_one, options)
         add_relationship(name, hash)
       end
 
-      def create_relationship_hash(
-        base_key, name, options, base_serialization_key, relationship_type, id_postfix='_id'
-      )
+      def create_relationship_hash(base_key, relationship_type, options)
+        if relationship_type == :has_many
+          base_serialization_key = base_key.to_s.singularize
+          id_postfix = '_ids'
+        else
+          base_serialization_key = base_key
+          id_postfix = '_id'
+        end
         {
           key: options[:key] || run_key_transform(base_key),
-          name: name,
+          name: base_key.to_sym,
           id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
           record_type: options[:record_type] || run_key_transform(base_serialization_key.to_sym),
-          object_method_name: options[:object_method_name] || name,
+          object_method_name: options[:object_method_name] || base_key.to_sym,
           serializer: compute_serializer_name(options[:serializer] || base_serialization_key.to_sym),
           relationship_type: relationship_type,
           cached: options[:cached] || false,
