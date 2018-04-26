@@ -172,17 +172,13 @@ module FastJsonapi
         add_relationship(name, hash)
       end
 
-      def belongs_to(relationship_name, options = {})
-        name = relationship_name.to_sym
-        hash = create_relationship_hash(relationship_name, :belongs_to, options)
-        add_relationship(name, hash)
-      end
-
       def has_one(relationship_name, options = {})
         name = relationship_name.to_sym
         hash = create_relationship_hash(relationship_name, :has_one, options)
         add_relationship(name, hash)
       end
+
+      alias belongs_to has_one
 
       def create_relationship_hash(base_key, relationship_type, options)
         name = base_key.to_sym
