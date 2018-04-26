@@ -113,12 +113,14 @@ module FastJsonapi
 
       def get_included_records(record, includes_list, known_included_objects)
         includes_list.each_with_object([]) do |item, included_records|
-          object_method_name = @relationships_to_serialize[item][:object_method_name]
+          included_objects = record.send(
+            @relationships_to_serialize[item][:object_method_name]
+          )
+          next if included_objects.blank?
+
           record_type = @relationships_to_serialize[item][:record_type]
           serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
           relationship_type = @relationships_to_serialize[item][:relationship_type]
-          included_objects = record.send(object_method_name)
-          next if included_objects.blank?
           included_objects = [included_objects] unless relationship_type == :has_many
           included_objects.each do |inc_obj|
             code = "#{record_type}_#{inc_obj.id}"
