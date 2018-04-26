@@ -185,20 +185,23 @@ module FastJsonapi
       end
 
       def create_relationship_hash(base_key, relationship_type, options)
+        name = base_key.to_sym
         if relationship_type == :has_many
           base_serialization_key = base_key.to_s.singularize
+          base_key_sym = base_serialization_key.to_sym
           id_postfix = '_ids'
         else
           base_serialization_key = base_key
+          base_key_sym = name
           id_postfix = '_id'
         end
         {
           key: options[:key] || run_key_transform(base_key),
-          name: base_key.to_sym,
+          name: name,
           id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
-          record_type: options[:record_type] || run_key_transform(base_serialization_key.to_sym),
-          object_method_name: options[:object_method_name] || base_key.to_sym,
-          serializer: compute_serializer_name(options[:serializer] || base_serialization_key.to_sym),
+          record_type: options[:record_type] || run_key_transform(base_key_sym),
+          object_method_name: options[:object_method_name] || name,
+          serializer: compute_serializer_name(options[:serializer] || base_key_sym),
           relationship_type: relationship_type,
           cached: options[:cached] || false,
           polymorphic: fetch_polymorphic_option(options)
