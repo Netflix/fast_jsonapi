@@ -9,8 +9,10 @@ if defined?(::ActiveRecord)
       super
       name = reflection.name
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}_id
-          association(:#{name}).reader.try(:id)
+        unless defined? #{name}_id
+          def #{name}_id
+            association(:#{name}).reader.try(:id)
+          end
         end
       CODE
     end
