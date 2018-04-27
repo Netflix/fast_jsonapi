@@ -9,10 +9,10 @@ if defined?(::ActiveRecord)
       super
       name = reflection.name
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        unless defined? #{name}_id
-          def #{name}_id
-            association(:#{name}).reader.try(:id)
-          end
+        def #{name}_id
+          # if an attribute is already defined with this methods name we should just use it
+          return read_attribute(__method__) if has_attribute?(__method__)
+          association(:#{name}).reader.try(:id)
         end
       CODE
     end
