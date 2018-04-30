@@ -244,7 +244,7 @@ cache_options | Hash to enable caching and set cache length | ```cache_options e
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
-serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
+serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor``` or ```has_many :actors, serializer: MyApp::Api::V1::ActorSerializer```
 
 ### Instrumentation
 
