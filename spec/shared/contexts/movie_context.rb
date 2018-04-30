@@ -13,11 +13,12 @@ RSpec.shared_context 'movie class' do
                     :movie_type_id
 
       def actors
-        actor_ids.map do |id|
+        actor_ids.map.with_index do |id, i|
           a = Actor.new
           a.id = id
           a.name = "Test #{a.id}"
           a.email = "test#{a.id}@test.com"
+          a.agency_id =i
           a
         end
       end
@@ -35,7 +36,49 @@ RSpec.shared_context 'movie class' do
     end
 
     class Actor
-      attr_accessor :id, :name, :email
+      attr_accessor :id, :name, :email, :agency_id
+
+      def agency
+        Agency.new.tap do |a|
+          a.id = agency_id
+          a.name = "Test Agency #{agency_id}"
+          a.state_id = 1
+        end
+      end
+
+      def awards
+        award_ids.map do |i|
+          Award.new.tap do |a|
+            a.id = i
+            a.title = "Test Award #{i}"
+            a.actor_id = id
+          end
+        end
+      end
+
+      def award_ids
+        [id * 9, id * 9 + 1]
+      end
+    end
+
+    class Agency
+      attr_accessor :id, :name, :state_id
+
+      def state
+        State.new.tap do |s|
+          s.id = state_id
+          s.name = "Test State #{state_id}"
+          s.agency_ids = [id]
+        end
+      end
+    end
+
+    class Award
+      attr_accessor :id, :title, :actor_id
+    end
+
+    class State
+      attr_accessor :id, :name, :agency_ids
     end
 
     class MovieType
@@ -100,6 +143,26 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :actor
       attributes :name, :email
+      has_many :awards
+      belongs_to :agency
+    end
+
+    class AgencySerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      belongs_to :city
+    end
+
+    class AwardSerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :title
+      belongs_to :actor
+    end
+
+    class StateSerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      has_many :agency
     end
 
     class MovieTypeSerializer
@@ -148,7 +211,7 @@ RSpec.shared_context 'movie class' do
       :movie_type_id
     )
 
-    ActorStruct = Struct.new(:id, :name, :email)
+    ActorStruct = Struct.new(:id, :name, :email, :agency_id, :award_ids)
     MovieWithoutIdStruct = Struct.new(:name, :release_year)
   end
 
@@ -177,7 +240,7 @@ RSpec.shared_context 'movie class' do
     actors = []
 
     3.times.each do |id|
-      actors << ActorStruct.new(id, id.to_s, id.to_s)
+      actors << ActorStruct.new(id, id.to_s, id.to_s, id, [id])
     end
 
     m = MovieStruct.new
@@ -203,6 +266,15 @@ RSpec.shared_context 'movie class' do
     m.owner_id = 3
     m.movie_type_id = 1
     m
+  end
+
+  let(:actor) do
+    Actor.new.tap do |a|
+      a.id = 234
+      a.name = 'test actor'
+      a.email = 'test@test.com'
+      a.agency_id = 432
+    end
   end
 
   let(:supplier) do

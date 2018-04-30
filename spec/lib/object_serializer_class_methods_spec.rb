@@ -49,6 +49,44 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  describe '#has_many with block' do
+    before do
+      MovieSerializer.has_many :awards do |movie|
+        movie.actors.map(&:awards).flatten
+      end
+    end
+
+    after do
+      MovieSerializer.relationships_to_serialize.delete(:awards)
+    end
+
+    context 'awards is not included' do
+      subject(:hash) { MovieSerializer.new(movie).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:data][:relationships][:awards][:data].length).to eq(6)
+        expect(hash[:data][:relationships][:awards][:data][0]).to eq({ id: '9', type: :award })
+        expect(hash[:data][:relationships][:awards][:data][-1]).to eq({ id: '28', type: :award })
+      end
+    end
+
+    context 'state is included' do
+      subject(:hash) { MovieSerializer.new(movie, include: [:awards]).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:included].length).to eq 6
+        expect(hash[:included][0][:id]).to eq '9'
+        expect(hash[:included][0][:type]).to eq :award
+        expect(hash[:included][0][:attributes]).to eq({ id: 9, title: 'Test Award 9' })
+        expect(hash[:included][0][:relationships]).to eq({ actor: { data: { id: '1', type: :actor } } })
+        expect(hash[:included][-1][:id]).to eq '28'
+        expect(hash[:included][-1][:type]).to eq :award
+        expect(hash[:included][-1][:attributes]).to eq({ id: 28, title: 'Test Award 28' })
+        expect(hash[:included][-1][:relationships]).to eq({ actor: { data: { id: '3', type: :actor } } })
+      end
+    end
+  end
+
   describe '#belongs_to' do
     subject(:relationship) { MovieSerializer.relationships_to_serialize[:area] }
 
@@ -70,6 +108,38 @@ describe FastJsonapi::ObjectSerializer do
       let(:parent) { [:area] }
 
       it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+    end
+  end
+
+  describe '#belongs_to with block' do
+    before do
+      ActorSerializer.belongs_to :state do |actor|
+        actor.agency.state
+      end
+    end
+
+    after do
+      ActorSerializer.relationships_to_serialize.delete(:actorc)
+    end
+
+    context 'state is not included' do
+      subject(:hash) { ActorSerializer.new(actor).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:data][:relationships][:state][:data]).to eq({ id: '1', type: :state })
+      end
+    end
+
+    context 'state is included' do
+      subject(:hash) { ActorSerializer.new(actor, include: [:state]).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:included].length).to eq 1
+        expect(hash[:included][0][:id]).to eq '1'
+        expect(hash[:included][0][:type]).to eq :state
+        expect(hash[:included][0][:attributes]).to eq({ id: 1, name: 'Test State 1' })
+        expect(hash[:included][0][:relationships]).to eq({ agency: { data: [{ id: '432', type: :agency }] } })
+      end
     end
   end
 
