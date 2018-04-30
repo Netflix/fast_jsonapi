@@ -48,11 +48,11 @@ module FastJsonapi
         polymorphic = relationship[:polymorphic]
 
         return ids_hash(
-          record.public_send(relationship[:id_method_name]),
+          fetch_id(record, relationship),
           relationship[:record_type]
         ) unless polymorphic
 
-        return unless associated_object = record.send(relationship[:object_method_name])
+        return unless associated_object = fetch_associated_object(record, relationship)
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
@@ -113,9 +113,7 @@ module FastJsonapi
 
       def get_included_records(record, includes_list, known_included_objects)
         includes_list.each_with_object([]) do |item, included_records|
-          included_objects = record.send(
-            @relationships_to_serialize[item][:object_method_name]
-          )
+          included_objects = fetch_associated_object(record, @relationships_to_serialize[item])
           next if included_objects.blank?
 
           record_type = @relationships_to_serialize[item][:record_type]
@@ -129,6 +127,22 @@ module FastJsonapi
             included_records << serializer.record_hash(inc_obj)
           end
         end
+      end
+
+      def fetch_associated_object(record, relationship)
+        return relationship[:object_block].call(record) unless relationship[:object_block].nil?
+        record.send(relationship[:object_method_name])
+      end
+
+      def fetch_id(record, relationship)
+        unless relationship[:object_block].nil?
+          object = relationship[:object_block].call(record)
+
+          return object.map(&:id) if object.respond_to? :map
+          return object.id
+        end
+
+        record.public_send(relationship[:id_method_name])
       end
     end
   end
