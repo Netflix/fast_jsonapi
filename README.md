@@ -29,6 +29,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
+  * [Params](#params)
 * [Contributing](#contributing)
 
 
@@ -244,6 +245,38 @@ class MovieSerializer
   attributes :name, :year
 end
 ```
+
+### Params
+
+In some cases, attribute values might require more information than what is
+available on the record, for example, access privileges or other information
+related to a current authenticated user. The `options[:params]` value covers these
+cases by allowing you to pass in a hash of additional parameters necessary for
+your use case.
+
+Leveraging the new params is easy, when you define a custom attribute with a
+block you opt-in to using params by adding it as a block parameter.
+
+```ruby
+class MovieSerializer
+  class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name, :year
+  attribute :can_view_early do |movie, params|
+    # in here, params is a hash containing the `:current_user` key
+    params[:current_user].is_employee? ? true : false
+  end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, {params: {current_user: current_user}})
+serializer.serializable_hash
+```
+
+Custom attributes that only receive the resource are still possible by defining
+the block to only receive one argument.
 
 ### Customizable Options
 
