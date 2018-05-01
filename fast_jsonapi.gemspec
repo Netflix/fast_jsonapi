@@ -7,6 +7,7 @@ Gem::Specification.new do |gem|
   gem.name = "fast_jsonapi"
   gem.version = FastJsonapi::VERSION
 
+  gem.required_ruby_version = '>= 2.0.0' if gem.respond_to? :required_ruby_version=
   gem.required_rubygems_version = Gem::Requirement.new(">= 0") if gem.respond_to? :required_rubygems_version=
   gem.metadata = { "allowed_push_host" => "https://rubygems.org" } if gem.respond_to? :metadata=
   gem.require_paths = ["lib"]
