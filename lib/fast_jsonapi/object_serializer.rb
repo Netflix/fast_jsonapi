@@ -96,6 +96,19 @@ module FastJsonapi
     end
 
     class_methods do
+
+      def inherited(subclass)
+        super(subclass)
+        subclass.attributes_to_serialize = attributes_to_serialize.dup if attributes_to_serialize.present?
+        subclass.relationships_to_serialize = relationships_to_serialize.dup if relationships_to_serialize.present?
+        subclass.cachable_relationships_to_serialize = cachable_relationships_to_serialize.dup if cachable_relationships_to_serialize.present?
+        subclass.uncachable_relationships_to_serialize = uncachable_relationships_to_serialize.dup if uncachable_relationships_to_serialize.present?
+        subclass.transform_method = transform_method
+        subclass.cache_length = cache_length
+        subclass.race_condition_ttl = race_condition_ttl
+        subclass.cached = cached
+      end
+
       def reflected_record_type
         return @reflected_record_type if defined?(@reflected_record_type)
 
