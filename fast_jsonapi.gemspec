@@ -1,12 +1,17 @@
+lib = File.expand_path('lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require "fast_jsonapi/version"
+
 Gem::Specification.new do |gem|
   gem.name = "fast_jsonapi"
-  gem.version = "1.1.1"
+  gem.version = FastJsonapi::VERSION
 
+  gem.required_ruby_version = '>= 2.0.0' if gem.respond_to? :required_ruby_version=
   gem.required_rubygems_version = Gem::Requirement.new(">= 0") if gem.respond_to? :required_rubygems_version=
   gem.metadata = { "allowed_push_host" => "https://rubygems.org" } if gem.respond_to? :metadata=
   gem.require_paths = ["lib"]
   gem.authors = ["Shishir Kakaraddi", "Srinivas Raghunathan", "Adam Gross"]
-  gem.date = "2018-02-01"
   gem.description = "JSON API(jsonapi.org) serializer that works with rails and can be used to serialize any kind of ruby objects"
   gem.email = ""
   gem.extra_rdoc_files = [

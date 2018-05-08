@@ -25,8 +25,12 @@ module FastJsonapi
     end
 
     class_methods do
-      def id_hash(id, record_type)
-        { id: id.to_s, type: record_type } if id.present?
+      def id_hash(id, record_type, default_return=false)
+        if id.present?
+          { id: id.to_s, type: record_type }
+        else
+          default_return ? { id: nil, type: record_type } : nil
+        end
       end
 
       def ids_hash(ids, record_type)
@@ -37,18 +41,18 @@ module FastJsonapi
       def id_hash_from_record(record, record_types)
         # memoize the record type within the record_types dictionary, then assigning to record_type:
         record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
-        { id: record.id.to_s, type: record_type }
+        id_hash(record.id, record_type)
       end
 
       def ids_hash_from_record_and_relationship(record, relationship)
         polymorphic = relationship[:polymorphic]
 
         return ids_hash(
-          record.public_send(relationship[:id_method_name]),
+          fetch_id(record, relationship),
           relationship[:record_type]
         ) unless polymorphic
 
-        return unless associated_object = record.send(relationship[:object_method_name])
+        return unless associated_object = fetch_associated_object(record, relationship)
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
@@ -57,9 +61,13 @@ module FastJsonapi
         id_hash_from_record associated_object, polymorphic
       end
 
-      def attributes_hash(record)
+      def attributes_hash(record, params = {})
         attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
-          attr_hash[key] = method.is_a?(Proc) ? method.call(record) : record.public_send(method)
+          attr_hash[key] = if method.is_a?(Proc)
+            method.arity == 1 ? method.call(record) : method.call(record, params)
+          else
+            record.public_send(method)
+          end
         end
       end
 
@@ -75,11 +83,11 @@ module FastJsonapi
         end
       end
 
-      def record_hash(record)
+      def record_hash(record, params = {})
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
-            temp_hash = id_hash(id_from_record(record), record_type) || { id: nil, type: record_type }
-            temp_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
+            temp_hash = id_hash(id_from_record(record), record_type, true)
+            temp_hash[:attributes] = attributes_hash(record, params) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
             temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
             temp_hash
@@ -87,8 +95,8 @@ module FastJsonapi
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
           record_hash
         else
-          record_hash = id_hash(id_from_record(record), record_type) || { id: nil, type: record_type }
-          record_hash[:attributes] = attributes_hash(record) if attributes_to_serialize.present?
+          record_hash = id_hash(id_from_record(record), record_type, true)
+          record_hash[:attributes] = attributes_hash(record, params) if attributes_to_serialize.present?
           record_hash[:relationships] = relationships_hash(record) if relationships_to_serialize.present?
           record_hash
         end
@@ -107,6 +115,7 @@ module FastJsonapi
 
       # includes handler
       def get_included_records(record, includes_list, known_included_objects)
+# <<<<<<< HEAD
         return unless includes_list.present?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
@@ -117,19 +126,18 @@ module FastJsonapi
             items_copy.delete_at(0)
             remaining_items = [items_copy.join('.').to_sym]
           end
-          item_to_serialize = items.last
 
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
 
-            serializer = relationships_to_serialize[item][:serializer].to_s.constantize
-            object_method_name = relationships_to_serialize[item][:object_method_name]
-            record_type = relationships_to_serialize[item][:record_type]
-            relationship_type = relationships_to_serialize[item][:relationship_type]
+            record_type = @relationships_to_serialize[item][:record_type]
+            serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
+            relationship_type = @relationships_to_serialize[item][:relationship_type]
 
-            included_objects = record.send(object_method_name)
-            next if included_objects.blank?
+            included_objects = fetch_associated_object(record, @relationships_to_serialize[item])
             included_objects = [included_objects] unless relationship_type == :has_many
+            next if included_objects.blank?
+
             included_objects.each do |inc_obj|
               if remaining_items
                 serializer_records = serializer.get_included_records(inc_obj, remaining_items, known_included_objects)
@@ -142,8 +150,25 @@ module FastJsonapi
               known_included_objects[code] = inc_obj
               included_records << serializer.record_hash(inc_obj)
             end
+# >>>>>>> upstream/dev
           end
         end
+      end
+
+      def fetch_associated_object(record, relationship)
+        return relationship[:object_block].call(record) unless relationship[:object_block].nil?
+        record.send(relationship[:object_method_name])
+      end
+
+      def fetch_id(record, relationship)
+        unless relationship[:object_block].nil?
+          object = relationship[:object_block].call(record)
+
+          return object.map(&:id) if object.respond_to? :map
+          return object.id
+        end
+
+        record.public_send(relationship[:id_method_name])
       end
     end
   end

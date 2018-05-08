@@ -10,8 +10,8 @@ module FastJsonapi
     extend ActiveSupport::Concern
     include SerializationCore
 
-    SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'.freeze
-    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'.freeze
+    SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'
+    SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'
 
     included do
       # Set record_type based on the name of the serializer class
@@ -38,7 +38,7 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource)
+      serializable_hash[:data] = self.class.record_hash(@resource, @params)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects) if @includes.present?
       serializable_hash
     end
@@ -49,7 +49,7 @@ module FastJsonapi
       data = []
       included = []
       @resource.each do |record|
-        data << self.class.record_hash(record)
+        data << self.class.record_hash(record, @params)
         included.concat self.class.get_included_records(record, @includes, @known_included_objects) if @includes.present?
       end
 
@@ -72,6 +72,8 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
+      @params = options[:params] || {}
+      raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
@@ -96,6 +98,19 @@ module FastJsonapi
     end
 
     class_methods do
+
+      def inherited(subclass)
+        super(subclass)
+        subclass.attributes_to_serialize = attributes_to_serialize.dup if attributes_to_serialize.present?
+        subclass.relationships_to_serialize = relationships_to_serialize.dup if relationships_to_serialize.present?
+        subclass.cachable_relationships_to_serialize = cachable_relationships_to_serialize.dup if cachable_relationships_to_serialize.present?
+        subclass.uncachable_relationships_to_serialize = uncachable_relationships_to_serialize.dup if uncachable_relationships_to_serialize.present?
+        subclass.transform_method = transform_method
+        subclass.cache_length = cache_length
+        subclass.race_condition_ttl = race_condition_ttl
+        subclass.cached = cached
+      end
+
       def reflected_record_type
         return @reflected_record_type if defined?(@reflected_record_type)
 
@@ -168,63 +183,47 @@ module FastJsonapi
         self.relationships_to_serialize[name] = relationship
      end
 
-      def has_many(relationship_name, options = {})
+      def has_many(relationship_name, options = {}, &block)
         name = relationship_name.to_sym
-        singular_name = relationship_name.to_s.singularize
-        serializer_key = options[:serializer] || singular_name.to_sym
-        key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(singular_name)
-        relationship = {
-          key: key,
+        hash = create_relationship_hash(relationship_name, :has_many, options, block)
+        add_relationship(name, hash)
+      end
+
+      def has_one(relationship_name, options = {}, &block)
+        name = relationship_name.to_sym
+        hash = create_relationship_hash(relationship_name, :has_one, options, block)
+        add_relationship(name, hash)
+      end
+
+      alias belongs_to has_one
+
+      def create_relationship_hash(base_key, relationship_type, options, block)
+        name = base_key.to_sym
+        if relationship_type == :has_many
+          base_serialization_key = base_key.to_s.singularize
+          base_key_sym = base_serialization_key.to_sym
+          id_postfix = '_ids'
+        else
+          base_serialization_key = base_key
+          base_key_sym = name
+          id_postfix = '_id'
+        end
+        {
+          key: options[:key] || run_key_transform(base_key),
           name: name,
-          id_method_name: options[:id_method_name] || (singular_name + '_ids').to_sym,
-          record_type: record_type,
+          id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
+          record_type: options[:record_type] || run_key_transform(base_key_sym),
           object_method_name: options[:object_method_name] || name,
-          serializer: compute_serializer_name(serializer_key),
-          relationship_type: :has_many,
+          object_block: block,
+          serializer: compute_serializer_name(options[:serializer] || base_key_sym),
+          relationship_type: relationship_type,
           cached: options[:cached] || false,
           polymorphic: fetch_polymorphic_option(options)
         }
-        add_relationship(name, relationship)
-      end
-
-      def belongs_to(relationship_name, options = {})
-        name = relationship_name.to_sym
-        serializer_key = options[:serializer] || relationship_name.to_sym
-        key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(relationship_name)
-        add_relationship(name, {
-          key: key,
-          name: name,
-          id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
-          record_type: record_type,
-          object_method_name: options[:object_method_name] || name,
-          serializer: compute_serializer_name(serializer_key),
-          relationship_type: :belongs_to,
-          cached: options[:cached] || true,
-          polymorphic: fetch_polymorphic_option(options)
-        })
-      end
-
-      def has_one(relationship_name, options = {})
-        name = relationship_name.to_sym
-        serializer_key = options[:serializer] || name
-        key = options[:key] || run_key_transform(relationship_name)
-        record_type = options[:record_type] || run_key_transform(relationship_name)
-        add_relationship(name, {
-          key: key,
-          name: name,
-          id_method_name: options[:id_method_name] || (relationship_name.to_s + '_id').to_sym,
-          record_type: record_type,
-          object_method_name: options[:object_method_name] || name,
-          serializer: compute_serializer_name(serializer_key),
-          relationship_type: :has_one,
-          cached: options[:cached] || false,
-          polymorphic: fetch_polymorphic_option(options)
-        })
       end
 
       def compute_serializer_name(serializer_key)
+        return serializer_key unless serializer_key.is_a? Symbol
         namespace = self.name.gsub(/()?\w+Serializer$/, '')
         serializer_name = serializer_key.to_s.classify + 'Serializer'
         return (namespace + serializer_name).to_sym if namespace.present?

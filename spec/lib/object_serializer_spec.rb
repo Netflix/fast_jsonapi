@@ -31,8 +31,8 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct nested includes when serializable_hash is called' do
-      # 3 actors, 1 shared agency
-      include_object_total = 4
+      # 3 actors, 3 agencies
+      include_object_total = 6
 
       options = {}
       options[:include] = [:actors, :'actors.agency']
