@@ -225,17 +225,12 @@ module FastJsonapi
         {}
       end
 
-      def parse(include_item)
-        return [include_item.to_sym] unless include_item.to_s.include?('.')
-        include_item.to_s.split('.').map { |item| item.to_sym }
-      end
-
       def validate_includes!(includes)
         return if includes.blank?
 
-        includes.detect do |include|
+        includes.detect do |include_item|
           klass = self
-          parse(include).each do |parsed_include|
+          parse_include_item(include_item).each do |parsed_include|
             relationship_to_include = klass.relationships_to_serialize[parsed_include]
             raise ArgumentError, "#{parsed_include} is not specified as a relationship on the serializer" unless relationship_to_include
 

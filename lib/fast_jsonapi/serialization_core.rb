@@ -113,20 +113,26 @@ module FastJsonapi
         FastJsonapi::MultiToJson.to_json(payload) if payload.present?
       end
 
+      def parse_include_item(include_item)
+        return [include_item.to_sym] unless include_item.to_s.include?('.')
+        include_item.to_s.split('.').map { |item| item.to_sym }
+      end
+
+      def remaining_items(items)
+        return unless items.size > 1
+        @_remaining ||= begin
+          items_copy = items.dup
+          items_copy.delete_at(0)
+          [items_copy.join('.').to_sym]
+        end
+      end
+
       # includes handler
       def get_included_records(record, includes_list, known_included_objects)
-# <<<<<<< HEAD
         return unless includes_list.present?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
-          items = include_item.to_s.include?('.') ? include_item.to_s.split('.').map{|item| item.to_sym} : [include_item]
-          remaining_items = nil
-          if items.size > 1
-            items_copy = items.dup
-            items_copy.delete_at(0)
-            remaining_items = [items_copy.join('.').to_sym]
-          end
-
+          items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
 
@@ -139,8 +145,8 @@ module FastJsonapi
             next if included_objects.blank?
 
             included_objects.each do |inc_obj|
-              if remaining_items
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items, known_included_objects)
+              if remaining_items(items)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
@@ -150,7 +156,6 @@ module FastJsonapi
               known_included_objects[code] = inc_obj
               included_records << serializer.record_hash(inc_obj)
             end
-# >>>>>>> upstream/dev
           end
         end
       end
