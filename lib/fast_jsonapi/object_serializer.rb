@@ -77,19 +77,7 @@ module FastJsonapi
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
-        validate_includes!(@includes)
-      end
-    end
-
-    def validate_includes!(includes)
-      return if includes.blank?
-
-      primary_existing_relationships = self.class.relationships_to_serialize.keys.to_set
-
-      includes.detect do |include|
-        unless primary_existing_relationships.include?(include) || self.class.get_serializer(include)
-          raise ArgumentError, "#{include} is not specified as a relationship on the serializer"
-        end
+        self.class.validate_includes!(@includes)
       end
     end
 
@@ -237,23 +225,23 @@ module FastJsonapi
         {}
       end
 
-      def get_serializer(item)
-        unless item.to_s.include?('.')
-          raise ArgumentError, "#{item} is not specified as a relationship on the serializer" unless self.relationships_to_serialize[item]
-          return self.relationships_to_serialize[item][:serializer].to_s.constantize
-        end
+      def parse(include_item)
+        return [include_item.to_sym] unless include_item.to_s.include?('.')
+        include_item.to_s.split('.').map { |item| item.to_sym }
+      end
 
-        klass = self
+      def validate_includes!(includes)
+        return if includes.blank?
 
-        item.to_s.split('.').each do |nested_include|
-          nested_relationship_to_serialize = klass.relationships_to_serialize[nested_include.to_sym]
-          unless nested_relationship_to_serialize
-            raise ArgumentError, "#{nested_include} is not specified as a relationship on the serializer"
+        includes.detect do |include|
+          klass = self
+          parse(include).each do |parsed_include|
+            relationship_to_include = klass.relationships_to_serialize[parsed_include]
+            raise ArgumentError, "#{parsed_include} is not specified as a relationship on the serializer" unless relationship_to_include
+
+            klass = relationship_to_include[:serializer].to_s.constantize
           end
-
-          klass = nested_relationship_to_serialize[:serializer].to_s.constantize
         end
-        klass
       end
     end
   end
