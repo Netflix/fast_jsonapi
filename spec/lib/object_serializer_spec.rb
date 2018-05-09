@@ -12,7 +12,7 @@ describe FastJsonapi::ObjectSerializer do
       serializable_hash = MovieSerializer.new([movie, movie], options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
-      expect(serializable_hash[:data][0][:relationships].length).to eq 3
+      expect(serializable_hash[:data][0][:relationships].length).to eq 4
       expect(serializable_hash[:data][0][:attributes].length).to eq 2
 
       expect(serializable_hash[:meta]).to be_instance_of(Hash)
@@ -28,30 +28,6 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash[:meta]).to be nil
       expect(serializable_hash[:links]).to be nil
       expect(serializable_hash[:included]).to be nil
-    end
-
-    it 'returns correct nested includes when serializable_hash is called' do
-      # 3 actors, 3 agencies
-      include_object_total = 6
-
-      options = {}
-      options[:include] = [:actors, :'actors.agency']
-      serializable_hash = MovieSerializer.new([movie], options).serializable_hash
-
-      expect(serializable_hash[:included]).to be_instance_of(Array)
-      expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
-        expect(serializable_hash[:included][include]).to be_instance_of(Hash)
-      end
-
-      options[:include] = [:'actors.agency']
-      serializable_hash = MovieSerializer.new([movie], options).serializable_hash
-
-      expect(serializable_hash[:included]).to be_instance_of(Array)
-      expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
-        expect(serializable_hash[:included][include]).to be_instance_of(Hash)
-      end
     end
 
     it 'returns correct number of records when serialized_json is called for an array' do
@@ -147,6 +123,67 @@ describe FastJsonapi::ObjectSerializer do
       expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
       options[:include] = [nil]
       expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
+    end
+  end
+
+  context 'nested includes' do
+    it 'has_many to belongs_to: returns correct nested includes when serializable_hash is called' do
+      # 3 actors, 3 agencies
+      include_object_total = 6
+
+      options = {}
+      options[:include] = [:actors, :'actors.agency']
+      serializable_hash = MovieSerializer.new([movie], options).serializable_hash
+
+      expect(serializable_hash[:included]).to be_instance_of(Array)
+      expect(serializable_hash[:included].length).to eq include_object_total
+      (0..include_object_total-1).each do |include|
+        expect(serializable_hash[:included][include]).to be_instance_of(Hash)
+      end
+
+      options[:include] = [:'actors.agency']
+      serializable_hash = MovieSerializer.new([movie], options).serializable_hash
+
+      expect(serializable_hash[:included]).to be_instance_of(Array)
+      expect(serializable_hash[:included].length).to eq include_object_total
+      (0..include_object_total-1).each do |include|
+        expect(serializable_hash[:included][include]).to be_instance_of(Hash)
+      end
+    end
+
+    it 'has_many to belongs_to: returns correct nested includes when serializable_hash is called' do
+      # 3 actors, 3 agencies, 1 state
+      include_object_total = 7
+
+      options = {}
+      options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
+      serializable_hash = MovieSerializer.new([movie], options).serializable_hash
+
+      expect(serializable_hash[:included]).to be_instance_of(Array)
+      expect(serializable_hash[:included].length).to eq include_object_total
+
+      actors_serialized = serializable_hash[:included].find_all { |included| included[:type] == :actor }.map { |included| included[:id].to_i }
+      agencies_serialized = serializable_hash[:included].find_all { |included| included[:type] == :agency }.map { |included| included[:id].to_i }
+      states_serialized = serializable_hash[:included].find_all { |included| included[:type] == :state }.map { |included| included[:id].to_i }
+
+      movie.actors.each do |actor|
+        expect(actors_serialized).to include(actor.id)
+      end
+
+      agencies = movie.actors.map(&:agency).uniq
+      agencies.each do |agency|
+        expect(agencies_serialized).to include(agency.id)
+      end
+
+      states = agencies.map(&:state).uniq
+      states.each do |state|
+        expect(states_serialized).to include(state.id)
+      end
+    end
+    it 'has_one returns correct nested includes when serializable_hash is called' do
+      options = {}
+      options[:include] = [:movies, :'movies.advertising_campaign']
+      serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
     end
   end
 

@@ -27,7 +27,15 @@ RSpec.shared_context 'movie class' do
         mt = MovieType.new
         mt.id = movie_type_id
         mt.name = 'Episode'
+        mt.movie_ids = [id]
         mt
+      end
+
+      def advertising_campaign
+        ac = AdvertisingCampaign.new
+        ac.movie_id = id
+        ac.name = "Movie #{name} is incredible!!"
+        ac
       end
 
       def cache_key
@@ -61,6 +69,10 @@ RSpec.shared_context 'movie class' do
       end
     end
 
+    class AdvertisingCampaign
+      attr_accessor :id, :name, :movie_id
+    end
+
     class Agency
       attr_accessor :id, :name, :state_id
 
@@ -82,7 +94,19 @@ RSpec.shared_context 'movie class' do
     end
 
     class MovieType
-      attr_accessor :id, :name
+      attr_accessor :id, :name, :movie_ids
+
+      def movies
+        movie_ids.map.with_index do |id, i|
+          m = Movie.new
+          m.id = 232
+          m.name = 'test movie'
+          m.actor_ids = [1, 2, 3]
+          m.owner_id = 3
+          m.movie_type_id = 1
+          m
+        end
+      end
     end
 
     class Agency
@@ -114,6 +138,7 @@ RSpec.shared_context 'movie class' do
       has_many :actors
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
+      has_one :advertising_campaign
     end
 
     class MovieWithoutIdStructSerializer
@@ -171,10 +196,17 @@ RSpec.shared_context 'movie class' do
       has_many :agency
     end
 
+    class AdvertisingCampaignSerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      belongs_to :movie
+    end
+
     class MovieTypeSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie_type
       attributes :name
+      has_many :movies
     end
 
     class MovieSerializerWithAttributeBlock
@@ -223,7 +255,8 @@ RSpec.shared_context 'movie class' do
       :actors,
       :owner_id,
       :owner,
-      :movie_type_id
+      :movie_type_id,
+      :advertising_campaign
     )
 
     ActorStruct = Struct.new(:id, :name, :email, :agency_id, :award_ids)
@@ -248,6 +281,8 @@ RSpec.shared_context 'movie class' do
       Agency
       AgencyStruct
       AgencySerializer
+      AdvertisingCampaign
+      AdvertisingCampaignSerializer
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
@@ -296,6 +331,16 @@ RSpec.shared_context 'movie class' do
       a.email = 'test@test.com'
       a.agency_id = 432
     end
+  end
+
+  let(:movie_type) do
+     movie
+
+     mt = MovieType.new
+     mt.id = movie.movie_type_id
+     mt.name = 'Foreign Thriller'
+     mt.movie_ids = [movie.id]
+     mt
   end
 
   let(:supplier) do
