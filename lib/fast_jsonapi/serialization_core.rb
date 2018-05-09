@@ -120,11 +120,10 @@ module FastJsonapi
 
       def remaining_items(items)
         return unless items.size > 1
-        @_remaining ||= begin
-          items_copy = items.dup
-          items_copy.delete_at(0)
-          [items_copy.join('.').to_sym]
-        end
+
+        items_copy = items.dup
+        items_copy.delete_at(0)
+        [items_copy.join('.').to_sym]
       end
 
       # includes handler
@@ -173,7 +172,11 @@ module FastJsonapi
           return object.id
         end
 
-        record.public_send(relationship[:id_method_name])
+        if relationship[:relationship_type] == :has_one
+          record.public_send(relationship[:object_method_name])&.id
+        else
+          record.public_send(relationship[:id_method_name])
+        end
       end
     end
   end
