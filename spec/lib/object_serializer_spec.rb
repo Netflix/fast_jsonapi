@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
+  include_context 'group class'
 
   context 'when testing instance methods of object serializer' do
     it 'returns correct hash when serializable_hash is called' do
@@ -197,6 +198,11 @@ describe FastJsonapi::ObjectSerializer do
       advertising_campaigns.each do |advertising_campaign|
         expect(advertising_campaigns_serialized).to include(advertising_campaign.id)
       end
+    end
+    it 'polymorphic' do
+      options = {}
+      options[:include] = [:groupees]
+      serializable_hash = GroupSerializer.new([group], options).serializable_hash
     end
   end
 
