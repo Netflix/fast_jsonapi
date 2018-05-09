@@ -151,7 +151,7 @@ describe FastJsonapi::ObjectSerializer do
       end
     end
 
-    it 'has_many to belongs_to: returns correct nested includes when serializable_hash is called' do
+    it '`has_many` to `belongs_to` to `belongs_to` - returns correct nested includes when serializable_hash is called' do
       # 3 actors, 3 agencies, 1 state
       include_object_total = 7
 
@@ -180,7 +180,7 @@ describe FastJsonapi::ObjectSerializer do
         expect(states_serialized).to include(state.id)
       end
     end
-    it 'has_one returns correct nested includes when serializable_hash is called' do
+    it 'has_many => has_one returns correct nested includes when serializable_hash is called' do
       options = {}
       options[:include] = [:movies, :'movies.advertising_campaign']
       serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
