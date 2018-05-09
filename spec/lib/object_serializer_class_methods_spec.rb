@@ -251,7 +251,7 @@ describe FastJsonapi::ObjectSerializer do
           attributes :name, :release_year
           has_many :actors
           belongs_to :owner, record_type: :user
-          belongs_to :movie_type, serializer: "#{key_transform}_movie_type".to_sym
+          belongs_to :movie_type, serializer: "#{key_transform}_movie_type"
         end
         movie_type_serializer_class = Object.const_set(movie_type_serializer_name, Class.new)
         movie_type_serializer_class.instance_eval do
