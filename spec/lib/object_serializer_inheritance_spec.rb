@@ -12,6 +12,7 @@ describe FastJsonapi::ObjectSerializer do
       EmployeeSerializer
       Photo
       PhotoSerializer
+      EmployeeAccount
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
@@ -63,7 +64,7 @@ describe FastJsonapi::ObjectSerializer do
     attributes :name
   end
 
-  class Account
+  class EmployeeAccount
     attr_accessor :id, :employee_id
   end
 
@@ -71,7 +72,7 @@ describe FastJsonapi::ObjectSerializer do
     attr_accessor :id, :location, :compensation
 
     def account
-      a = Account.new
+      a = EmployeeAccount.new
       a.id = 1
       a.employee_id = id
       a
