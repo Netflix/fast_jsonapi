@@ -183,7 +183,11 @@ module FastJsonapi
         add_relationship(name, hash)
       end
 
-      alias belongs_to has_one
+      def belongs_to(relationship_name, options = {}, &block)
+        name = relationship_name.to_sym
+        hash = create_relationship_hash(relationship_name, :belongs_to, options, block)
+        add_relationship(name, hash)
+      end
 
       def create_relationship_hash(base_key, relationship_type, options, block)
         name = base_key.to_sym
@@ -232,7 +236,7 @@ module FastJsonapi
           klass = self
           parse_include_item(include_item).each do |parsed_include|
             relationship_to_include = klass.relationships_to_serialize[parsed_include]
-            raise ArgumentError, "#{parsed_include} is not specified as a relationship on the serializer" unless relationship_to_include
+            raise ArgumentError, "#{parsed_include} is not specified as a relationship on #{klass.name}" unless relationship_to_include
 
             klass = relationship_to_include[:serializer].to_s.constantize
           end
