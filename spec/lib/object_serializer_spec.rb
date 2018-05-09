@@ -184,6 +184,19 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:include] = [:movies, :'movies.advertising_campaign']
       serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
+
+      movies_serialized = serializable_hash[:included].find_all { |included| included[:type] == :movie }.map { |included| included[:id].to_i }
+      advertising_campaigns_serialized = serializable_hash[:included].find_all { |included| included[:type] == :advertising_campaign }.map { |included| included[:id].to_i }
+
+      movies = movie_type.movies
+      movies.each do |movie|
+        expect(movies_serialized).to include(movie.id)
+      end
+
+      advertising_campaigns = movies.map(&:advertising_campaign)
+      advertising_campaigns.each do |advertising_campaign|
+        expect(advertising_campaigns_serialized).to include(advertising_campaign.id)
+      end
     end
   end
 

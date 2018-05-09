@@ -33,6 +33,7 @@ RSpec.shared_context 'movie class' do
 
       def advertising_campaign
         ac = AdvertisingCampaign.new
+        ac.id = 1
         ac.movie_id = id
         ac.name = "Movie #{name} is incredible!!"
         ac
