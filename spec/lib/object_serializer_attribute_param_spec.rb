@@ -23,7 +23,7 @@ describe FastJsonapi::ObjectSerializer do
         end
       end
 
-      class User < Struct.new(:viewed); end
+      User = Struct.new(:viewed)
     end
 
     after(:context) do

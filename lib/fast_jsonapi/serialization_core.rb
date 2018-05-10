@@ -44,15 +44,15 @@ module FastJsonapi
         id_hash(record.id, record_type)
       end
 
-      def ids_hash_from_record_and_relationship(record, relationship)
+      def ids_hash_from_record_and_relationship(record, relationship, params = {})
         polymorphic = relationship[:polymorphic]
 
         return ids_hash(
-          fetch_id(record, relationship),
+          fetch_id(record, relationship, params),
           relationship[:record_type]
         ) unless polymorphic
 
-        return unless associated_object = fetch_associated_object(record, relationship)
+        return unless associated_object = fetch_associated_object(record, relationship, params)
 
         return associated_object.map do |object|
           id_hash_from_record object, polymorphic
@@ -71,14 +71,14 @@ module FastJsonapi
         end
       end
 
-      def relationships_hash(record, relationships = nil)
+      def relationships_hash(record, relationships = nil, params = {})
         relationships = relationships_to_serialize if relationships.nil?
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
           name = relationship[:key]
           empty_case = relationship[:relationship_type] == :has_many ? [] : nil
           hash[name] = {
-            data: ids_hash_from_record_and_relationship(record, relationship) || empty_case
+            data: ids_hash_from_record_and_relationship(record, relationship, params) || empty_case
           }
         end
       end
@@ -89,15 +89,15 @@ module FastJsonapi
             temp_hash = id_hash(id_from_record(record), record_type, true)
             temp_hash[:attributes] = attributes_hash(record, params) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
-            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize) if cachable_relationships_to_serialize.present?
+            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize, params) if cachable_relationships_to_serialize.present?
             temp_hash
           end
-          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize)) if uncachable_relationships_to_serialize.present?
+          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
           record_hash
         else
           record_hash = id_hash(id_from_record(record), record_type, true)
           record_hash[:attributes] = attributes_hash(record, params) if attributes_to_serialize.present?
-          record_hash[:relationships] = relationships_hash(record) if relationships_to_serialize.present?
+          record_hash[:relationships] = relationships_hash(record, nil, params) if relationships_to_serialize.present?
           record_hash
         end
       end
@@ -127,7 +127,7 @@ module FastJsonapi
       end
 
       # includes handler
-      def get_included_records(record, includes_list, known_included_objects)
+      def get_included_records(record, includes_list, known_included_objects, params = {})
         return unless includes_list.present?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
@@ -139,7 +139,7 @@ module FastJsonapi
             serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
             relationship_type = @relationships_to_serialize[item][:relationship_type]
 
-            included_objects = fetch_associated_object(record, @relationships_to_serialize[item])
+            included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
             included_objects = [included_objects] unless relationship_type == :has_many
             next if included_objects.blank?
 
@@ -153,20 +153,20 @@ module FastJsonapi
               next if known_included_objects.key?(code)
 
               known_included_objects[code] = inc_obj
-              included_records << serializer.record_hash(inc_obj)
+              included_records << serializer.record_hash(inc_obj, params)
             end
           end
         end
       end
 
-      def fetch_associated_object(record, relationship)
-        return relationship[:object_block].call(record) unless relationship[:object_block].nil?
+      def fetch_associated_object(record, relationship, params)
+        return relationship[:object_block].call(record, params) unless relationship[:object_block].nil?
         record.send(relationship[:object_method_name])
       end
 
-      def fetch_id(record, relationship)
+      def fetch_id(record, relationship, params)
         unless relationship[:object_block].nil?
-          object = relationship[:object_block].call(record)
+          object = relationship[:object_block].call(record, params)
 
           return object.map(&:id) if object.respond_to? :map
           return object.id
