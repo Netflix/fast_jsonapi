@@ -77,17 +77,7 @@ module FastJsonapi
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
-        validate_includes!(@includes)
-      end
-    end
-
-    def validate_includes!(includes)
-      return if includes.blank?
-
-      existing_relationships = self.class.relationships_to_serialize.keys.to_set
-
-      unless existing_relationships.superset?(includes.to_set)
-        raise ArgumentError, "One of keys from #{includes} is not specified as a relationship on the serializer"
+        self.class.validate_includes!(@includes)
       end
     end
 
@@ -193,7 +183,11 @@ module FastJsonapi
         add_relationship(name, hash)
       end
 
-      alias belongs_to has_one
+      def belongs_to(relationship_name, options = {}, &block)
+        name = relationship_name.to_sym
+        hash = create_relationship_hash(relationship_name, :belongs_to, options, block)
+        add_relationship(name, hash)
+      end
 
       def create_relationship_hash(base_key, relationship_type, options, block)
         name = base_key.to_sym
@@ -233,6 +227,20 @@ module FastJsonapi
         return false unless option.present?
         return option if option.respond_to? :keys
         {}
+      end
+
+      def validate_includes!(includes)
+        return if includes.blank?
+
+        includes.detect do |include_item|
+          klass = self
+          parse_include_item(include_item).each do |parsed_include|
+            relationship_to_include = klass.relationships_to_serialize[parsed_include]
+            raise ArgumentError, "#{parsed_include} is not specified as a relationship on #{klass.name}" unless relationship_to_include
+
+            klass = relationship_to_include[:serializer].to_s.constantize
+          end
+        end
       end
     end
   end

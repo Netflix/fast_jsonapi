@@ -207,7 +207,7 @@ end
 
 ### Compound Document
 
-Support for top-level included member through ` options[:include] `.
+Support for top-level and nested included associations through ` options[:include] `.
 
 ```ruby
 options = {}
@@ -217,7 +217,7 @@ options[:links] = {
   next: '...',
   prev: '...'
 }
-options[:include] = [:actors]
+options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
 

@@ -113,22 +113,48 @@ module FastJsonapi
         FastJsonapi::MultiToJson.to_json(payload) if payload.present?
       end
 
+      def parse_include_item(include_item)
+        return [include_item.to_sym] unless include_item.to_s.include?('.')
+        include_item.to_s.split('.').map { |item| item.to_sym }
+      end
+
+      def remaining_items(items)
+        return unless items.size > 1
+
+        items_copy = items.dup
+        items_copy.delete_at(0)
+        [items_copy.join('.').to_sym]
+      end
+
       # includes handler
-
       def get_included_records(record, includes_list, known_included_objects, params = {})
-        includes_list.each_with_object([]) do |item, included_records|
-          included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
-          next if included_objects.blank?
+        return unless includes_list.present?
 
-          record_type = @relationships_to_serialize[item][:record_type]
-          serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-          relationship_type = @relationships_to_serialize[item][:relationship_type]
-          included_objects = [included_objects] unless relationship_type == :has_many
-          included_objects.each do |inc_obj|
-            code = "#{record_type}_#{inc_obj.id}"
-            next if known_included_objects.key?(code)
-            known_included_objects[code] = inc_obj
-            included_records << serializer.record_hash(inc_obj, params)
+        includes_list.sort.each_with_object([]) do |include_item, included_records|
+          items = parse_include_item(include_item)
+          items.each do |item|
+            next unless relationships_to_serialize && relationships_to_serialize[item]
+
+            record_type = @relationships_to_serialize[item][:record_type]
+            serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
+            relationship_type = @relationships_to_serialize[item][:relationship_type]
+
+            included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
+            included_objects = [included_objects] unless relationship_type == :has_many
+            next if included_objects.blank?
+
+            included_objects.each do |inc_obj|
+              if remaining_items(items)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects)
+                included_records.concat(serializer_records) unless serializer_records.empty?
+              end
+
+              code = "#{record_type}_#{inc_obj.id}"
+              next if known_included_objects.key?(code)
+
+              known_included_objects[code] = inc_obj
+              included_records << serializer.record_hash(inc_obj, params)
+            end
           end
         end
       end
@@ -146,7 +172,11 @@ module FastJsonapi
           return object.id
         end
 
-        record.public_send(relationship[:id_method_name])
+        if relationship[:relationship_type] == :has_one
+          record.public_send(relationship[:object_method_name])&.id
+        else
+          record.public_send(relationship[:id_method_name])
+        end
       end
     end
   end
