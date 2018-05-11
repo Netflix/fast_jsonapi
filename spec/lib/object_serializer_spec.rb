@@ -199,10 +199,10 @@ describe FastJsonapi::ObjectSerializer do
         expect(advertising_campaigns_serialized).to include(advertising_campaign.id)
       end
     end
-    it 'polymorphic' do
+    it 'polymorphic throws an error that polymorphic is not supported' do
       options = {}
       options[:include] = [:groupees]
-      serializable_hash = GroupSerializer.new([group], options).serializable_hash
+      expect(-> { GroupSerializer.new([group], options)}).to raise_error(NotImplementedError)
     end
   end
 
