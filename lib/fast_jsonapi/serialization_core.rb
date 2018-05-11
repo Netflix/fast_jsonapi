@@ -134,7 +134,7 @@ module FastJsonapi
           items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
-
+            raise NotImplementedError if @relationships_to_serialize[item][:polymorphic].is_a?(Hash)
             record_type = @relationships_to_serialize[item][:record_type]
             serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
             relationship_type = @relationships_to_serialize[item][:relationship_type]
