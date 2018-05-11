@@ -173,7 +173,7 @@ module FastJsonapi
         end
 
         if relationship[:relationship_type] == :has_one
-          record.public_send(relationship[:object_method_name])&.id
+          record.public_send(relationship[:object_method_name]).try(:id)
         else
           record.public_send(relationship[:id_method_name])
         end
