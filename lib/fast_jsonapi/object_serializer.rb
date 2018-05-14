@@ -218,8 +218,7 @@ module FastJsonapi
         return serializer_key unless serializer_key.is_a? Symbol
         namespace = self.name.gsub(/()?\w+Serializer$/, '')
         serializer_name = serializer_key.to_s.classify + 'Serializer'
-        return (namespace + serializer_name).to_sym if namespace.present?
-        (serializer_key.to_s.classify + 'Serializer').to_sym
+        (namespace + serializer_name).to_sym
       end
 
       def fetch_polymorphic_option(options)
