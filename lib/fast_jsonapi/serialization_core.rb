@@ -149,6 +149,7 @@ module FastJsonapi
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
+              next unless inc_obj
               code = "#{record_type}_#{inc_obj.id}"
               next if known_included_objects.key?(code)
 
@@ -169,7 +170,7 @@ module FastJsonapi
           object = relationship[:object_block].call(record, params)
 
           return object.map(&:id) if object.respond_to? :map
-          return object.id
+          return object.try(:id)
         end
 
         if relationship[:relationship_type] == :has_one
