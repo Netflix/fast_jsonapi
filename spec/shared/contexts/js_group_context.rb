@@ -38,7 +38,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
       end
 
       def to_json
-        JSON.fast_generate(to_hash)
+        FastJsonapi::MultiToJson.to_json(to_hash)
       end
 
       def to_hash
