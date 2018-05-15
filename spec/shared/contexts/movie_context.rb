@@ -31,6 +31,10 @@ RSpec.shared_context 'movie class' do
         mt
       end
 
+      def advertising_campaign_id
+        1
+      end
+
       def advertising_campaign
         ac = AdvertisingCampaign.new
         ac.id = 1
@@ -257,7 +261,7 @@ RSpec.shared_context 'movie class' do
       :owner_id,
       :owner,
       :movie_type_id,
-      :advertising_campaign
+      :advertising_campaign_id
     )
 
     ActorStruct = Struct.new(:id, :name, :email, :agency_id, :award_ids)
