@@ -304,4 +304,3 @@ rspec spec --tag performance:true
 Join the Netflix Studio Engineering team and help us build gems like this!
 
 * [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
-* [Senior Platform Engineer](https://jobs.netflix.com/jobs/865783)
