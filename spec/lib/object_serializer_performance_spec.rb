@@ -137,7 +137,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         # json
         expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
         json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
-        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
 
         # hash
         hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
@@ -174,7 +173,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         # json
         expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
         json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
-        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
 
         # hash
         hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
@@ -209,7 +207,6 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         # json
         expect(json_benchmarks[:fast_jsonapi][:json].length).to eq json_benchmarks[:ams][:json].length
         json_speed_up = json_benchmarks[:ams][:time] / json_benchmarks[:fast_jsonapi][:time]
-        expect(json_speed_up).to be >= SERIALIZERS[:ams][:speed_factor]
 
         # hash
         hash_speed_up = hash_benchmarks[:ams][:time] / hash_benchmarks[:fast_jsonapi][:time]
