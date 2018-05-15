@@ -30,6 +30,10 @@ describe FastJsonapi::ObjectSerializer do
       p.user_id = id
       p
     end
+
+    def photo_id
+      1
+    end
   end
 
   class UserSerializer
@@ -76,6 +80,10 @@ describe FastJsonapi::ObjectSerializer do
       a.id = 1
       a.employee_id = id
       a
+    end
+
+    def account_id
+      1
     end
   end
 
