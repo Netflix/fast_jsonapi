@@ -181,6 +181,7 @@ describe FastJsonapi::ObjectSerializer do
         expect(states_serialized).to include(state.id)
       end
     end
+
     it 'has_many => has_one returns correct nested includes when serializable_hash is called' do
       options = {}
       options[:include] = [:movies, :'movies.advertising_campaign']
@@ -199,6 +200,27 @@ describe FastJsonapi::ObjectSerializer do
         expect(advertising_campaigns_serialized).to include(advertising_campaign.id)
       end
     end
+
+    it 'belongs_to: returns correct nested includes when nested attributes are nil when serializable_hash is called' do
+      class Movie
+        def advertising_campaign
+          nil
+        end
+      end
+
+      options = {}
+      options[:include] = [:movies, :'movies.advertising_campaign']
+
+      serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
+
+      movies_serialized = serializable_hash[:included].find_all { |included| included[:type] == :movie }.map { |included| included[:id].to_i }
+
+      movies = movie_type.movies
+      movies.each do |movie|
+        expect(movies_serialized).to include(movie.id)
+      end
+    end
+
     it 'polymorphic throws an error that polymorphic is not supported' do
       options = {}
       options[:include] = [:groupees]
