@@ -140,8 +140,8 @@ module FastJsonapi
             relationship_type = @relationships_to_serialize[item][:relationship_type]
 
             included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
-            included_objects = [included_objects] unless relationship_type == :has_many
             next if included_objects.blank?
+            included_objects = [included_objects] unless relationship_type == :has_many
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
