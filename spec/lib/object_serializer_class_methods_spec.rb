@@ -49,6 +49,44 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  describe '#has_many with block' do
+    before do
+      MovieSerializer.has_many :awards do |movie|
+        movie.actors.map(&:awards).flatten
+      end
+    end
+
+    after do
+      MovieSerializer.relationships_to_serialize.delete(:awards)
+    end
+
+    context 'awards is not included' do
+      subject(:hash) { MovieSerializer.new(movie).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:data][:relationships][:awards][:data].length).to eq(6)
+        expect(hash[:data][:relationships][:awards][:data][0]).to eq({ id: '9', type: :award })
+        expect(hash[:data][:relationships][:awards][:data][-1]).to eq({ id: '28', type: :award })
+      end
+    end
+
+    context 'state is included' do
+      subject(:hash) { MovieSerializer.new(movie, include: [:awards]).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:included].length).to eq 6
+        expect(hash[:included][0][:id]).to eq '9'
+        expect(hash[:included][0][:type]).to eq :award
+        expect(hash[:included][0][:attributes]).to eq({ id: 9, title: 'Test Award 9' })
+        expect(hash[:included][0][:relationships]).to eq({ actor: { data: { id: '1', type: :actor } } })
+        expect(hash[:included][-1][:id]).to eq '28'
+        expect(hash[:included][-1][:type]).to eq :award
+        expect(hash[:included][-1][:attributes]).to eq({ id: 28, title: 'Test Award 28' })
+        expect(hash[:included][-1][:relationships]).to eq({ actor: { data: { id: '3', type: :actor } } })
+      end
+    end
+  end
+
   describe '#belongs_to' do
     subject(:relationship) { MovieSerializer.relationships_to_serialize[:area] }
 
@@ -70,6 +108,38 @@ describe FastJsonapi::ObjectSerializer do
       let(:parent) { [:area] }
 
       it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+    end
+  end
+
+  describe '#belongs_to with block' do
+    before do
+      ActorSerializer.belongs_to :state do |actor|
+        actor.agency.state
+      end
+    end
+
+    after do
+      ActorSerializer.relationships_to_serialize.delete(:actorc)
+    end
+
+    context 'state is not included' do
+      subject(:hash) { ActorSerializer.new(actor).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:data][:relationships][:state][:data]).to eq({ id: '1', type: :state })
+      end
+    end
+
+    context 'state is included' do
+      subject(:hash) { ActorSerializer.new(actor, include: [:state]).serializable_hash }
+
+      it 'returns correct hash' do
+        expect(hash[:included].length).to eq 1
+        expect(hash[:included][0][:id]).to eq '1'
+        expect(hash[:included][0][:type]).to eq :state
+        expect(hash[:included][0][:attributes]).to eq({ id: 1, name: 'Test State 1' })
+        expect(hash[:included][0][:relationships]).to eq({ agency: { data: [{ id: '432', type: :agency }] } })
+      end
     end
   end
 
@@ -143,16 +213,16 @@ describe FastJsonapi::ObjectSerializer do
   describe '#attribute' do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
-     after do
-       MovieSerializer.attributes_to_serialize = {}
-     end
-
     context 'with block' do
       before do
         movie.release_year = 2008
         MovieSerializer.attribute :title_with_year do |record|
           "#{record.name} (#{record.release_year})"
         end
+      end
+
+      after do
+        MovieSerializer.attributes_to_serialize.delete(:title_with_year)
       end
 
       it 'returns correct hash when serializable_hash is called' do
@@ -204,6 +274,62 @@ describe FastJsonapi::ObjectSerializer do
       it 'returns correct hash when serializable_hash is called' do
         expect(serializable_hash[:data][:links][:object_id]).to eq movie.id
       end
+    end
+  end
+
+  describe '#key_transform' do
+    subject(:hash) { movie_serializer_class.new([movie, movie], include: [:movie_type]).serializable_hash }
+
+    let(:movie_serializer_class) { "#{key_transform}_movie_serializer".classify.constantize }
+
+    before(:context) do
+      [:dash, :camel, :camel_lower, :underscore].each do |key_transform|
+        movie_serializer_name = "#{key_transform}_movie_serializer".classify
+        movie_type_serializer_name = "#{key_transform}_movie_type_serializer".classify
+        # https://stackoverflow.com/questions/4113479/dynamic-class-definition-with-a-class-name
+        movie_serializer_class = Object.const_set(movie_serializer_name, Class.new)
+        # https://rubymonk.com/learning/books/5-metaprogramming-ruby-ascent/chapters/24-eval/lessons/67-instance-eval
+        movie_serializer_class.instance_eval do
+          include FastJsonapi::ObjectSerializer
+          set_type :movie
+          set_key_transform key_transform
+          attributes :name, :release_year
+          has_many :actors
+          belongs_to :owner, record_type: :user
+          belongs_to :movie_type, serializer: "#{key_transform}_movie_type".to_sym
+        end
+        movie_type_serializer_class = Object.const_set(movie_type_serializer_name, Class.new)
+        movie_type_serializer_class.instance_eval do
+          include FastJsonapi::ObjectSerializer
+          set_key_transform key_transform
+          set_type :movie_type
+          attributes :name
+        end
+      end
+    end
+
+    context 'when key_transform is dash' do
+      let(:key_transform) { :dash }
+
+      it_behaves_like 'returning key transformed hash', :'movie-type', :'release-year'
+    end
+
+    context 'when key_transform is camel' do
+      let(:key_transform) { :camel }
+
+      it_behaves_like 'returning key transformed hash', :MovieType, :ReleaseYear
+    end
+
+    context 'when key_transform is camel_lower' do
+      let(:key_transform) { :camel_lower }
+
+      it_behaves_like 'returning key transformed hash', :movieType, :releaseYear
+    end
+
+    context 'when key_transform is underscore' do
+      let(:key_transform) { :underscore }
+
+      it_behaves_like 'returning key transformed hash', :movie_type, :release_year
     end
   end
 end

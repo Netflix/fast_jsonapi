@@ -1,3 +1,4 @@
+require 'active_record'
 require 'fast_jsonapi'
 require 'rspec-benchmark'
 require 'byebug'
