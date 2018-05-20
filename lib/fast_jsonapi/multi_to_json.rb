@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'logger'
+
 # Usage:
 #   class Movie
 #     def to_json(payload)
