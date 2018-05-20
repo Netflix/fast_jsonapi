@@ -205,6 +205,31 @@ class MovieSerializer
 end
 ```
 
+### Links Per Object
+Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name.In this example, `public_url` is expected to be a property of the object being serialized.
+
+You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
+
+You can also use a block to define a url as shown in `custom_url`. You can access params in these blocks as well as shown in `personalized_url`
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  link :public_url
+
+  link :self, :url
+
+  link :custom_url do |object|
+    "http://movies.com/#{object.name}-(#{object.year})"
+  end
+
+  link :personalized_url do |object, params|
+    "http://movies.com/#{object.name}-#{params[:user].reference_code}"
+  end
+end
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.
