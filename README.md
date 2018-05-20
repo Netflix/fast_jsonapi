@@ -29,6 +29,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Key Transforms](#key-transforms)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
+  * [Params](#params)
 * [Contributing](#contributing)
 
 
@@ -173,7 +174,7 @@ By default, attributes are read directly from the model property of the same nam
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-  
+
   attribute :name
 end
 ```
@@ -183,9 +184,9 @@ Custom attributes that must be serialized but do not exist on the model can be d
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-  
+
   attributes :name, :year
-  
+
   attribute :name_with_year do |object|
     "#{object.name} (#{object.year})"
   end
@@ -197,21 +198,51 @@ The block syntax can also be used to override the property on the object:
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
-  
+
   attribute :name do |object|
     "#{object.name} Part 2"
   end
 end
 ```
 
+### Links Per Object
+Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name.In this example, `public_url` is expected to be a property of the object being serialized.
+
+You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
+
+You can also use a block to define a url as shown in `custom_url`. You can access params in these blocks as well as shown in `personalized_url`
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  link :public_url
+
+  link :self, :url
+
+  link :custom_url do |object|
+    "http://movies.com/#{object.name}-(#{object.year})"
+  end
+
+  link :personalized_url do |object, params|
+    "http://movies.com/#{object.name}-#{params[:user].reference_code}"
+  end
+end
+```
+
 ### Compound Document
 
-Support for top-level included member through ` options[:include] `.
+Support for top-level and nested included associations through ` options[:include] `.
 
 ```ruby
 options = {}
 options[:meta] = { total: 2 }
-options[:include] = [:actors]
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
+options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
@@ -219,11 +250,17 @@ MovieSerializer.new([movie, movie], options).serialized_json
 
 ```ruby
 options[:meta] = { total: 2 }
+options[:links] = {
+  self: '...',
+  next: '...',
+  prev: '...'
+}
 hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
 ### Caching
+Requires a `cache_key` method be defined on model:
 
 ```ruby
 class MovieSerializer
@@ -234,17 +271,56 @@ class MovieSerializer
 end
 ```
 
+### Params
+
+In some cases, attribute values might require more information than what is
+available on the record, for example, access privileges or other information
+related to a current authenticated user. The `options[:params]` value covers these
+cases by allowing you to pass in a hash of additional parameters necessary for
+your use case.
+
+Leveraging the new params is easy, when you define a custom attribute or relationship with a
+block you opt-in to using params by adding it as a block parameter.
+
+```ruby
+class MovieSerializer
+  class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name, :year
+  attribute :can_view_early do |movie, params|
+    # in here, params is a hash containing the `:current_user` key
+    params[:current_user].is_employee? ? true : false
+  end
+
+  belongs_to :primary_agent do |movie, params|
+    # in here, params is a hash containing the `:current_user` key
+    params[:current_user].is_employee? ? true : false
+  end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, {params: {current_user: current_user}})
+serializer.serializable_hash
+```
+
+Custom attributes and relationships that only receive the resource are still possible by defining
+the block to only receive one argument.
+
 ### Customizable Options
 
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
 set_id | ID of Object | ```set_id :owner_id ```
-cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours```
+cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
-serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor```
+serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor``` or ```has_many :actors, serializer: MyApp::Api::V1::ActorSerializer```
+polymorphic | Allows different record types for a polymorphic association | ```has_many :targets, polymorphic: true```
+polymorphic | Sets custom record types for each object class in a polymorphic association | ```has_many :targets, polymorphic: { Person => :person, Group => :group }```
 
 ### Instrumentation
 
@@ -304,4 +380,3 @@ rspec spec --tag performance:true
 Join the Netflix Studio Engineering team and help us build gems like this!
 
 * [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
-* [Senior Platform Engineer](https://jobs.netflix.com/jobs/865783)
