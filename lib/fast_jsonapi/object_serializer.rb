@@ -72,7 +72,6 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
-      @data_links = {}
       @params = options[:params] || {}
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
@@ -97,6 +96,7 @@ module FastJsonapi
         subclass.transform_method = transform_method
         subclass.cache_length = cache_length
         subclass.race_condition_ttl = race_condition_ttl
+        subclass.data_links = data_links
         subclass.cached = cached
       end
 
