@@ -4,12 +4,55 @@ RSpec.shared_context 'ams movie class' do
     class AMSModel < ActiveModelSerializers::Model
       derive_attributes_from_names_and_fix_accessors
     end
+
+    class AMSMovieType < AMSModel
+      attributes :id, :name, :movies
+    end
     class AMSMovie < AMSModel
-      attributes :id, :name, :release_year, :actors, :owner, :movie_type
+      attributes :id, :name, :release_year, :actors, :owner, :movie_type, :advertising_campaign
+
+      def movie_type
+        mt = AMSMovieType.new
+        mt.id = 1
+        mt.name = 'Episode'
+        mt.movies = [self]
+        mt
+      end
+    end
+
+    class AMSAdvertisingCampaign < AMSModel
+      attributes :id, :name, :movie
+    end
+
+    class AMSAward < AMSModel
+      attributes :id, :title, :actor
+    end
+
+    class AMSAgency < AMSModel
+      attributes :id, :name, :actors
     end
 
     class AMSActor < AMSModel
-      attributes :id, :name, :email
+      attributes :id, :name, :email, :agency, :awards, :agency_id
+      def agency
+        AMSAgency.new.tap do |a|
+          a.id = agency_id
+          a.name = "Test Agency #{agency_id}"
+        end
+      end
+
+      def award_ids
+        [id * 9, id * 9 + 1]
+      end
+
+      def awards
+        award_ids.map do |i|
+          AMSAward.new.tap do |a|
+            a.id = i
+            a.title = "Test Award #{i}"
+          end
+        end
+      end
     end
 
     class AMSUser < AMSModel
@@ -19,9 +62,22 @@ RSpec.shared_context 'ams movie class' do
       attributes :id, :name
     end
     # serializers
+    class AMSAwardSerializer < ActiveModel::Serializer
+      type 'award'
+      attributes :id, :title
+      belongs_to :actor
+    end
+    class AMSAgencySerializer < ActiveModel::Serializer
+      type 'agency'
+      attributes :id, :name
+      belongs_to :state
+      has_many :actors
+    end
     class AMSActorSerializer < ActiveModel::Serializer
       type 'actor'
       attributes :name, :email
+      belongs_to :agency, serializer: ::AMSAgencySerializer
+      has_many :awards, serializer: ::AMSAwardSerializer
     end
     class AMSUserSerializer < ActiveModel::Serializer
       type 'user'
@@ -30,6 +86,11 @@ RSpec.shared_context 'ams movie class' do
     class AMSMovieTypeSerializer < ActiveModel::Serializer
       type 'movie_type'
       attributes :name
+      has_many :movies
+    end
+    class AMSAdvertisingCampaignSerializer < ActiveModel::Serializer
+      type 'advertising_campaign'
+      attributes :name
     end
     class AMSMovieSerializer < ActiveModel::Serializer
       type 'movie'
@@ -37,6 +98,7 @@ RSpec.shared_context 'ams movie class' do
       has_many :actors
       has_one :owner
       belongs_to :movie_type
+      has_one :advertising_campaign
     end
   end
 
@@ -53,6 +115,7 @@ RSpec.shared_context 'ams movie class' do
       a.id = i + 1
       a.name = "Test #{a.id}"
       a.email = "test#{a.id}@test.com"
+      a.agency_id = i
       a
     end
   end
@@ -70,6 +133,13 @@ RSpec.shared_context 'ams movie class' do
     ams_movie_type
   end
 
+  let(:ams_advertising_campaign) do
+    campaign = AMSAdvertisingCampaign.new
+    campaign.id = 1
+    campaign.name = "Movie is incredible!!"
+    campaign
+  end
+
   def build_ams_movies(count)
     count.times.map do |i|
       m = AMSMovie.new
@@ -78,6 +148,7 @@ RSpec.shared_context 'ams movie class' do
       m.actors = ams_actors
       m.owner = ams_user
       m.movie_type = ams_movie_type
+      m.advertising_campaign = ams_advertising_campaign
       m
     end
   end

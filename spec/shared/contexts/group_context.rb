@@ -26,21 +26,7 @@ RSpec.shared_context 'group class' do
     end
   end
 
-
-  # Namespaced PersonSerializer
-  before(:context) do
-    # namespaced model stub
-    module AppName
-      module V1
-        class PersonSerializer
-          include FastJsonapi::ObjectSerializer
-          # to test if compute_serializer_name works
-        end
-      end
-    end
-  end
-
-  # Movie and Actor struct
+  # Person and Group struct
   before(:context) do
     PersonStruct = Struct.new(
       :id, :first_name, :last_name
@@ -57,32 +43,12 @@ RSpec.shared_context 'group class' do
       PersonSerializer
       Group
       GroupSerializer
-      AppName::V1::PersonSerializer
       PersonStruct
       GroupStruct
     ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
-  end
-
-  let(:group_struct) do
-    group = GroupStruct.new
-    group[:id] = 1
-    group[:name] = 'Group 1'
-    group[:groupees] = []
-
-    person = PersonStruct.new
-    person[:id] = 1
-    person[:last_name] = "Last Name 1"
-    person[:first_name] = "First Name 1"
-
-    child_group = GroupStruct.new
-    child_group[:id] = 2
-    child_group[:name] = 'Group 2'
-
-    group.groupees = [person, child_group]
-    group
   end
 
   let(:group) do
