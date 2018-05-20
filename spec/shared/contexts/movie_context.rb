@@ -114,6 +114,10 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id, :name, :actor_ids
     end
 
+    class Agency
+      attr_accessor :id, :name, :actor_ids
+    end
+
     class Supplier
       attr_accessor :id, :account_id
 
@@ -140,6 +144,10 @@ RSpec.shared_context 'movie class' do
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
       has_one :advertising_campaign
+
+      def movie_url(movie)
+        "http://movies.com/#{movie.id}"
+      end
     end
 
     class MovieWithoutIdStructSerializer
@@ -176,6 +184,10 @@ RSpec.shared_context 'movie class' do
       belongs_to :agency
       has_many :awards
       belongs_to :agency
+
+      def actor_url(actor)
+        "http://movies.com/actors/#{actor.id}"
+      end
     end
 
     class AgencySerializer
@@ -217,6 +229,21 @@ RSpec.shared_context 'movie class' do
       attribute :title_with_year do |record|
         "#{record.name} (#{record.release_year})"
       end
+    end
+
+    class MovieSerializerWithAttributeBlock
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name, :release_year
+      attribute :title_with_year do |record|
+        "#{record.name} (#{record.release_year})"
+      end
+    end
+
+    class AgencySerializer
+      include FastJsonapi::ObjectSerializer
+      attributes :id, :name
+      has_many :actors
     end
 
     class SupplierSerializer

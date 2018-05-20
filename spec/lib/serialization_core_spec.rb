@@ -70,7 +70,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'returns correct hash when record_hash is called' do
-      record_hash = MovieSerializer.send(:record_hash, movie)
+      record_hash = MovieSerializer.send(:record_hash, movie, nil)
       expect(record_hash[:id]).to eq movie.id.to_s
       expect(record_hash[:type]).to eq MovieSerializer.record_type
       expect(record_hash).to have_key(:attributes) if MovieSerializer.attributes_to_serialize.present?
@@ -82,7 +82,7 @@ describe FastJsonapi::ObjectSerializer do
       known_included_objects = {}
       included_records = []
       [movie, movie].each do |record|
-        included_records.concat MovieSerializer.send(:get_included_records, record, includes_list, known_included_objects)
+        included_records.concat MovieSerializer.send(:get_included_records, record, includes_list, known_included_objects, nil)
       end
       expect(included_records.size).to eq 3
     end
