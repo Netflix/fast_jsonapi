@@ -287,7 +287,7 @@ describe FastJsonapi::ObjectSerializer do
   context 'when serializing included, serialize any links' do
     before do
       ActorSerializer.link(:self) do |actor_object|
-        actor_url(actor_object)
+        actor_object.url
       end
     end
     subject(:serializable_hash) do

@@ -38,7 +38,7 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @params, self)
+      serializable_hash[:data] = self.class.record_hash(@resource, @params)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @params) if @includes.present?
       serializable_hash
     end
@@ -49,7 +49,7 @@ module FastJsonapi
       data = []
       included = []
       @resource.each do |record|
-        data << self.class.record_hash(record, @params, self)
+        data << self.class.record_hash(record, @params)
         included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
       end
 
@@ -229,9 +229,11 @@ module FastJsonapi
         {}
       end
 
-      def link(name, value = nil, &block)
-        self.data_links = {} unless data_links
-        self.data_links[name] = block || value
+      def link(link_name, link_method_name = nil, &block)
+        self.data_links = {} if self.data_links.nil?
+        link_method_name = link_name if link_method_name.nil?
+        key = run_key_transform(link_name)
+        self.data_links[key] = block || link_method_name
       end
 
       def validate_includes!(includes)

@@ -42,6 +42,10 @@ RSpec.shared_context 'movie class' do
       def cache_key
         "#{id}"
       end
+
+      def url
+        "http://movies.com/#{id}"
+      end
     end
 
     class Actor
@@ -67,6 +71,10 @@ RSpec.shared_context 'movie class' do
 
       def award_ids
         [id * 9, id * 9 + 1]
+      end
+
+      def url
+        "http://movies.com/actors/#{id}"
       end
     end
 
@@ -144,10 +152,6 @@ RSpec.shared_context 'movie class' do
       belongs_to :owner, record_type: :user
       belongs_to :movie_type
       has_one :advertising_campaign
-
-      def movie_url(movie)
-        "http://movies.com/#{movie.id}"
-      end
     end
 
     class MovieWithoutIdStructSerializer
@@ -184,10 +188,6 @@ RSpec.shared_context 'movie class' do
       belongs_to :agency
       has_many :awards
       belongs_to :agency
-
-      def actor_url(actor)
-        "http://movies.com/actors/#{actor.id}"
-      end
     end
 
     class AgencySerializer

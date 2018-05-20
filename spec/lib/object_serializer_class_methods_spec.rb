@@ -243,7 +243,7 @@ describe FastJsonapi::ObjectSerializer do
     context 'with block calling instance method on serializer' do
       before do
         MovieSerializer.link(:self) do |movie_object|
-          movie_url(movie_object)
+          movie_object.url
         end
       end
       let(:url) { "http://movies.com/#{movie.id}" }
@@ -273,6 +273,16 @@ describe FastJsonapi::ObjectSerializer do
 
       it 'returns correct hash when serializable_hash is called' do
         expect(serializable_hash[:data][:links][:object_id]).to eq movie.id
+      end
+    end
+
+    context 'with method and convention' do
+      before do
+        MovieSerializer.link(:url)
+      end
+
+      it 'returns correct hash when serializable_hash is called' do
+        expect(serializable_hash[:data][:links][:url]).to eq movie.url
       end
     end
   end
