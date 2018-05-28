@@ -43,6 +43,13 @@ RSpec.shared_context 'movie class' do
         ac
       end
 
+      def owner
+        return unless owner_id
+        ow = Owner.new
+        ow.id = owner_id
+        ow
+      end
+
       def cache_key
         "#{id}"
       end
@@ -146,6 +153,14 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id
     end
 
+    class Owner
+      attr_accessor :id
+    end
+
+    class OwnerSerializer
+      include FastJsonapi::ObjectSerializer
+    end
+
     # serializers
     class MovieSerializer
       include FastJsonapi::ObjectSerializer
@@ -153,7 +168,9 @@ RSpec.shared_context 'movie class' do
       # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
-      belongs_to :owner, record_type: :user
+      belongs_to :owner, record_type: :user do |object, params|
+        object.owner
+      end
       belongs_to :movie_type
       has_one :advertising_campaign
     end
