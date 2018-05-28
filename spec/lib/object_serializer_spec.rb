@@ -97,6 +97,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when belongs_to returns nil and there is a block for the relationship' do
+      movie.owner_id = nil
+      json = MovieSerializer.new(movie, {include: [:owner]}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
+    end
+
     it 'returns correct json when has_one returns nil' do
       supplier.account_id = nil
       json = SupplierSerializer.new(supplier).serialized_json
