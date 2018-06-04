@@ -77,7 +77,17 @@ module FastJsonapi
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
-        self.class.validate_includes!(@includes)
+        validate_includes!(@includes)
+      end
+    end
+
+    def validate_includes!(includes)
+      return if includes.blank?
+
+      existing_relationships = self.class.relationships_to_serialize.keys.to_set
+
+      unless existing_relationships.superset?(includes.to_set)
+        raise ArgumentError, "One of keys from #{includes} is not specified as a relationship on the serializer"
       end
     end
 
@@ -149,11 +159,18 @@ module FastJsonapi
 
       def attributes(*attributes_list, &block)
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
+        options = attributes_list.last.is_a?(Hash) ? attributes_list.pop : {}
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
+        self.optional_attributes_to_serialize = {} if self.optional_attributes_to_serialize.nil?
+
         attributes_list.each do |attr_name|
           method_name = attr_name
           key = run_key_transform(method_name)
-          attributes_to_serialize[key] = block || method_name
+          if options[:if].present?
+            optional_attributes_to_serialize[key] = [method_name, options[:if]]
+          else
+            attributes_to_serialize[key] = block || method_name
+          end
         end
       end
 

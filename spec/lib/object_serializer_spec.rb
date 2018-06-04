@@ -309,4 +309,20 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash[:included][0][:links][:self]).to eq url
     end
   end
+
+  context 'optional attributes' do
+    it 'returns optional attribute when attribute is included' do
+      movie.release_year = 2001
+      json = MovieOptionalSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['release_year']).to eq movie.release_year
+    end
+
+    it "doesn't returns optional attribute when attribute is not included" do
+      movie.release_year = 1970
+      json = MovieOptionalSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].has_key?('release_year')).to be_falsey
+    end
+  end
 end
