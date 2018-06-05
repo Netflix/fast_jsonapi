@@ -284,7 +284,6 @@ block you opt-in to using params by adding it as a block parameter.
 
 ```ruby
 class MovieSerializer
-  class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :name, :year
