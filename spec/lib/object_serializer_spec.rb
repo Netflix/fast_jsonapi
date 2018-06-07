@@ -302,4 +302,50 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash[:included][0][:links][:self]).to eq url
     end
   end
+
+  context 'when is_collection option present' do
+    subject { MovieSerializer.new(resource, is_collection_options).serializable_hash }
+
+    context 'autodetect' do
+      let(:is_collection_options) { {} }
+
+      context 'collection if no option present' do
+        let(:resource) { [movie] }
+        it { expect(subject[:data]).to be_a(Array) }
+      end
+
+      context 'single if no option present' do
+        let(:resource) { movie }
+        it { expect(subject[:data]).to be_a(Hash) }
+      end
+    end
+
+    context 'force is_collection to true' do
+      let(:is_collection_options) { { is_collection: true } }
+
+      context 'collection will pass' do
+        let(:resource) { [movie] }
+        it { expect(subject[:data]).to be_a(Array) }
+      end
+
+      context 'single will raise error' do
+        let(:resource) { movie }
+        it { expect { subject }.to raise_error(NoMethodError, /method(.*)each/) }
+      end
+    end
+
+    context 'force is_collection to false' do
+      let(:is_collection_options) { { is_collection: false } }
+
+      context 'collection will fail without id' do
+        let(:resource) { [movie] }
+        it { expect { subject }.to raise_error(FastJsonapi::MandatoryField, /id is a mandatory field/) }
+      end
+
+      context 'single will pass' do
+        let(:resource) { movie }
+        it { expect(subject[:data]).to be_a(Hash) }
+      end
+    end
+  end
 end
