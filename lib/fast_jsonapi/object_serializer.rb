@@ -18,10 +18,11 @@ module FastJsonapi
       set_type(reflected_record_type) if reflected_record_type
     end
 
-    def initialize(resource, options = {})
+    def initialize(resource, options = {}, includes = {})
       process_options(options)
 
-      @resource = resource
+      @resource = resource.includes(includes) if !includes.blank? && is_collection?(resource)
+      @resource = resource if includes.blank? || !is_collection?(resource)
     end
 
     def serializable_hash
@@ -47,14 +48,14 @@ module FastJsonapi
       serializable_hash = {}
 
       data = []
-      included = []
+      # included = []
       @resource.each do |record|
         data << self.class.record_hash(record, @params)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
+        # included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
       end
 
       serializable_hash[:data] = data
-      serializable_hash[:included] = included if @includes.present?
+      # serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
       serializable_hash
