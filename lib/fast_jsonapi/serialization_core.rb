@@ -182,7 +182,7 @@ module FastJsonapi
           object = relationship[:object_block].call(record, params)
 
           return object.map(&:id) if object.respond_to? :map
-          return object.id
+          return object.try(:id)
         end
 
         record.public_send(relationship[:id_method_name])
