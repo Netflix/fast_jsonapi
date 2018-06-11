@@ -259,6 +259,26 @@ hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
+#### Control Over Collection Serialization
+
+You can use `is_collection` option to have better control over collection serialization.
+
+If this option is not provided or `nil` autedetect logic is used to try understand
+if provided resource is a single object or collection.
+
+Autodetect logic is compatible with most DB toolkits (ActiveRecord, Sequel, etc.) but
+**cannot** guarantee that single vs collection will be always detected properly.
+
+```ruby
+options[:is_collection]
+```
+
+was introduced to be able to have precise control this behavior
+
+- `nil` or not provided: will try to autodetect single vs collection (please, see notes above)
+- `true` will always treat input resource as *collection*
+- `false` will always treat input resource as *single object*
+
 ### Caching
 Requires a `cache_key` method be defined on model:
 
