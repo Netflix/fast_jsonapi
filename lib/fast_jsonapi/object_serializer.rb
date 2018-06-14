@@ -118,6 +118,9 @@ module FastJsonapi
           underscore: :underscore
         }
         self.transform_method = mapping[transform_name.to_sym]
+
+        # ensure that the record type is correctly transformed
+        set_type(reflected_record_type) if reflected_record_type
       end
 
       def run_key_transform(input)
@@ -170,7 +173,7 @@ module FastJsonapi
           self.cachable_relationships_to_serialize[name] = relationship
         end
         self.relationships_to_serialize[name] = relationship
-     end
+      end
 
       def has_many(relationship_name, options = {}, &block)
         name = relationship_name.to_sym
