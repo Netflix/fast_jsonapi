@@ -38,7 +38,7 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @params)
+      serializable_hash[:data] = self.class.record_hash(@resource, @params, @attributes)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @params) if @includes.present?
       serializable_hash
     end
@@ -49,7 +49,7 @@ module FastJsonapi
       data = []
       included = []
       @resource.each do |record|
-        data << self.class.record_hash(record, @params)
+        data << self.class.record_hash(record, @params, @attributes)
         included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
       end
 
@@ -72,6 +72,7 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
+      @attributes = options[:attributes]
       @params = options[:params] || {}
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 

@@ -16,11 +16,12 @@ describe FastJsonapi::ObjectSerializer do
       options[:links] = { self: 'self' }
 
       options[:include] = [:actors]
+      options[:attributes] = [:name]
       serializable_hash = CachingMovieSerializer.new([movie, movie], options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
       expect(serializable_hash[:data][0][:relationships].length).to eq 3
-      expect(serializable_hash[:data][0][:attributes].length).to eq 2
+      expect(serializable_hash[:data][0][:attributes].length).to eq 1
 
       expect(serializable_hash[:meta]).to be_instance_of(Hash)
       expect(serializable_hash[:links]).to be_instance_of(Hash)
@@ -35,6 +36,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash[:meta]).to be nil
       expect(serializable_hash[:links]).to be nil
       expect(serializable_hash[:included]).to be nil
+      expect(serializable_hash[:attributes]).to be nil
     end
 
     it 'uses cached values for the record' do

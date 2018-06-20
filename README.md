@@ -230,6 +230,16 @@ class MovieSerializer
 end
 ```
 
+### Select attributes
+
+Support for explicit attributes declaration through ` options[:attributes] `.
+
+```ruby
+options = {}
+options[:attributes] = [:name] # will only include name attribute into attributes hash
+MovieSerializer.new([movie, movie], options).serialized_json
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.
