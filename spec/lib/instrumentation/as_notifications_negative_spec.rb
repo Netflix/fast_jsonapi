@@ -9,6 +9,7 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = [:actors]
+      options[:attributes] = [:name]
 
       @serializer = MovieSerializer.new([movie, movie], options)
     end
@@ -23,7 +24,7 @@ describe FastJsonapi::ObjectSerializer do
         end
 
         serialized_hash = @serializer.serializable_hash
-
+        
         expect(events.length).to eq(0)
 
         expect(serialized_hash.key?(:data)).to eq(true)

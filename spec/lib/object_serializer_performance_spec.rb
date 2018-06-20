@@ -50,6 +50,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
+      options[:attributes] = [:name]
       expect { MovieSerializer.new(movies, options).serializable_hash }.to perform_under(75).ms
     end
 
@@ -59,6 +60,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
+      options[:attributes] = [:name]
       expect { MovieSerializer.new(movies, options).serialized_json }.to perform_under(75).ms
     end
   end
@@ -156,7 +158,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         options = {}
         options[:meta] = { total: movie_count }
         options[:include] = [:actors, :movie_type]
-
+        
         serializers = {
           fast_jsonapi: MovieSerializer.new(movies, options),
           ams: ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta]),

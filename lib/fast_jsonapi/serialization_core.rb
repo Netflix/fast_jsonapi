@@ -72,7 +72,7 @@ module FastJsonapi
         end
       end
 
-      def attributes_hash(record, params = {}, attributes = [])
+      def attributes_hash(record, params = {}, attributes = nil)
         attributes_to_serialize.reject! { |x| !attributes.include?(x) } if attributes
         attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
           attr_hash[key] = if method.is_a?(Proc)
@@ -95,7 +95,7 @@ module FastJsonapi
         end
       end
 
-      def record_hash(record, params = {}, attributes = [])
+      def record_hash(record, params = {}, attributes = nil)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
             temp_hash = id_hash(id_from_record(record), record_type, true)
