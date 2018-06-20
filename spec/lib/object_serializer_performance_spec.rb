@@ -69,7 +69,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     puts
     puts message
 
-    name_length = SERIALIZERS.collect { |s| s[1].fetch(:name, s[0]).length }.max
+    name_length = SERIALIZERS.collect { |s| s[1].fetch(:name) {s[0]}.length }.max
 
     puts format("%-#{name_length+1}s %-10s %-10s %s", 'Serializer', 'Records', 'Time', 'Speed Up')
 
@@ -81,7 +81,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       t = v[:time]
       factor = t / fast_jsonapi_time
 
-      speed_factor = SERIALIZERS[k].fetch(:speed_factor, 1)
+      speed_factor = SERIALIZERS[k].fetch(:speed_factor) {1}
       result = factor >= speed_factor ? '✔' : '✘'
 
       puts format("%-#{name_length+1}s %-10s %-10s %sx %s", SERIALIZERS[k][:name], count, t.round(2).to_s + ' ms', factor.round(2), result)
