@@ -36,10 +36,11 @@ module FastJsonapi
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
 
+      attributes = @attributes[self.class.record_type] if @attributes.is_a? Hash
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @params, @attributes)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @params) if @includes.present?
+      serializable_hash[:data] = self.class.record_hash(@resource, @params, attributes)
+      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @params, @attributes) if @includes.present?
       serializable_hash
     end
 
@@ -48,9 +49,10 @@ module FastJsonapi
 
       data = []
       included = []
+      attributes = @attributes[self.class.record_type] if @attributes.is_a? Hash
       @resource.each do |record|
-        data << self.class.record_hash(record, @params, @attributes)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
+        data << self.class.record_hash(record, @params, attributes)
+        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params, @attributes) if @includes.present?
       end
 
       serializable_hash[:data] = data

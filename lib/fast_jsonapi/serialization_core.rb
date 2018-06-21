@@ -141,7 +141,7 @@ module FastJsonapi
       end
 
       # includes handler
-      def get_included_records(record, includes_list, known_included_objects, params = {})
+      def get_included_records(record, includes_list, known_included_objects, params = {}, attributes = nil)
         return unless includes_list.present?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
@@ -159,7 +159,7 @@ module FastJsonapi
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, nil, attributes)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
@@ -167,7 +167,8 @@ module FastJsonapi
               next if known_included_objects.key?(code)
 
               known_included_objects[code] = inc_obj
-              included_records << serializer.record_hash(inc_obj, params)
+              record_attributes = attributes[item] if attributes.is_a? Hash
+              included_records << serializer.record_hash(inc_obj, params, record_attributes)
             end
           end
         end

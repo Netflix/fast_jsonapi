@@ -14,7 +14,7 @@ describe FastJsonapi::ObjectSerializer do
 
       expect(serializable_hash[:data].length).to eq 2
       expect(serializable_hash[:data][0][:relationships].length).to eq 4
-      expect(serializable_hash[:data][0][:attributes].length).to eq 1
+      expect(serializable_hash[:data][0][:attributes].length).to eq 2
 
       expect(serializable_hash[:meta]).to be_instance_of(Hash)
       expect(serializable_hash[:links]).to be_instance_of(Hash)

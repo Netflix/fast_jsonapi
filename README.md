@@ -236,8 +236,12 @@ Support for explicit attributes declaration through ` options[:attributes] `.
 
 ```ruby
 options = {}
-options[:attributes] = [:name] # will only include name attribute into attributes hash
-MovieSerializer.new([movie, movie], options).serialized_json
+options[:include] = [:actors]
+options[:attributes] = {
+  movie:  [:name],
+  actors: [:email]
+}
+MovieSerializer.new(movie, options).serialized_json
 ```
 
 ### Compound Document
