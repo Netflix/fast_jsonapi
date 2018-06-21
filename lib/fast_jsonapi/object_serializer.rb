@@ -3,7 +3,7 @@
 require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
-require 'fast_jsonapi/attribute_serializer'
+require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/serialization_core'
 
 module FastJsonapi
@@ -156,7 +156,7 @@ module FastJsonapi
         attributes_list.each do |attr_name|
           method_name = attr_name
           key = run_key_transform(method_name)
-          attributes_to_serialize[key] = AttributeSerializer.new(
+          attributes_to_serialize[key] = Attribute.new(
             key: key,
             method: block || method_name,
             options: options
