@@ -3,6 +3,7 @@
 require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
+require 'fast_jsonapi/attribute_serializer'
 require 'fast_jsonapi/serialization_core'
 
 module FastJsonapi
@@ -151,16 +152,15 @@ module FastJsonapi
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
         options = attributes_list.last.is_a?(Hash) ? attributes_list.pop : {}
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
-        self.optional_attributes_to_serialize = {} if self.optional_attributes_to_serialize.nil?
 
         attributes_list.each do |attr_name|
           method_name = attr_name
           key = run_key_transform(method_name)
-          if options[:if].present?
-            optional_attributes_to_serialize[key] = [method_name, options[:if]]
-          else
-            attributes_to_serialize[key] = block || method_name
-          end
+          attributes_to_serialize[key] = AttributeSerializer.new(
+            key: key,
+            method: block || method_name,
+            options: options
+          )
         end
       end
 
