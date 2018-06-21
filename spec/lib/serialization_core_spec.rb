@@ -39,9 +39,9 @@ describe FastJsonapi::ObjectSerializer do
       attributes_hash = MovieSerializer.send(:attributes_hash, movie)
       attribute_names = attributes_hash.keys.sort
       expect(attribute_names).to eq MovieSerializer.attributes_to_serialize.keys.sort
-      MovieSerializer.attributes_to_serialize.each do |key, method_name|
+      MovieSerializer.attributes_to_serialize.each do |key, attribute|
         value = attributes_hash[key]
-        expect(value).to eq movie.send(method_name)
+        expect(value).to eq movie.send(attribute.method)
       end
     end
 
