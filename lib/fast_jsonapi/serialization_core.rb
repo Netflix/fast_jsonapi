@@ -12,6 +12,7 @@ module FastJsonapi
     included do
       class << self
         attr_accessor :attributes_to_serialize,
+                      :optional_attributes_to_serialize,
                       :relationships_to_serialize,
                       :cachable_relationships_to_serialize,
                       :uncachable_relationships_to_serialize,
@@ -73,13 +74,21 @@ module FastJsonapi
       end
 
       def attributes_hash(record, params = {})
-        attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
+        attributes = attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
           attr_hash[key] = if method.is_a?(Proc)
             method.arity == 1 ? method.call(record) : method.call(record, params)
           else
             record.public_send(method)
           end
         end
+
+        self.optional_attributes_to_serialize = {} if self.optional_attributes_to_serialize.nil?
+        optional_attributes_to_serialize.each do |key, details|
+          method_name, check_proc = details
+          attributes[key] = record.send(method_name) if check_proc.call(record, params)
+        end
+
+        attributes
       end
 
       def relationships_hash(record, relationships = nil, params = {})

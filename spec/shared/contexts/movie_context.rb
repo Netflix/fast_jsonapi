@@ -278,6 +278,20 @@ RSpec.shared_context 'movie class' do
       set_type :account
       belongs_to :supplier
     end
+
+    class MovieOptionalRecordDataSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :release_year, if: Proc.new { |record| record.release_year >= 2000 }
+    end
+
+    class MovieOptionalParamsDataSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
+    end
   end
 
 
