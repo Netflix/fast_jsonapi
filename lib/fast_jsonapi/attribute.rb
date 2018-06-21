@@ -1,5 +1,5 @@
 module FastJsonapi
-  class AttributeSerializer
+  class Attribute
     attr_reader :key, :method, :conditional_proc
 
     def initialize(key:, method:, options: {})
