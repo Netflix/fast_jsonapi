@@ -8,11 +8,11 @@ RSpec.shared_examples 'returning correct relationship hash' do |serializer, id_m
   end
 end
 
-RSpec.shared_examples 'returning key transformed hash' do |movie_type, release_year|
+RSpec.shared_examples 'returning key transformed hash' do |movie_type, serializer_type, release_year|
   it 'returns correctly transformed hash' do
     expect(hash[:data][0][:attributes]).to have_key(release_year)
     expect(hash[:data][0][:relationships]).to have_key(movie_type)
     expect(hash[:data][0][:relationships][movie_type][:data][:type]).to eq(movie_type)
-    expect(hash[:included][0][:type]).to eq(movie_type)
+    expect(hash[:included][0][:type]).to eq(serializer_type)
   end
 end

@@ -3,6 +3,7 @@
 require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
+require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/serialization_core'
 
 module FastJsonapi
@@ -121,6 +122,9 @@ module FastJsonapi
           underscore: :underscore
         }
         self.transform_method = mapping[transform_name.to_sym]
+
+        # ensure that the record type is correctly transformed
+        set_type(reflected_record_type) if reflected_record_type
       end
 
       def run_key_transform(input)
@@ -152,11 +156,17 @@ module FastJsonapi
 
       def attributes(*attributes_list, &block)
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
+        options = attributes_list.last.is_a?(Hash) ? attributes_list.pop : {}
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
+
         attributes_list.each do |attr_name|
           method_name = attr_name
           key = run_key_transform(method_name)
-          attributes_to_serialize[key] = block || method_name
+          attributes_to_serialize[key] = Attribute.new(
+            key: key,
+            method: block || method_name,
+            options: options
+          )
         end
       end
 
@@ -173,7 +183,7 @@ module FastJsonapi
           self.cachable_relationships_to_serialize[name] = relationship
         end
         self.relationships_to_serialize[name] = relationship
-     end
+      end
 
       def has_many(relationship_name, options = {}, &block)
         name = relationship_name.to_sym

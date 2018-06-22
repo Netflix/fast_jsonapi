@@ -97,6 +97,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when belongs_to returns nil and there is a block for the relationship' do
+      movie.owner_id = nil
+      json = MovieSerializer.new(movie, {include: [:owner]}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
+    end
+
     it 'returns correct json when has_one returns nil' do
       supplier.account_id = nil
       json = SupplierSerializer.new(supplier).serialized_json
@@ -300,6 +307,38 @@ describe FastJsonapi::ObjectSerializer do
 
     it 'returns correct hash when serializable_hash is called' do
       expect(serializable_hash[:included][0][:links][:self]).to eq url
+    end
+  end
+
+  context 'when optional attributes are determined by record data' do
+    it 'returns optional attribute when attribute is included' do
+      movie.release_year = 2001
+      json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['release_year']).to eq movie.release_year
+    end
+
+    it "doesn't return optional attribute when attribute is not included" do
+      movie.release_year = 1970
+      json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].has_key?('release_year')).to be_falsey
+    end
+  end
+
+  context 'when optional attributes are determined by params data' do
+    it 'returns optional attribute when attribute is included' do
+      movie.director = 'steven spielberg'
+      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: true }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['director']).to eq 'steven spielberg'
+    end
+
+    it "doesn't return optional attribute when attribute is not included" do
+      movie.director = 'steven spielberg'
+      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: false }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].has_key?('director')).to be_falsey
     end
   end
 end
