@@ -304,7 +304,6 @@ block you opt-in to using params by adding it as a block parameter.
 
 ```ruby
 class MovieSerializer
-  class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :name, :year
@@ -327,6 +326,32 @@ serializer.serializable_hash
 
 Custom attributes and relationships that only receive the resource are still possible by defining
 the block to only receive one argument.
+
+### Conditional Attributes
+
+Conditional attributes can be defined by passing a Proc to the `if` key on the `attribute` method. Return `true` if the attribute should be serialized, and `false` if not. The record and any params passed to the serializer are available inside the Proc as the first and second parameters, respectively.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name, :year
+  attribute :release_year, if: Proc.new do |record|
+    # Release year will only be serialized if it's greater than 1990
+    record.release_year > 1990
+  end
+
+  attribute :director, if: Proc.new do |record, params|
+    # The director will be serialized only if the :admin key of params is true
+    params && params[:admin] == true
+  end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer.serializable_hash
+```
 
 ### Customizable Options
 

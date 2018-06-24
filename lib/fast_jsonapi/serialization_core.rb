@@ -73,12 +73,8 @@ module FastJsonapi
       end
 
       def attributes_hash(record, params = {})
-        attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
-          attr_hash[key] = if method.is_a?(Proc)
-            method.arity == 1 ? method.call(record) : method.call(record, params)
-          else
-            record.public_send(method)
-          end
+        attributes_to_serialize.each_with_object({}) do |(key, attribute), attr_hash|
+          attribute.serialize(record, params, attr_hash)
         end
       end
 
@@ -182,7 +178,7 @@ module FastJsonapi
           object = relationship[:object_block].call(record, params)
 
           return object.map(&:id) if object.respond_to? :map
-          return object.id
+          return object.try(:id)
         end
 
         record.public_send(relationship[:id_method_name])
