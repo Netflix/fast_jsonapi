@@ -341,4 +341,33 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['attributes'].has_key?('director')).to be_falsey
     end
   end
+
+  context 'when optional relationships are determined by record data' do
+    it 'returns optional relationship when relationship is included' do
+      json = MovieOptionalRelationshipSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_truthy
+    end
+
+    it "doesn't return optional relationship when relationship is not included" do
+      movie.actor_ids = []
+      json = MovieOptionalRelationshipSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+    end
+  end
+
+  context 'when optional relationships are determined by params data' do
+    it 'returns optional relationship when relationship is included' do
+      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, { params: { admin: true }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_truthy
+    end
+
+    it "doesn't return optional relationship when relationship is not included" do
+      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, { params: { admin: false }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+    end
+  end
 end
