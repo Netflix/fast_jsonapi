@@ -82,11 +82,14 @@ module FastJsonapi
         relationships = relationships_to_serialize if relationships.nil?
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
-          name = relationship[:key]
-          empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          hash[name] = {
-            data: ids_hash_from_record_and_relationship(record, relationship, params) || empty_case
-          }
+          conditional_proc = relationship[:conditional_proc]
+          if conditional_proc.blank? || conditional_proc.call(record, params)
+            name = relationship[:key]
+            empty_case = relationship[:relationship_type] == :has_many ? [] : nil
+            hash[name] = {
+              data: ids_hash_from_record_and_relationship(record, relationship, params) || empty_case
+            }
+          end
         end
       end
 

@@ -292,6 +292,20 @@ RSpec.shared_context 'movie class' do
       attributes :name
       attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
     end
+
+    class MovieOptionalRelationshipSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      has_many :actors, if: Proc.new { |record| record.actors.any? }
+    end
+
+    class MovieOptionalRelationshipWithParamsSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      has_many :actors, if: Proc.new { |record, params| params && params[:admin] == true }
+    end
   end
 
 
