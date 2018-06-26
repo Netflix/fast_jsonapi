@@ -304,7 +304,7 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      has_many :actors, if: Proc.new { |record, params| params && params[:admin] == true }
+      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params && params[:admin] == true }
     end
   end
 
