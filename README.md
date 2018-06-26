@@ -30,6 +30,8 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
   * [Params](#params)
+  * [Conditional Attributes](#conditional-attributes)
+  * [Conditional Relationships](#conditional-relationships)
 * [Contributing](#contributing)
 
 
@@ -325,6 +327,27 @@ class MovieSerializer
     # The director will be serialized only if the :admin key of params is true
     params && params[:admin] == true
   end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer.serializable_hash
+```
+
+### Conditional Relationships
+
+Conditional relationships can be defined by passing a Proc to the `if` key. Return `true` if the relationship should be serialized, and `false` if not. The record and any params passed to the serializer are available inside the Proc as the first and second parameters, respectively.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  # Actors will only be serialized if the record has any associated actors
+  has_many :actors, if: Proc.new { |record| record.actors.any? }
+
+  # Owner will only be serialized if the :admin key of params is true
+  belongs_to :owner, if: Proc.new { |record, params| params && params[:admin] == true }
 end
 
 # ...
