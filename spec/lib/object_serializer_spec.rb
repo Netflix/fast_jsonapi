@@ -349,11 +349,27 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_truthy
     end
 
-    it "doesn't return optional relationship when relationship is not included" do
-      movie.actor_ids = []
-      json = MovieOptionalRelationshipSerializer.new(movie).serialized_json
-      serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+    context "when relationship is not included" do
+      let(:json) {
+        MovieOptionalRelationshipSerializer.new(movie, options).serialized_json
+      }
+      let(:options) {
+        {}
+      }
+      let(:serializable_hash) {
+        JSON.parse(json)
+      }
+
+      it "doesn't return optional relationship" do
+        movie.actor_ids = []
+        expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+      end
+
+      it "doesn't include optional relationship" do
+        movie.actor_ids = []
+        options[:include] = [:actors]
+        expect(serializable_hash['included']).to be_blank
+      end
     end
   end
 
@@ -364,10 +380,25 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_truthy
     end
 
-    it "doesn't return optional relationship when relationship is not included" do
-      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, { params: { admin: false }}).serialized_json
-      serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_falsey
+    context "when relationship is not included" do
+      let(:json) {
+        MovieOptionalRelationshipWithParamsSerializer.new(movie, options).serialized_json
+      }
+      let(:options) {
+        { params: { admin: false }}
+      }
+      let(:serializable_hash) {
+        JSON.parse(json)
+      }
+
+      it "doesn't return optional relationship" do
+        expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_falsey
+      end
+
+      it "doesn't include optional relationship" do
+        options[:include] = [:owner]
+        expect(serializable_hash['included']).to be_blank
+      end
     end
   end
 end
