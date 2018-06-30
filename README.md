@@ -237,7 +237,7 @@ Support for explicit attributes declaration through ` options[:attributes] `.
 ```ruby
 options = {}
 options[:include] = [:actors]
-options[:attributes] = {
+options[:fields] = {
   movie:  [:name],
   actors: [:email]
 }
