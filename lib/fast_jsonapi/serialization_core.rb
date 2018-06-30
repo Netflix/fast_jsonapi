@@ -34,34 +34,6 @@ module FastJsonapi
         end
       end
 
-      def ids_hash(ids, record_type)
-        return ids.map { |id| id_hash(id, record_type) } if ids.respond_to? :map
-        id_hash(ids, record_type) # ids variable is just a single id here
-      end
-
-      def id_hash_from_record(record, record_types)
-        # memoize the record type within the record_types dictionary, then assigning to record_type:
-        record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
-        id_hash(record.id, record_type)
-      end
-
-      def ids_hash_from_record_and_relationship(record, relationship, params = {})
-        polymorphic = relationship[:polymorphic]
-
-        return ids_hash(
-          fetch_id(record, relationship, params),
-          relationship[:record_type]
-        ) unless polymorphic
-
-        return unless associated_object = fetch_associated_object(record, relationship, params)
-
-        return associated_object.map do |object|
-          id_hash_from_record object, polymorphic
-        end if associated_object.respond_to? :map
-
-        id_hash_from_record associated_object, polymorphic
-      end
-
       def links_hash(record, params = {})
         data_links.each_with_object({}) do |(key, method), link_hash|
           link_hash[key] = if method.is_a?(Proc)
@@ -82,14 +54,7 @@ module FastJsonapi
         relationships = relationships_to_serialize if relationships.nil?
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
-          conditional_proc = relationship[:conditional_proc]
-          if conditional_proc.blank? || conditional_proc.call(record, params)
-            name = relationship[:key]
-            empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-            hash[name] = {
-              data: ids_hash_from_record_and_relationship(record, relationship, params) || empty_case
-            }
-          end
+          relationship.serialize(record, params, hash)
         end
       end
 
@@ -146,12 +111,12 @@ module FastJsonapi
           items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
-            conditional_proc = relationships_to_serialize[item][:conditional_proc]
+            conditional_proc = relationships_to_serialize[item].conditional_proc
             next if conditional_proc && !conditional_proc.call(record, params)
-            raise NotImplementedError if @relationships_to_serialize[item][:polymorphic].is_a?(Hash)
-            record_type = @relationships_to_serialize[item][:record_type]
-            serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-            relationship_type = @relationships_to_serialize[item][:relationship_type]
+            raise NotImplementedError if @relationships_to_serialize[item].polymorphic.is_a?(Hash)
+            record_type = @relationships_to_serialize[item].record_type
+            serializer = @relationships_to_serialize[item].serializer.to_s.constantize
+            relationship_type = @relationships_to_serialize[item].relationship_type
 
             included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
             next if included_objects.blank?
@@ -174,19 +139,8 @@ module FastJsonapi
       end
 
       def fetch_associated_object(record, relationship, params)
-        return relationship[:object_block].call(record, params) unless relationship[:object_block].nil?
-        record.send(relationship[:object_method_name])
-      end
-
-      def fetch_id(record, relationship, params)
-        unless relationship[:object_block].nil?
-          object = relationship[:object_block].call(record, params)
-
-          return object.map(&:id) if object.respond_to? :map
-          return object.try(:id)
-        end
-
-        record.public_send(relationship[:id_method_name])
+        return relationship.object_block.call(record, params) unless relationship.object_block.nil?
+        record.send(relationship.object_method_name)
       end
     end
   end
