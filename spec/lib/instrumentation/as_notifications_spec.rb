@@ -23,6 +23,10 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = [:actors]
+      options[:fields] = {
+        movie:  [:name],
+        actors: [:email]
+      }
 
       @serializer = MovieSerializer.new([movie, movie], options)
     end

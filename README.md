@@ -230,6 +230,20 @@ class MovieSerializer
 end
 ```
 
+### Select fields
+
+Support for explicit fields declaration through ` options[:fields] `.
+
+```ruby
+options = {}
+options[:include] = [:actors]
+options[:fields] = {
+  movie:  [:name],
+  actors: [:email]
+}
+MovieSerializer.new(movie, options).serialized_json
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.

@@ -50,6 +50,10 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
+      options[:fields] = {
+        movie:  [:name],
+        actors: [:email]
+      }
       expect { MovieSerializer.new(movies, options).serializable_hash }.to perform_under(75).ms
     end
 
@@ -59,6 +63,10 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
+      options[:fields] = {
+        movie:  [:name],
+        actors: [:email]
+      }
       expect { MovieSerializer.new(movies, options).serialized_json }.to perform_under(75).ms
     end
   end
@@ -67,7 +75,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     puts
     puts message
 
-    name_length = SERIALIZERS.collect { |s| s[1].fetch(:name, s[0]).length }.max
+    name_length = SERIALIZERS.collect { |s| s[1].fetch(:name) {s[0]}.length }.max
 
     puts format("%-#{name_length+1}s %-10s %-10s %s", 'Serializer', 'Records', 'Time', 'Speed Up')
 
@@ -79,7 +87,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       t = v[:time]
       factor = t / fast_jsonapi_time
 
-      speed_factor = SERIALIZERS[k].fetch(:speed_factor, 1)
+      speed_factor = SERIALIZERS[k].fetch(:speed_factor) {1}
       result = factor >= speed_factor ? '✔' : '✘'
 
       puts format("%-#{name_length+1}s %-10s %-10s %sx %s", SERIALIZERS[k][:name], count, t.round(2).to_s + ' ms', factor.round(2), result)
@@ -156,7 +164,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         options = {}
         options[:meta] = { total: movie_count }
         options[:include] = [:actors, :movie_type]
-
+        
         serializers = {
           fast_jsonapi: MovieSerializer.new(movies, options),
           ams: ActiveModelSerializers::SerializableResource.new(ams_movies, include: options[:include], meta: options[:meta]),
