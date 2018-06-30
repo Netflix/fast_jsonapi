@@ -73,8 +73,8 @@ module FastJsonapi
       end
 
       def attributes_hash(record, params = {}, attributes = nil)
-        attributes_to_serialize.reject! { |x| !attributes.include?(x) } if attributes
-        attributes_to_serialize.each_with_object({}) do |(key, attribute), attr_hash|
+        selected_attributes = attributes ? attributes_to_serialize.reject { |x| !attributes.include?(x) } : attributes_to_serialize
+        selected_attributes.each_with_object({}) do |(key, attribute), attr_hash|
           attribute.serialize(record, params, attr_hash)
         end
       end
