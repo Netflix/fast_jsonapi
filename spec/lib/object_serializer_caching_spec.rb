@@ -16,7 +16,7 @@ describe FastJsonapi::ObjectSerializer do
       options[:links] = { self: 'self' }
 
       options[:include] = [:actors]
-      options[:attributes] = {
+      options[:fields] = {
         movie:  [:name],
         actors: [:email]
       }

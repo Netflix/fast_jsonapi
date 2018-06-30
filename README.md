@@ -230,9 +230,9 @@ class MovieSerializer
 end
 ```
 
-### Select attributes
+### Select fields
 
-Support for explicit attributes declaration through ` options[:attributes] `.
+Support for explicit fields declaration through ` options[:fields] `.
 
 ```ruby
 options = {}

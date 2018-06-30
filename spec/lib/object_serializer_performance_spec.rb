@@ -50,7 +50,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
-      options[:attributes] = {
+      options[:fields] = {
         movie:  [:name],
         actors: [:email]
       }
@@ -63,7 +63,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
       options = {}
       options[:meta] = { total: count }
       options[:include] = [:actors]
-      options[:attributes] = {
+      options[:fields] = {
         movie:  [:name],
         actors: [:email]
       }
