@@ -111,14 +111,15 @@ module FastJsonapi
           items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
-            conditional_proc = relationships_to_serialize[item].conditional_proc
+            relationship_item = relationships_to_serialize[item]
+            conditional_proc = relationship_item.conditional_proc
             next if conditional_proc && !conditional_proc.call(record, params)
-            raise NotImplementedError if @relationships_to_serialize[item].polymorphic.is_a?(Hash)
-            record_type = @relationships_to_serialize[item].record_type
-            serializer = @relationships_to_serialize[item].serializer.to_s.constantize
-            relationship_type = @relationships_to_serialize[item].relationship_type
+            raise NotImplementedError if relationship_item.polymorphic.is_a?(Hash)
+            record_type = relationship_item.record_type
+            serializer = relationship_item.serializer.to_s.constantize
+            relationship_type = relationship_item.relationship_type
 
-            included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
+            included_objects = fetch_associated_object(record, relationship_item, params)
             next if included_objects.blank?
             included_objects = [included_objects] unless relationship_type == :has_many
 
