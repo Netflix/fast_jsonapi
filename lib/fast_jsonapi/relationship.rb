@@ -42,8 +42,6 @@ module FastJsonapi
       record.send(object_method_name)
     end
 
-    private
-
     def include_relationship?(record, serialization_params)
       if conditional_proc.present?
         conditional_proc.call(record, serialization_params)
@@ -51,6 +49,8 @@ module FastJsonapi
         true
       end
     end
+
+    private
 
     def ids_hash_from_record_and_relationship(record, params = {})
       return ids_hash(
