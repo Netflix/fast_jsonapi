@@ -37,6 +37,11 @@ module FastJsonapi
       end
     end
 
+    def fetch_associated_object(record, params)
+      return object_block.call(record, params) unless object_block.nil?
+      record.send(object_method_name)
+    end
+
     private
 
     def include_relationship?(record, serialization_params)
@@ -78,11 +83,6 @@ module FastJsonapi
       else
         default_return ? { id: nil, type: associated_record_type } : nil
       end
-    end
-
-    def fetch_associated_object(record, params)
-      return object_block.call(record, params) unless object_block.nil?
-      record.send(object_method_name)
     end
 
     def fetch_id(record, params)
