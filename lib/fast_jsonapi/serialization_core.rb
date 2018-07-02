@@ -35,18 +35,14 @@ module FastJsonapi
       end
 
       def links_hash(record, params = {})
-        data_links.each_with_object({}) do |(key, method), link_hash|
-          link_hash[key] = if method.is_a?(Proc)
-            method.arity == 1 ? method.call(record) : method.call(record, params)
-          else
-            record.public_send(method)
-          end
+        data_links.each_with_object({}) do |(_k, link), hash|
+          link.serialize(record, params, hash)
         end
       end
 
       def attributes_hash(record, params = {})
-        attributes_to_serialize.each_with_object({}) do |(key, attribute), attr_hash|
-          attribute.serialize(record, params, attr_hash)
+        attributes_to_serialize.each_with_object({}) do |(_k, attribute), hash|
+          attribute.serialize(record, params, hash)
         end
       end
 
