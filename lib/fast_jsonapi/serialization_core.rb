@@ -112,8 +112,7 @@ module FastJsonapi
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
             relationship_item = relationships_to_serialize[item]
-            conditional_proc = relationship_item.conditional_proc
-            next if conditional_proc && !conditional_proc.call(record, params)
+            next unless relationship_item.include_relationship?(record, params)
             raise NotImplementedError if relationship_item.polymorphic.is_a?(Hash)
             record_type = relationship_item.record_type
             serializer = relationship_item.serializer.to_s.constantize
