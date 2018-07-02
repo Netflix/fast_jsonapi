@@ -184,15 +184,18 @@ module FastJsonapi
       end
 
       def has_many(relationship_name, options = {}, &block)
-        create_relationship(relationship_name, :has_many, options, block)
+        relationship = create_relationship(relationship_name, :has_many, options, block)
+        add_relationship(relationship)
       end
 
       def has_one(relationship_name, options = {}, &block)
-        create_relationship(relationship_name, :has_one, options, block)
+        relationship = create_relationship(relationship_name, :has_one, options, block)
+        add_relationship(relationship)
       end
 
       def belongs_to(relationship_name, options = {}, &block)
-        create_relationship(relationship_name, :belongs_to, options, block)
+        relationship = create_relationship(relationship_name, :belongs_to, options, block)
+        add_relationship(relationship)
       end
 
       def create_relationship(base_key, relationship_type, options, block)
@@ -206,7 +209,7 @@ module FastJsonapi
           base_key_sym = name
           id_postfix = '_id'
         end
-        relationship = Relationship.new(
+        Relationship.new(
           key: options[:key] || run_key_transform(base_key),
           name: name,
           id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
@@ -219,7 +222,6 @@ module FastJsonapi
           polymorphic: fetch_polymorphic_option(options),
           conditional_proc: options[:if]
         )
-        add_relationship(relationship)
       end
 
       def compute_serializer_name(serializer_key)
