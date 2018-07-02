@@ -119,7 +119,7 @@ module FastJsonapi
             serializer = relationship_item.serializer.to_s.constantize
             relationship_type = relationship_item.relationship_type
 
-            included_objects = fetch_associated_object(record, relationship_item, params)
+            included_objects = relationship_item.fetch_associated_object(record, params)
             next if included_objects.blank?
             included_objects = [included_objects] unless relationship_type == :has_many
 
@@ -137,11 +137,6 @@ module FastJsonapi
             end
           end
         end
-      end
-
-      def fetch_associated_object(record, relationship, params)
-        return relationship.object_block.call(record, params) unless relationship.object_block.nil?
-        record.send(relationship.object_method_name)
       end
     end
   end
