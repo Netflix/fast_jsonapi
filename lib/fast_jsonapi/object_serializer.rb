@@ -4,6 +4,8 @@ require 'active_support/core_ext/object'
 require 'active_support/concern'
 require 'active_support/inflector'
 require 'fast_jsonapi/attribute'
+require 'fast_jsonapi/relationship'
+require 'fast_jsonapi/link'
 require 'fast_jsonapi/serialization_core'
 
 module FastJsonapi
@@ -169,38 +171,35 @@ module FastJsonapi
 
       alias_method :attribute, :attributes
 
-      def add_relationship(name, relationship)
+      def add_relationship(relationship)
         self.relationships_to_serialize = {} if relationships_to_serialize.nil?
         self.cachable_relationships_to_serialize = {} if cachable_relationships_to_serialize.nil?
         self.uncachable_relationships_to_serialize = {} if uncachable_relationships_to_serialize.nil?
-
-        if !relationship[:cached]
-          self.uncachable_relationships_to_serialize[name] = relationship
+        
+        if !relationship.cached
+          self.uncachable_relationships_to_serialize[relationship.name] = relationship
         else
-          self.cachable_relationships_to_serialize[name] = relationship
+          self.cachable_relationships_to_serialize[relationship.name] = relationship
         end
-        self.relationships_to_serialize[name] = relationship
+        self.relationships_to_serialize[relationship.name] = relationship
       end
 
       def has_many(relationship_name, options = {}, &block)
-        name = relationship_name.to_sym
-        hash = create_relationship_hash(relationship_name, :has_many, options, block)
-        add_relationship(name, hash)
+        relationship = create_relationship(relationship_name, :has_many, options, block)
+        add_relationship(relationship)
       end
 
       def has_one(relationship_name, options = {}, &block)
-        name = relationship_name.to_sym
-        hash = create_relationship_hash(relationship_name, :has_one, options, block)
-        add_relationship(name, hash)
+        relationship = create_relationship(relationship_name, :has_one, options, block)
+        add_relationship(relationship)
       end
 
       def belongs_to(relationship_name, options = {}, &block)
-        name = relationship_name.to_sym
-        hash = create_relationship_hash(relationship_name, :belongs_to, options, block)
-        add_relationship(name, hash)
+        relationship = create_relationship(relationship_name, :belongs_to, options, block)
+        add_relationship(relationship)
       end
 
-      def create_relationship_hash(base_key, relationship_type, options, block)
+      def create_relationship(base_key, relationship_type, options, block)
         name = base_key.to_sym
         if relationship_type == :has_many
           base_serialization_key = base_key.to_s.singularize
@@ -211,7 +210,7 @@ module FastJsonapi
           base_key_sym = name
           id_postfix = '_id'
         end
-        {
+        Relationship.new(
           key: options[:key] || run_key_transform(base_key),
           name: name,
           id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
@@ -220,10 +219,10 @@ module FastJsonapi
           object_block: block,
           serializer: compute_serializer_name(options[:serializer] || base_key_sym),
           relationship_type: relationship_type,
-          cached: options[:cached] || false,
+          cached: options[:cached],
           polymorphic: fetch_polymorphic_option(options),
           conditional_proc: options[:if]
-        }
+        )
       end
 
       def compute_serializer_name(serializer_key)
@@ -244,7 +243,11 @@ module FastJsonapi
         self.data_links = {} if self.data_links.nil?
         link_method_name = link_name if link_method_name.nil?
         key = run_key_transform(link_name)
-        self.data_links[key] = block || link_method_name
+
+        self.data_links[key] = Link.new(
+          key: key,
+          method: block || link_method_name
+        )
       end
 
       def validate_includes!(includes)
@@ -255,8 +258,8 @@ module FastJsonapi
           parse_include_item(include_item).each do |parsed_include|
             relationship_to_include = klass.relationships_to_serialize[parsed_include]
             raise ArgumentError, "#{parsed_include} is not specified as a relationship on #{klass.name}" unless relationship_to_include
-            raise NotImplementedError if relationship_to_include[:polymorphic].is_a?(Hash)
-            klass = relationship_to_include[:serializer].to_s.constantize
+            raise NotImplementedError if relationship_to_include.polymorphic.is_a?(Hash)
+            klass = relationship_to_include.serializer.to_s.constantize
           end
         end
       end
