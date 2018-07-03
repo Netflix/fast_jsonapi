@@ -17,24 +17,6 @@ describe FastJsonapi::ObjectSerializer do
       expect(result_hash).to be nil
     end
 
-    # it 'returns the correct hash when ids_hash_from_record_and_relationship is called for a polymorphic association' do
-    #   relationship = { name: :groupees, relationship_type: :has_many, object_method_name: :groupees, polymorphic: {} }
-    #   results = GroupSerializer.send :ids_hash_from_record_and_relationship, group, relationship
-    #   expect(results).to include({ id: "1", type: :person }, { id: "2", type: :group })
-    # end
-
-    # it 'returns correct hash when ids_hash is called' do
-    #   inputs = [{ids: %w(1 2 3), record_type: :movie}, {ids: %w(x y z), record_type: 'person'}]
-    #   inputs.each do |hash|
-    #     results = MovieSerializer.send(:ids_hash, hash[:ids], hash[:record_type])
-    #     expect(results.map{|h| h[:id]}).to eq hash[:ids]
-    #     expect(results[0][:type]).to eq hash[:record_type]
-    #   end
-
-    #   result = MovieSerializer.send(:ids_hash, [], 'movie')
-    #   expect(result).to be_empty
-    # end
-
     it 'returns correct hash when attributes_hash is called' do
       attributes_hash = MovieSerializer.send(:attributes_hash, movie)
       attribute_names = attributes_hash.keys.sort
