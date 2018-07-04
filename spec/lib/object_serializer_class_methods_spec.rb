@@ -312,7 +312,6 @@ describe FastJsonapi::ObjectSerializer do
         movie_type_serializer_class.instance_eval do
           include FastJsonapi::ObjectSerializer
           set_key_transform key_transform
-          set_type :movie_type
           attributes :name
         end
       end
@@ -321,25 +320,25 @@ describe FastJsonapi::ObjectSerializer do
     context 'when key_transform is dash' do
       let(:key_transform) { :dash }
 
-      it_behaves_like 'returning key transformed hash', :'movie-type', :'release-year'
+      it_behaves_like 'returning key transformed hash', :'movie-type', :'dash-movie-type', :'release-year'
     end
 
     context 'when key_transform is camel' do
       let(:key_transform) { :camel }
 
-      it_behaves_like 'returning key transformed hash', :MovieType, :ReleaseYear
+      it_behaves_like 'returning key transformed hash', :MovieType, :CamelMovieType, :ReleaseYear
     end
 
     context 'when key_transform is camel_lower' do
       let(:key_transform) { :camel_lower }
 
-      it_behaves_like 'returning key transformed hash', :movieType, :releaseYear
+      it_behaves_like 'returning key transformed hash', :movieType, :camelLowerMovieType, :releaseYear
     end
 
     context 'when key_transform is underscore' do
       let(:key_transform) { :underscore }
 
-      it_behaves_like 'returning key transformed hash', :movie_type, :release_year
+      it_behaves_like 'returning key transformed hash', :movie_type, :underscore_movie_type, :release_year
     end
   end
 end

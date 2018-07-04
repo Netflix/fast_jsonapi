@@ -113,7 +113,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     it 'includes child attributes' do
-      expect(EmployeeSerializer.attributes_to_serialize[:location]).to eq(:location)
+      expect(EmployeeSerializer.attributes_to_serialize[:location].method).to eq(:location)
     end
 
     it 'doesnt change parent class attributes' do

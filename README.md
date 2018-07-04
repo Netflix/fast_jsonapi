@@ -30,6 +30,8 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
   * [Params](#params)
+  * [Conditional Attributes](#conditional-attributes)
+  * [Conditional Relationships](#conditional-relationships)
 * [Contributing](#contributing)
 
 
@@ -259,6 +261,26 @@ hash = MovieSerializer.new([movie, movie], options).serializable_hash
 json_string = MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
+#### Control Over Collection Serialization
+
+You can use `is_collection` option to have better control over collection serialization.
+
+If this option is not provided or `nil` autedetect logic is used to try understand
+if provided resource is a single object or collection.
+
+Autodetect logic is compatible with most DB toolkits (ActiveRecord, Sequel, etc.) but
+**cannot** guarantee that single vs collection will be always detected properly.
+
+```ruby
+options[:is_collection]
+```
+
+was introduced to be able to have precise control this behavior
+
+- `nil` or not provided: will try to autodetect single vs collection (please, see notes above)
+- `true` will always treat input resource as *collection*
+- `false` will always treat input resource as *single object*
+
 ### Caching
 Requires a `cache_key` method be defined on model:
 
@@ -306,6 +328,53 @@ serializer.serializable_hash
 
 Custom attributes and relationships that only receive the resource are still possible by defining
 the block to only receive one argument.
+
+### Conditional Attributes
+
+Conditional attributes can be defined by passing a Proc to the `if` key on the `attribute` method. Return `true` if the attribute should be serialized, and `false` if not. The record and any params passed to the serializer are available inside the Proc as the first and second parameters, respectively.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name, :year
+  attribute :release_year, if: Proc.new do |record|
+    # Release year will only be serialized if it's greater than 1990
+    record.release_year > 1990
+  end
+
+  attribute :director, if: Proc.new do |record, params|
+    # The director will be serialized only if the :admin key of params is true
+    params && params[:admin] == true
+  end
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer.serializable_hash
+```
+
+### Conditional Relationships
+
+Conditional relationships can be defined by passing a Proc to the `if` key. Return `true` if the relationship should be serialized, and `false` if not. The record and any params passed to the serializer are available inside the Proc as the first and second parameters, respectively.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  # Actors will only be serialized if the record has any associated actors
+  has_many :actors, if: Proc.new { |record| record.actors.any? }
+
+  # Owner will only be serialized if the :admin key of params is true
+  belongs_to :owner, if: Proc.new { |record, params| params && params[:admin] == true }
+end
+
+# ...
+current_user = User.find(cookies[:current_user_id])
+serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer.serializable_hash
+```
 
 ### Customizable Options
 
