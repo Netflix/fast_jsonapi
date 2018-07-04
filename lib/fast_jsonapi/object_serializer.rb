@@ -229,7 +229,7 @@ module FastJsonapi
       end
 
       def compute_serializer_name(serializer_key)
-        return serializer_key unless serializer_key.is_a? Symbol
+        return serializer_key.to_s.to_sym unless serializer_key.is_a? Symbol
         namespace = self.name.gsub(/()?\w+Serializer$/, '')
         serializer_name = serializer_key.to_s.classify + 'Serializer'
         (namespace + serializer_name).to_sym
