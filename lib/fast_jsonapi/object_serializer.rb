@@ -28,7 +28,7 @@ module FastJsonapi
     end
 
     def serializable_hash
-      return hash_for_collection if is_collection?(@resource)
+      return hash_for_collection if is_collection?(@resource, @is_collection)
 
       hash_for_one_record
     end
@@ -75,6 +75,7 @@ module FastJsonapi
       @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
+      @is_collection = options[:is_collection]
       @params = options[:params] || {}
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
@@ -84,8 +85,10 @@ module FastJsonapi
       end
     end
 
-    def is_collection?(resource)
-      resource.respond_to?(:each) && !resource.respond_to?(:each_pair)
+    def is_collection?(resource, force_is_collection = nil)
+      return force_is_collection unless force_is_collection.nil?
+
+      resource.respond_to?(:size) && !resource.respond_to?(:each_pair)
     end
 
     class_methods do
