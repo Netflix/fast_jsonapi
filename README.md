@@ -207,6 +207,18 @@ class MovieSerializer
 end
 ```
 
+Attributes can also use a different name by passing the original method or accessor with a proc shortcut:
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  attributes :name
+
+  attribute :released_in_year, &:year
+end
+```
+
 ### Links Per Object
 Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name.In this example, `public_url` is expected to be a property of the object being serialized.
 
