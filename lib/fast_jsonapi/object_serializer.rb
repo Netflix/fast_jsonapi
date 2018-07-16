@@ -7,6 +7,7 @@ require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/relationship'
 require 'fast_jsonapi/link'
 require 'fast_jsonapi/serialization_core'
+require 'fast_jsonapi/fieldset'
 
 module FastJsonapi
   module ObjectSerializer
@@ -41,8 +42,8 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @params)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @params) if @includes.present?
+      serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.reflected_record_type.to_sym], @params)
+      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       serializable_hash
     end
 
@@ -51,9 +52,10 @@ module FastJsonapi
 
       data = []
       included = []
+      fieldset = @fieldsets[self.class.reflected_record_type.to_sym]
       @resource.each do |record|
-        data << self.class.record_hash(record, @params)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
+        data << self.class.record_hash(record, fieldset, @params)
+        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       end
 
       serializable_hash[:data] = data
@@ -70,6 +72,8 @@ module FastJsonapi
     private
 
     def process_options(options)
+      @fieldsets = deep_symbolize(options[:fields].presence || {})
+
       return if options.blank?
 
       @known_included_objects = {}
@@ -82,6 +86,18 @@ module FastJsonapi
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
         self.class.validate_includes!(@includes)
+      end
+    end
+
+    def deep_symbolize(collection)
+      if collection.is_a? Hash
+        Hash[collection.map do |k, v|
+          [k.to_sym, deep_symbolize(v)]
+        end]
+      elsif collection.is_a? Array
+        collection.map { |i| deep_symbolize(i) }
+      else
+        collection.to_sym
       end
     end
 
@@ -104,6 +120,7 @@ module FastJsonapi
         subclass.race_condition_ttl = race_condition_ttl
         subclass.data_links = data_links
         subclass.cached = cached
+        subclass.fieldset = fieldset.dup if fieldset.present?
       end
 
       def reflected_record_type
