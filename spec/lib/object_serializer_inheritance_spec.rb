@@ -95,6 +95,11 @@ describe FastJsonapi::ObjectSerializer do
     has_one :account
   end
 
+  it 'sets the correct record type' do
+    expect(EmployeeSerializer.reflected_record_type).to eq :employee
+    expect(EmployeeSerializer.record_type).to eq :employee
+  end
+
   context 'when testing inheritance of attributes' do
 
     it 'includes parent attributes' do
