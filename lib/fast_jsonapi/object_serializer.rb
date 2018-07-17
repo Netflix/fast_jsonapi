@@ -7,7 +7,6 @@ require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/relationship'
 require 'fast_jsonapi/link'
 require 'fast_jsonapi/serialization_core'
-require 'fast_jsonapi/fieldset'
 
 module FastJsonapi
   module ObjectSerializer
@@ -120,7 +119,6 @@ module FastJsonapi
         subclass.race_condition_ttl = race_condition_ttl
         subclass.data_links = data_links
         subclass.cached = cached
-        subclass.fieldset = fieldset.dup if fieldset.present?
       end
 
       def reflected_record_type
