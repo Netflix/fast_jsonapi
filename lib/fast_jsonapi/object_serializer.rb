@@ -240,8 +240,13 @@ module FastJsonapi
           relationship_type: relationship_type,
           cached: options[:cached],
           polymorphic: fetch_polymorphic_option(options),
-          conditional_proc: options[:if]
+          conditional_proc: options[:if],
+          id_method_name_for_inferred_objects: compute_object_method_name_for_inferred_objects(options[:id_method_name], block)
         )
+      end
+
+      def compute_object_method_name_for_inferred_objects(id_method_name, block)
+        (id_method_name.present? && block.present?) ? id_method_name : :id
       end
 
       def compute_serializer_name(serializer_key)

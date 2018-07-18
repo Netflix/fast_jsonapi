@@ -80,6 +80,7 @@ RSpec.shared_context 'movie class' do
             a.id = i
             a.title = "Test Award #{i}"
             a.actor_id = id
+            a.imdb_award_id = i * 10
           end
         end
       end
@@ -110,7 +111,7 @@ RSpec.shared_context 'movie class' do
     end
 
     class Award
-      attr_accessor :id, :title, :actor_id
+      attr_accessor :id, :title, :actor_id, :imdb_award_id
     end
 
     class State

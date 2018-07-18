@@ -1,6 +1,6 @@
 module FastJsonapi
   class Relationship
-    attr_reader :key, :name, :id_method_name, :record_type, :object_method_name, :object_block, :serializer, :relationship_type, :cached, :polymorphic, :conditional_proc
+    attr_reader :key, :name, :id_method_name, :record_type, :object_method_name, :object_block, :serializer, :relationship_type, :cached, :polymorphic, :conditional_proc, :id_method_name_for_inferred_objects
 
     def initialize(
       key:,
@@ -13,7 +13,8 @@ module FastJsonapi
       relationship_type:,
       cached: false,
       polymorphic:,
-      conditional_proc:
+      conditional_proc:,
+      id_method_name_for_inferred_objects:
     )
       @key = key
       @name = name
@@ -26,6 +27,7 @@ module FastJsonapi
       @cached = cached
       @polymorphic = polymorphic
       @conditional_proc = conditional_proc
+      @id_method_name_for_inferred_objects = id_method_name_for_inferred_objects
     end
 
     def serialize(record, serialization_params, output_hash)
@@ -86,13 +88,11 @@ module FastJsonapi
     end
 
     def fetch_id(record, params)
-      unless object_block.nil?
+      if object_block.present?
         object = object_block.call(record, params)
-
-        return object.map(&:id) if object.respond_to? :map
-        return object.try(:id)
+        return object.map { |item| item.public_send(id_method_name_for_inferred_objects) } if object.respond_to? :map
+        return object.try(id_method_name_for_inferred_objects)
       end
-
       record.public_send(id_method_name)
     end
   end

@@ -87,6 +87,31 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  describe '#has_many with block and id_method_name' do
+    before do
+      MovieSerializer.has_many(:awards, id_method_name: :imdb_award_id) do |movie|
+        movie.actors.map(&:awards).flatten
+      end
+    end
+
+    after do
+      MovieSerializer.relationships_to_serialize.delete(:awards)
+    end
+
+    context 'awards is not included' do
+      subject(:hash) { MovieSerializer.new(movie).serializable_hash }
+
+      it 'returns correct hash where id is obtained from the method specified via `id_method_name`' do
+        expected_award_data = movie.actors.map(&:awards).flatten.map do |actor|
+          { id: actor.imdb_award_id.to_s, type: actor.class.name.downcase.to_sym }
+        end
+        serialized_award_data = hash[:data][:relationships][:awards][:data]
+
+        expect(serialized_award_data).to eq(expected_award_data)
+      end
+    end
+  end
+
   describe '#belongs_to' do
     subject(:relationship) { MovieSerializer.relationships_to_serialize[:area] }
 
