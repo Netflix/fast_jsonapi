@@ -251,12 +251,6 @@ describe FastJsonapi::ObjectSerializer do
         expect(movies_serialized).to include(movie.id)
       end
     end
-
-    it 'polymorphic throws an error that polymorphic is not supported' do
-      options = {}
-      options[:include] = [:groupees]
-      expect(-> { GroupSerializer.new([group], options)}).to raise_error(NotImplementedError)
-    end
   end
 
   context 'when testing included do block of object serializer' do
