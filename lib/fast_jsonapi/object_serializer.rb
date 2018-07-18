@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/object'
+require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
 require 'fast_jsonapi/attribute'
@@ -65,7 +65,7 @@ module FastJsonapi
     end
 
     def serialized_json
-      self.class.to_json(serializable_hash)
+      ActiveSupport::JSON.encode(serializable_hash)
     end
 
     private
