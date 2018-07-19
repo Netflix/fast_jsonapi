@@ -310,6 +310,23 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  context 'when serializing included, params should be available in any serializer' do
+    subject(:serializable_hash) do
+      options = {}
+      options[:include] = [:"actors.awards"]
+      options[:params] = { include_award_year: true }
+      MovieSerializer.new(movie, options).serializable_hash
+    end
+    let(:actor) { movie.actors.first }
+    let(:award) { actor.awards.first }
+    let(:year) { award.year }
+
+    it 'passes params to deeply nested includes' do
+      expect(year).to_not be_blank
+      expect(serializable_hash[:included][0][:attributes][:year]).to eq year
+    end
+  end
+
   context 'when is_collection option present' do
     subject { MovieSerializer.new(resource, is_collection_options).serializable_hash }
 
