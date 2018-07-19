@@ -21,12 +21,10 @@ module FastJsonapi
       set_type(reflected_record_type) if reflected_record_type
     end
 
-    def initialize(resource, options = {}, includes = {})
-      # byebug
+    def initialize(resource, options = {})
       process_options(options)
 
-      @resource = resource.includes(includes) if !includes.blank? && is_collection?(resource)
-      @resource = resource if includes.blank? || !is_collection?(resource)
+      @resource = resource
     end
 
     def serializable_hash
