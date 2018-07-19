@@ -28,96 +28,60 @@ module FastJsonapi
     class_methods do
       def id_hash(id, record_type, default_return=false)
         if id.present?
-          {id: id.to_s}
+          { id: id.to_s, type: record_type }
         else
-          default_return ? {id: nil} : nil
+          default_return ? { id: nil, type: record_type } : nil
         end
-      end
-
-      def ids_hash(ids, record_type)
-        return ids.map { |id| id_hash(id, record_type) } if ids.respond_to? :map
-        id_hash(ids, record_type) # ids variable is just a single id here
-      end
-
-      def id_hash_from_record(record, record_types)
-        # memoize the record type within the record_types dictionary, then assigning to record_type:
-        record_type = record_types[record.class] ||= record.class.name.underscore.to_sym
-        id_hash(record.id, record_type)
-      end
-
-      def ids_hash_from_record_and_relationship(record, relationship, params = {})
-        polymorphic = relationship[:polymorphic]
-
-        return ids_hash(
-            fetch_id(record, relationship, params),
-            relationship[:record_type]
-        ) unless polymorphic
-
-        return unless associated_object = fetch_associated_object(record, relationship, params)
-
-        return associated_object.map do |object|
-          id_hash_from_record object, polymorphic
-        end if associated_object.respond_to? :map
-
-        id_hash_from_record associated_object, polymorphic
       end
 
       def links_hash(record, params = {})
-        data_links.each_with_object({}) do |(key, method), link_hash|
-          link_hash[key] = if method.is_a?(Proc)
-                             method.arity == 1 ? method.call(record) : method.call(record, params)
-                           else
-                             record.public_send(method)
-                           end
+        data_links.each_with_object({}) do |(_k, link), hash|
+          link.serialize(record, params, hash)
         end
       end
 
-      def attributes_hash(record, params = {})
-        attributes_to_serialize.each_with_object({}) do |(key, method), attr_hash|
-          attr_hash[key] = if method.is_a?(Proc)
-                             method.arity == 1 ? method.call(record) : method.call(record, params)
-                           else
-                             record.public_send(method)
-                           end
+      def attributes_hash(record, fieldset = nil, params = {})
+        attributes = attributes_to_serialize
+        attributes = attributes.slice(*fieldset) if fieldset.present?
+        attributes.each_with_object({}) do |(_k, attribute), hash|
+          attribute.serialize(record, params, hash)
         end
       end
 
-      def relationships_hash(record, relationships = nil, params = {})
+      def relationships_hash(record, relationships = nil, fieldset = nil, params = {})
         relationships = relationships_to_serialize if relationships.nil?
+        relationships = relationships.slice(*fieldset) if fieldset.present?
+
         relationships.each_with_object({}) do |(_k, relationship), hash|
-          name = relationship[:key]
-          empty_case = relationship[:relationship_type] == :has_many ? [] : nil
-          # hash[name] = {
-          #   data: ids_hash_from_record_and_relationship(record, relationship, params) || empty_case
-          # }
-          hash[name] = get_included_records_per_include(record, name, params) || empty_case
+          relationship.serialize(record, params, hash)
         end
       end
 
-      def record_hash(record, params = {})
+      def record_hash(record, fieldset, params = {})
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
             temp_hash = id_hash(id_from_record(record), record_type, true)
-            temp_hash = temp_hash.merge(attributes_hash(record, params)) if attributes_to_serialize.present?
-            temp_hash = temp_hash.merge(relationships_hash(record, cachable_relationships_to_serialize, params)) if cachable_relationships_to_serialize.present?
+            temp_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
+            temp_hash[:relationships] = {}
+            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize, fieldset, params) if cachable_relationships_to_serialize.present?
             temp_hash[:links] = links_hash(record, params) if data_links.present?
             temp_hash
           end
-          record_hash = record_hash.merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
+          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
           record_hash
         else
           record_hash = id_hash(id_from_record(record), record_type, true)
-          record_hash = record_hash.merge(attributes_hash(record, params)) if attributes_to_serialize.present?
-          record_hash = record_hash.merge(relationships_hash(record, nil, params)) if relationships_to_serialize.present?
-          record_hash[:links] = record_hash.merge(links_hash(record, params)) if data_links.present?
+          record_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
+          record_hash[:relationships] = relationships_hash(record, nil, fieldset, params) if relationships_to_serialize.present?
+          record_hash[:links] = links_hash(record, params) if data_links.present?
           record_hash
         end
       end
 
       def id_from_record(record)
-        return record.send(record_id) if record_id
-        raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
-        record.id
+         return record.send(record_id) if record_id
+         raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
+         record.id
       end
 
       # Override #to_json for alternative implementation
@@ -139,25 +103,27 @@ module FastJsonapi
       end
 
       # includes handler
-      def get_included_records(record, includes_list, known_included_objects, params = {})
+      def get_included_records(record, includes_list, known_included_objects, fieldsets, params = {})
         return unless includes_list.present?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
           items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
-            raise NotImplementedError if @relationships_to_serialize[item][:polymorphic].is_a?(Hash)
-            record_type = @relationships_to_serialize[item][:record_type]
-            serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-            relationship_type = @relationships_to_serialize[item][:relationship_type]
+            relationship_item = relationships_to_serialize[item]
+            next unless relationship_item.include_relationship?(record, params)
+            raise NotImplementedError if relationship_item.polymorphic.is_a?(Hash)
+            record_type = relationship_item.record_type
+            serializer = relationship_item.serializer.to_s.constantize
+            relationship_type = relationship_item.relationship_type
 
-            included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
+            included_objects = relationship_item.fetch_associated_object(record, params)
             next if included_objects.blank?
             included_objects = [included_objects] unless relationship_type == :has_many
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
@@ -165,43 +131,11 @@ module FastJsonapi
               next if known_included_objects.key?(code)
 
               known_included_objects[code] = inc_obj
-              included_records << serializer.record_hash(inc_obj, params)
+
+              included_records << serializer.record_hash(inc_obj, fieldsets[serializer.record_type], params)
             end
           end
         end
-      end
-
-      def get_included_records_per_include(record, include, params = {})
-        return unless include.present?
-        included_records = []
-        item = parse_include_item(include).first
-        raise NotImplementedError if @relationships_to_serialize[item][:polymorphic].is_a?(Hash)
-        serializer = @relationships_to_serialize[item][:serializer].to_s.constantize
-        relationship_type = @relationships_to_serialize[item][:relationship_type]
-
-        included_objects = fetch_associated_object(record, @relationships_to_serialize[item], params)
-        included_objects = [included_objects] unless relationship_type == :has_many
-
-        included_objects.each do |inc_obj|
-          included_records << serializer.record_hash(inc_obj, params)
-        end
-        included_records
-      end
-
-      def fetch_associated_object(record, relationship, params)
-        return relationship[:object_block].call(record, params) unless relationship[:object_block].nil?
-        record.send(relationship[:object_method_name])
-      end
-
-      def fetch_id(record, relationship, params)
-        unless relationship[:object_block].nil?
-          object = relationship[:object_block].call(record, params)
-
-          return object.map(&:id) if object.respond_to? :map
-          return object.id
-        end
-
-        record.public_send(relationship[:id_method_name])
       end
     end
   end

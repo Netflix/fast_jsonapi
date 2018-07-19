@@ -97,6 +97,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
 
+    it 'returns correct json when belongs_to returns nil and there is a block for the relationship' do
+      movie.owner_id = nil
+      json = MovieSerializer.new(movie, {include: [:owner]}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
+    end
+
     it 'returns correct json when has_one returns nil' do
       supplier.account_id = nil
       json = SupplierSerializer.new(supplier).serialized_json
@@ -300,6 +307,144 @@ describe FastJsonapi::ObjectSerializer do
 
     it 'returns correct hash when serializable_hash is called' do
       expect(serializable_hash[:included][0][:links][:self]).to eq url
+    end
+  end
+
+  context 'when is_collection option present' do
+    subject { MovieSerializer.new(resource, is_collection_options).serializable_hash }
+
+    context 'autodetect' do
+      let(:is_collection_options) { {} }
+
+      context 'collection if no option present' do
+        let(:resource) { [movie] }
+        it { expect(subject[:data]).to be_a(Array) }
+      end
+
+      context 'single if no option present' do
+        let(:resource) { movie }
+        it { expect(subject[:data]).to be_a(Hash) }
+      end
+    end
+
+    context 'force is_collection to true' do
+      let(:is_collection_options) { { is_collection: true } }
+
+      context 'collection will pass' do
+        let(:resource) { [movie] }
+        it { expect(subject[:data]).to be_a(Array) }
+      end
+
+      context 'single will raise error' do
+        let(:resource) { movie }
+        it { expect { subject }.to raise_error(NoMethodError, /method(.*)each/) }
+      end
+    end
+
+    context 'force is_collection to false' do
+      let(:is_collection_options) { { is_collection: false } }
+
+      context 'collection will fail without id' do
+        let(:resource) { [movie] }
+        it { expect { subject }.to raise_error(FastJsonapi::MandatoryField, /id is a mandatory field/) }
+      end
+
+      context 'single will pass' do
+        let(:resource) { movie }
+        it { expect(subject[:data]).to be_a(Hash) }
+      end
+    end
+  end
+
+  context 'when optional attributes are determined by record data' do
+    it 'returns optional attribute when attribute is included' do
+      movie.release_year = 2001
+      json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['release_year']).to eq movie.release_year
+    end
+
+    it "doesn't return optional attribute when attribute is not included" do
+      movie.release_year = 1970
+      json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].has_key?('release_year')).to be_falsey
+    end
+  end
+
+  context 'when optional attributes are determined by params data' do
+    it 'returns optional attribute when attribute is included' do
+      movie.director = 'steven spielberg'
+      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: true }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['director']).to eq 'steven spielberg'
+    end
+
+    it "doesn't return optional attribute when attribute is not included" do
+      movie.director = 'steven spielberg'
+      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: false }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes'].has_key?('director')).to be_falsey
+    end
+  end
+
+  context 'when optional relationships are determined by record data' do
+    it 'returns optional relationship when relationship is included' do
+      json = MovieOptionalRelationshipSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_truthy
+    end
+
+    context "when relationship is not included" do
+      let(:json) {
+        MovieOptionalRelationshipSerializer.new(movie, options).serialized_json
+      }
+      let(:options) {
+        {}
+      }
+      let(:serializable_hash) {
+        JSON.parse(json)
+      }
+
+      it "doesn't return optional relationship" do
+        movie.actor_ids = []
+        expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+      end
+
+      it "doesn't include optional relationship" do
+        movie.actor_ids = []
+        options[:include] = [:actors]
+        expect(serializable_hash['included']).to be_blank
+      end
+    end
+  end
+
+  context 'when optional relationships are determined by params data' do
+    it 'returns optional relationship when relationship is included' do
+      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, { params: { admin: true }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_truthy
+    end
+
+    context "when relationship is not included" do
+      let(:json) {
+        MovieOptionalRelationshipWithParamsSerializer.new(movie, options).serialized_json
+      }
+      let(:options) {
+        { params: { admin: false }}
+      }
+      let(:serializable_hash) {
+        JSON.parse(json)
+      }
+
+      it "doesn't return optional relationship" do
+        expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_falsey
+      end
+
+      it "doesn't include optional relationship" do
+        options[:include] = [:owner]
+        expect(serializable_hash['included']).to be_blank
+      end
     end
   end
 end
