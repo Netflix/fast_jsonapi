@@ -230,6 +230,23 @@ describe FastJsonapi::ObjectSerializer do
         expect(serializable_hash[:data][:attributes][:title_with_year]).to eq "#{movie.name} (#{movie.release_year})"
       end
     end
+
+    context 'with &:proc' do
+      before do
+        movie.release_year = 2008
+        MovieSerializer.attribute :released_in_year, &:release_year
+        MovieSerializer.attribute :name, &:local_name
+      end
+
+      after do
+        MovieSerializer.attributes_to_serialize.delete(:released_in_year)
+      end
+
+      it 'returns correct hash when serializable_hash is called' do
+        expect(serializable_hash[:data][:attributes][:name]).to eq "english #{movie.name}"
+        expect(serializable_hash[:data][:attributes][:released_in_year]).to eq movie.release_year
+      end
+    end
   end
 
   describe '#link' do

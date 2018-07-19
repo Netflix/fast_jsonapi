@@ -54,6 +54,10 @@ RSpec.shared_context 'movie class' do
         "#{id}"
       end
 
+      def local_name(locale = :english)
+        "#{locale} #{name}"
+      end
+
       def url
         "http://movies.com/#{id}"
       end
