@@ -19,6 +19,7 @@ module FastJsonapi
     end
 
     def initialize(resource, options = {}, includes = {})
+      # byebug
       process_options(options)
 
       @resource = resource.includes(includes) if !includes.blank? && is_collection?(resource)
@@ -54,7 +55,7 @@ module FastJsonapi
         # included.concat self.class.get_included_records(record, @includes, @known_included_objects, @params) if @includes.present?
       end
 
-      serializable_hash[:data] = data
+      serializable_hash[:collection] = data
       # serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
@@ -149,7 +150,9 @@ module FastJsonapi
       end
 
       def attributes(*attributes_list, &block)
+        # byebug
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
+        attributes_list = attributes_list.first if attributes_list.first.class.to_s == 'Array'
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
         attributes_list.each do |attr_name|
           method_name = attr_name
