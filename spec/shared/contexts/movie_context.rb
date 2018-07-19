@@ -43,8 +43,19 @@ RSpec.shared_context 'movie class' do
         ac
       end
 
+      def owner
+        return unless owner_id
+        ow = Owner.new
+        ow.id = owner_id
+        ow
+      end
+
       def cache_key
         "#{id}"
+      end
+
+      def local_name(locale = :english)
+        "#{locale} #{name}"
       end
 
       def url
@@ -146,6 +157,14 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id
     end
 
+    class Owner
+      attr_accessor :id
+    end
+
+    class OwnerSerializer
+      include FastJsonapi::ObjectSerializer
+    end
+
     # serializers
     class MovieSerializer
       include FastJsonapi::ObjectSerializer
@@ -153,7 +172,9 @@ RSpec.shared_context 'movie class' do
       # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
-      belongs_to :owner, record_type: :user
+      belongs_to :owner, record_type: :user do |object, params|
+        object.owner
+      end
       belongs_to :movie_type
       has_one :advertising_campaign
     end
@@ -260,6 +281,34 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :account
       belongs_to :supplier
+    end
+
+    class MovieOptionalRecordDataSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :release_year, if: Proc.new { |record| record.release_year >= 2000 }
+    end
+
+    class MovieOptionalParamsDataSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
+    end
+
+    class MovieOptionalRelationshipSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      has_many :actors, if: Proc.new { |record| record.actors.any? }
+    end
+
+    class MovieOptionalRelationshipWithParamsSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params && params[:admin] == true }
     end
   end
 
