@@ -249,6 +249,34 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  describe '#meta' do
+    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
+
+    before do
+      movie.release_year = 2008
+      MovieSerializer.meta do |movie|
+        {
+          years_since_release: year_since_release_calculator(movie.release_year)
+        }
+      end
+    end
+
+    after do
+      movie.release_year = nil
+      MovieSerializer.meta_to_serialize = nil
+    end
+
+    it 'returns correct hash when serializable_hash is called' do
+      expect(serializable_hash[:data][:meta]).to eq ({ years_since_release: year_since_release_calculator(movie.release_year) })
+    end
+
+    private
+
+    def year_since_release_calculator(release_year)
+      Date.current.year - release_year
+    end
+  end
+
   describe '#link' do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 

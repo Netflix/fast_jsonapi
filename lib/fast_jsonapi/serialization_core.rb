@@ -21,7 +21,8 @@ module FastJsonapi
                       :cache_length,
                       :race_condition_ttl,
                       :cached,
-                      :data_links
+                      :data_links,
+                      :meta_to_serialize
       end
     end
 
@@ -57,6 +58,10 @@ module FastJsonapi
         end
       end
 
+      def meta_hash(record, params = {})
+        meta_to_serialize.call(record, params)
+      end
+
       def record_hash(record, fieldset, params = {})
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
@@ -68,12 +73,14 @@ module FastJsonapi
             temp_hash
           end
           record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
+          record_hash[:meta] = meta_hash(record, params) if meta_to_serialize.present?
           record_hash
         else
           record_hash = id_hash(id_from_record(record), record_type, true)
           record_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
           record_hash[:relationships] = relationships_hash(record, nil, fieldset, params) if relationships_to_serialize.present?
           record_hash[:links] = links_hash(record, params) if data_links.present?
+          record_hash[:meta] = meta_hash(record, params) if meta_to_serialize.present?
           record_hash
         end
       end
