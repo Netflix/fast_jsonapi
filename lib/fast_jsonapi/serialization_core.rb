@@ -123,7 +123,7 @@ module FastJsonapi
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets, params)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
