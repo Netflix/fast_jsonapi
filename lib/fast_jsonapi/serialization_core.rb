@@ -72,7 +72,7 @@ module FastJsonapi
             temp_hash[:links] = links_hash(record, params) if data_links.present?
             temp_hash
           end
-          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
+          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, fieldset, params)) if uncachable_relationships_to_serialize.present?
           record_hash[:meta] = meta_hash(record, params) if meta_to_serialize.present?
           record_hash
         else
@@ -130,7 +130,7 @@ module FastJsonapi
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets, params)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
