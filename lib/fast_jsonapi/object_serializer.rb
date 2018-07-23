@@ -120,6 +120,7 @@ module FastJsonapi
         subclass.data_links = data_links
         subclass.cached = cached
         subclass.set_type(subclass.reflected_record_type) if subclass.reflected_record_type
+        subclass.meta_to_serialize = meta_to_serialize
       end
 
       def reflected_record_type
@@ -216,6 +217,10 @@ module FastJsonapi
       def belongs_to(relationship_name, options = {}, &block)
         relationship = create_relationship(relationship_name, :belongs_to, options, block)
         add_relationship(relationship)
+      end
+
+      def meta(&block)
+        self.meta_to_serialize = block
       end
 
       def create_relationship(base_key, relationship_type, options, block)
