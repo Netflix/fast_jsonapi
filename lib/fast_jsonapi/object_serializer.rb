@@ -232,7 +232,11 @@ module FastJsonapi
         Relationship.new(
           key: options[:key] || run_key_transform(base_key),
           name: name,
-          id_method_name: options[:id_method_name] || "#{base_serialization_key}#{id_postfix}".to_sym,
+          id_method_name: compute_id_method_name(
+            options[:id_method_name],
+            "#{base_serialization_key}#{id_postfix}".to_sym,
+            block
+          ),
           record_type: options[:record_type] || run_key_transform(base_key_sym),
           object_method_name: options[:object_method_name] || name,
           object_block: block,
@@ -242,6 +246,14 @@ module FastJsonapi
           polymorphic: fetch_polymorphic_option(options),
           conditional_proc: options[:if]
         )
+      end
+
+      def compute_id_method_name(custom_id_method_name, id_method_name_from_relationship, block)
+        if block.present?
+          custom_id_method_name || :id
+        else
+          custom_id_method_name || id_method_name_from_relationship
+        end
       end
 
       def compute_serializer_name(serializer_key)
