@@ -351,15 +351,15 @@ class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :name, :year
-  attribute :release_year, if: Proc.new do |record|
+  attribute :release_year, if: Proc.new { |record|
     # Release year will only be serialized if it's greater than 1990
     record.release_year > 1990
-  end
+  }
 
-  attribute :director, if: Proc.new do |record, params|
+  attribute :director, if: Proc.new { |record, params|
     # The director will be serialized only if the :admin key of params is true
     params && params[:admin] == true
-  end
+  }
 end
 
 # ...
