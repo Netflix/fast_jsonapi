@@ -31,9 +31,7 @@ module FastJsonapi
     def serialize(record, serialization_params, output_hash)
       if include_relationship?(record, serialization_params)
         empty_case = relationship_type == :has_many ? [] : nil
-        output_hash[key] = {
-          data: ids_hash_from_record_and_relationship(record, serialization_params) || empty_case
-        }
+        output_hash[key] = get_included_records_per_include(record, serialization_params) || empty_case
       end
     end
 
@@ -94,6 +92,21 @@ module FastJsonapi
       end
 
       record.public_send(id_method_name)
+    end
+
+    def get_included_records_per_include(record, serialization_params = {})
+      included_records = []
+
+      included_objects = fetch_associated_object(record, serialization_params)
+
+      # included_objects = included_objects if relationship_type == :has_many && !included_objects.blank?
+      included_objects = [included_objects] if relationship_type == :has_one && !included_objects.blank?
+      included_objects = [] if included_objects.blank?
+
+      included_objects.each do |inc_obj|
+        included_records << @serializer.to_s.constantize.record_hash(inc_obj, {}, serialization_params, true )[@key.to_s.singularize.to_sym]
+      end
+      included_records
     end
   end
 end

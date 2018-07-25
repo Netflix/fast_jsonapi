@@ -21,10 +21,19 @@ module FastJsonapi
       set_type(reflected_record_type) if reflected_record_type
     end
 
-    def initialize(resource, options = {})
+    def initialize(resource, options = {}, includes = {})
+      if is_collection?(resource, options[:is_collection]) && options[:pagination]
+        options[:meta] = {
+            page: resource.blank? ? 0 : resource.current_page.to_i,
+            per_page: resource.blank? ? 0 : resource.per_page.to_i,
+            total_pages: resource.blank? ? 0 : resource.total_pages.to_i,
+            total_entries: resource.blank? ? 0 : resource.total_entries.to_i
+        }
+      end
       process_options(options)
 
-      @resource = resource
+      @resource = resource.includes(includes) if !includes.blank? && is_collection?(resource)
+      @resource = resource if includes.blank? || !is_collection?(resource)
     end
 
     def serializable_hash
@@ -36,13 +45,14 @@ module FastJsonapi
 
     def hash_for_one_record
       serializable_hash = { data: nil }
-      serializable_hash[:meta] = @meta if @meta.present?
-      serializable_hash[:links] = @links if @links.present?
+      # serializable_hash[:meta] = @meta if @meta.present?
+      # serializable_hash[:links] = @links if @links.present?
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+      # serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
+      serializable_hash = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params, @root_of_object)
+      # serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       serializable_hash
     end
 
@@ -50,17 +60,19 @@ module FastJsonapi
       serializable_hash = {}
 
       data = []
-      included = []
+      # included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
       @resource.each do |record|
-        data << self.class.record_hash(record, fieldset, @params)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+        data << self.class.record_hash(record, fieldset, @params, @root_of_object)
+        # included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       end
 
-      serializable_hash[:data] = data
-      serializable_hash[:included] = included if @includes.present?
+      serializable_hash[:data] = data if @pagination
+
+      # serializable_hash[:included] = included if @includes.present?
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
+      return data if @pagination == false
       serializable_hash
     end
 
@@ -79,6 +91,8 @@ module FastJsonapi
       @meta = options[:meta]
       @links = options[:links]
       @is_collection = options[:is_collection]
+      @pagination = options[:pagination].nil? ? true : options[:pagination]
+      @root_of_object = options[:root].nil? ? true : options[:root]
       @params = options[:params] || {}
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 

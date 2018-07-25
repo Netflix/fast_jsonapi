@@ -28,9 +28,11 @@ module FastJsonapi
     class_methods do
       def id_hash(id, record_type, default_return=false)
         if id.present?
-          { id: id.to_s, type: record_type }
+          # { id: id.to_s, type: record_type }
+          { id: id.to_s }
         else
-          default_return ? { id: nil, type: record_type } : nil
+          # default_return ? { id: nil, type: record_type } : nil
+          default_return ? { id: nil } : nil
         end
       end
 
@@ -57,23 +59,29 @@ module FastJsonapi
         end
       end
 
-      def record_hash(record, fieldset, params = {})
+      def record_hash(record, fieldset, params = {}, root_of_object)
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
-            temp_hash = id_hash(id_from_record(record), record_type, true)
-            temp_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
-            temp_hash[:relationships] = {}
-            temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize, fieldset, params) if cachable_relationships_to_serialize.present?
-            temp_hash[:links] = links_hash(record, params) if data_links.present?
+            # temp_hash = id_hash(id_from_record(record), record_type, true)
+            temp_hash = {}
+            temp_hash = temp_hash.merge!(attributes_hash(record, fieldset, params)) if attributes_to_serialize.present?
+            # temp_hash[:relationships] = {}
+            temp_hash = temp_hash.merge!(relationships_hash(record, cachable_relationships_to_serialize, fieldset, params)) if cachable_relationships_to_serialize.present?
+            # temp_hash[:links] = links_hash(record, params) if data_links.present?
+            # temp_hash
+            return {record_type => temp_hash} if root_of_object
             temp_hash
           end
-          record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
-          record_hash
+          # record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
+          # record_hash
         else
-          record_hash = id_hash(id_from_record(record), record_type, true)
-          record_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
-          record_hash[:relationships] = relationships_hash(record, nil, fieldset, params) if relationships_to_serialize.present?
-          record_hash[:links] = links_hash(record, params) if data_links.present?
+          # record_hash = id_hash(id_from_record(record), record_type, true)
+          record_hash = {}
+          record_hash = record_hash.merge!(attributes_hash(record, fieldset, params)) if attributes_to_serialize.present?
+          record_hash = record_hash.merge!(relationships_hash(record, nil, fieldset, params)) if relationships_to_serialize.present?
+          # record_hash[:links] = links_hash(record, params) if data_links.present?
+          # record_hash
+          return {record_type => record_hash} if root_of_object
           record_hash
         end
       end
@@ -91,7 +99,7 @@ module FastJsonapi
 
       def parse_include_item(include_item)
         return [include_item.to_sym] unless include_item.to_s.include?('.')
-        include_item.to_s.split('.').map { |item| item.to_sym }
+        include_item.to_s.split('.').map! { |item| item.to_sym }
       end
 
       def remaining_items(items)
@@ -123,7 +131,7 @@ module FastJsonapi
 
             included_objects.each do |inc_obj|
               if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets)
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets, params)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
@@ -132,7 +140,7 @@ module FastJsonapi
 
               known_included_objects[code] = inc_obj
 
-              included_records << serializer.record_hash(inc_obj, fieldsets[serializer.record_type], params)
+              included_records << serializer.record_hash(inc_obj, fieldsets[serializer.record_type], params, true)
             end
           end
         end
