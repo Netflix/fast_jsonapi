@@ -134,7 +134,7 @@ module FastJsonapi
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
-              code = "#{record_type}_#{inc_obj.id}"
+              code = "#{record_type}_#{serializer.id_from_record(inc_obj)}"
               next if known_included_objects.key?(code)
 
               known_included_objects[code] = inc_obj

@@ -158,6 +158,32 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
+  context 'id attribute is the same for actors and not a primary key' do
+    before do
+      ActorSerializer.set_id :email
+      movie.actor_ids = [0, 0, 0]
+      class << movie
+        def actors
+          super.each_with_index { |actor, i| actor.email = "actor#{i}@email.com" }
+        end
+      end
+    end
+
+    after { ActorSerializer.set_id nil }
+
+    let(:options) { { include: ['actors'] } }
+    subject { MovieSerializer.new(movie, options).serializable_hash }
+
+    it 'returns all actors in includes' do
+
+      expect(
+        subject[:included].select { |i| i[:type] == :actor }.map { |i| i[:id] }
+      ).to eq(
+        movie.actors.map(&:email)
+      )
+    end
+  end
+
   context 'nested includes' do
     it 'has_many to belongs_to: returns correct nested includes when serializable_hash is called' do
       # 3 actors, 3 agencies
