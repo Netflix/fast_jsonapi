@@ -32,8 +32,8 @@ module FastJsonapi
       end
       process_options(options)
 
-      @resource = resource.includes(self.class.includes) if !self.class.includes.blank? && is_collection?(resource, options[:is_collection])
-      @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if !self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
+      @resource = resource.includes(self.class.includes) if !self.class.includes.blank? && is_collection?(resource, options[:is_collection]) && !resource.blank?
+      @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if !self.class.includes.blank? && !is_collection?(resource, options[:is_collection]) && !resource.blank?
       @resource = resource if self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
       @resource = resource if self.class.includes.blank? && is_collection?(resource, options[:is_collection])
     end
