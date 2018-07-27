@@ -21,7 +21,8 @@ module FastJsonapi
                       :cache_length,
                       :race_condition_ttl,
                       :cached,
-                      :data_links
+                      :data_links,
+                      :includes
       end
     end
 

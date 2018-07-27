@@ -32,8 +32,10 @@ module FastJsonapi
       end
       process_options(options)
 
-      @resource = resource.includes(includes) if !includes.blank? && is_collection?(resource)
-      @resource = resource if includes.blank? || !is_collection?(resource)
+      @resource = resource.includes(self.class.includes) if !self.class.includes.blank? && is_collection?(resource, options[:is_collection])
+      @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if !self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
+      @resource = resource if self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
+      @resource = resource if self.class.includes.blank? && is_collection?(resource, options[:is_collection])
     end
 
     def serializable_hash
@@ -174,6 +176,10 @@ module FastJsonapi
 
       def set_type(type_name)
         self.record_type = run_key_transform(type_name)
+      end
+
+      def eager_load_includes(includes_hash = {})
+        self.includes = includes_hash
       end
 
       def set_id(id_name)

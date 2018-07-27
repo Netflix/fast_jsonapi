@@ -106,6 +106,7 @@ module FastJsonapi
       included_objects.each do |inc_obj|
         included_records << @serializer.to_s.constantize.record_hash(inc_obj, {}, serialization_params, true )[@key.to_s.singularize.to_sym]
       end
+      return included_records.first if relationship_type == :has_one && !included_objects.blank?
       included_records
     end
   end
