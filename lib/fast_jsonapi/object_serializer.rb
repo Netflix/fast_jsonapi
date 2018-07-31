@@ -36,6 +36,7 @@ module FastJsonapi
       @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if !self.class.includes.blank? && !is_collection?(resource, options[:is_collection]) && !resource.blank?
       @resource = resource if self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
       @resource = resource if self.class.includes.blank? && is_collection?(resource, options[:is_collection])
+      @resource = resource if !self.class.includes.blank? && is_collection?(resource, options[:is_collection]) && resource.blank?
     end
 
     def serializable_hash
