@@ -25,7 +25,7 @@ describe FastJsonapi::ObjectSerializer do
 
       context "with a single record" do
         let(:serializer) { MovieSerializer.new(movie, options_with_params) }
-        let(:links) { hash.dig(:data, :relationships, :actors, :links) }
+        let(:links) { hash[:data][:relationships][:actors][:links] }
 
         it "handles relationship links that call a method" do
           expect(links).to be_present
