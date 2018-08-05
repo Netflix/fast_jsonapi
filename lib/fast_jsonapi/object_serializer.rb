@@ -194,7 +194,7 @@ module FastJsonapi
         self.relationships_to_serialize = {} if relationships_to_serialize.nil?
         self.cachable_relationships_to_serialize = {} if cachable_relationships_to_serialize.nil?
         self.uncachable_relationships_to_serialize = {} if uncachable_relationships_to_serialize.nil?
-        
+
         if !relationship.cached
           self.uncachable_relationships_to_serialize[relationship.name] = relationship
         else
@@ -240,7 +240,8 @@ module FastJsonapi
           relationship_type: relationship_type,
           cached: options[:cached],
           polymorphic: fetch_polymorphic_option(options),
-          conditional_proc: options[:if]
+          conditional_proc: options[:if],
+          links: options[:links]
         )
       end
 

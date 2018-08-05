@@ -61,6 +61,10 @@ RSpec.shared_context 'movie class' do
       def url
         "http://movies.com/#{id}"
       end
+
+      def actors_relationship_url
+        "#{url}/relationships/actors"
+      end
     end
 
     class Actor
