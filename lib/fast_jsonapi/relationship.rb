@@ -89,13 +89,11 @@ module FastJsonapi
     end
 
     def fetch_id(record, params)
-      unless object_block.nil?
+      if object_block.present?
         object = object_block.call(record, params)
-
-        return object.map(&:id) if object.respond_to? :map
-        return object.try(:id)
+        return object.map { |item| item.public_send(id_method_name) } if object.respond_to? :map
+        return object.try(id_method_name)
       end
-
       record.public_send(id_method_name)
     end
 

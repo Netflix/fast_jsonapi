@@ -275,6 +275,18 @@ This will create a `self` reference for the relationship, and a `related` link f
   end
 ```
 
+### Meta Per Resource
+
+For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+```ruby
+  meta do |movie|
+    {
+      years_since_release: Date.current.year - movie.year
+    }
+  end
+end
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.
@@ -381,15 +393,15 @@ class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :name, :year
-  attribute :release_year, if: Proc.new do |record|
+  attribute :release_year, if: Proc.new { |record|
     # Release year will only be serialized if it's greater than 1990
     record.release_year > 1990
-  end
+  }
 
-  attribute :director, if: Proc.new do |record, params|
+  attribute :director, if: Proc.new { |record, params|
     # The director will be serialized only if the :admin key of params is true
     params && params[:admin] == true
-  end
+  }
 end
 
 # ...
