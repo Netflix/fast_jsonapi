@@ -245,6 +245,36 @@ class MovieSerializer
 end
 ```
 
+#### Links on a Relationship
+
+You can specify [relationship links](http://jsonapi.org/format/#document-resource-object-relationships) by using the `links:` option on the serializer. Relationship links in JSON API are useful if you want to load a parent document and then load associated documents later due to size constraints (see [related resource links](http://jsonapi.org/format/#document-resource-object-related-resource-links))
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  has_many :actors, links: {
+    self: :url,
+    related: -> (object) {
+      "https://movies.com/#{object.id}/actors"
+    }
+  }
+end
+```
+
+This will create a `self` reference for the relationship, and a `related` link for loading the actors relationship later. NB: This will not automatically disable including the data in the relationship, you'll need to do that using the yielded block:
+
+```ruby
+  has_many :actors, links: {
+    self: :url,
+    related: -> (object) {
+      "https://movies.com/#{object.id}/actors"
+    }
+  } do |movie|
+    movie.actors.limit(5)
+  end
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.
