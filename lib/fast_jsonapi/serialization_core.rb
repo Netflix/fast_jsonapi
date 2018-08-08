@@ -41,11 +41,16 @@ module FastJsonapi
       end
 
       def attributes_hash(record, fieldset = nil, params = {})
-        attributes = attributes_to_serialize
-        attributes = attributes.slice(*fieldset) if fieldset.present?
+        attributes = slice_attributes(attributes_to_serialize, fieldset)
         attributes.each_with_object({}) do |(_k, attribute), hash|
           attribute.serialize(record, params, hash)
         end
+      end
+
+      def slice_attributes(attributes, fieldset)
+        return attributes unless fieldset.present?
+        fieldset = fieldset.map { |key| run_key_transform(key) }
+        attributes.slice(*fieldset)
       end
 
       def relationships_hash(record, relationships = nil, fieldset = nil, params = {})
