@@ -426,6 +426,7 @@ serializer.serializable_hash
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
+key | Key of Object | ```belongs_to :owner, key: :user ```
 set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
