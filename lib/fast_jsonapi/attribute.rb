@@ -20,7 +20,7 @@ module FastJsonapi
 
     def include_attribute?(record, serialization_params)
       if conditional_proc.present?
-        conditional_proc.call(record, serialization_params)
+        conditional_proc.arity.abs == 1 ? conditional_proc.call(record) : conditional_proc.call(record, serialization_params)
       else
         true
       end

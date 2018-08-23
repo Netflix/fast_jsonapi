@@ -364,6 +364,13 @@ describe FastJsonapi::ObjectSerializer do
       expect(serializable_hash['data']['attributes']['release_year']).to eq movie.release_year
     end
 
+    it 'accepts a lambda taking one argument to make a parameter optional' do
+      movie.release_year = 2001
+      json = MovieOptionalRecordLambdaDataSerializer.new(movie).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['release_year']).to eq movie.release_year
+    end
+
     it "doesn't return optional attribute when attribute is not included" do
       movie.release_year = 1970
       json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
@@ -376,6 +383,13 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns optional attribute when attribute is included' do
       movie.director = 'steven spielberg'
       json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: true }}).serialized_json
+      serializable_hash = JSON.parse(json)
+      expect(serializable_hash['data']['attributes']['director']).to eq 'steven spielberg'
+    end
+
+    it 'accepts a lambda taking two arguments to make a parameter optional' do
+      movie.director = 'steven spielberg'
+      json = MovieOptionalParamsLambdaDataSerializer.new(movie, { params: { admin: true }}).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data']['attributes']['director']).to eq 'steven spielberg'
     end
