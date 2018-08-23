@@ -278,10 +278,24 @@ describe FastJsonapi::ObjectSerializer do
       end
     end
 
-    it 'polymorphic throws an error that polymorphic is not supported' do
+    it 'polymorphic has_many: returns correct nested includes when serializable_hash is called' do
       options = {}
       options[:include] = [:groupees]
-      expect(-> { GroupSerializer.new([group], options)}).to raise_error(NotImplementedError)
+
+      serializable_hash = GroupSerializer.new([group], options).serializable_hash
+
+      persons_serialized = serializable_hash[:included].find_all { |included| included[:type] == :person }.map { |included| included[:id].to_i }
+      groups_serialized = serializable_hash[:included].find_all { |included| included[:type] == :group }.map { |included| included[:id].to_i }
+
+      persons = group.groupees.find_all { |groupee| groupee.is_a?(Person) }
+      persons.each do |person|
+        expect(persons_serialized).to include(person.id)
+      end
+
+      groups = group.groupees.find_all { |groupee| groupee.is_a?(Group) }
+      groups.each do |group|
+        expect(groups_serialized).to include(group.id)
+      end
     end
   end
 
