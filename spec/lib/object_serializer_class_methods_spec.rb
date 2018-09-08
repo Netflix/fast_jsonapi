@@ -411,4 +411,22 @@ describe FastJsonapi::ObjectSerializer do
       it_behaves_like 'returning key transformed hash', :movie_type, :underscore_movie_type, :release_year
     end
   end
+
+  describe '#set_key_transform after #set_type' do
+    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
+
+    before do
+      MovieSerializer.set_type :foo_bar
+      MovieSerializer.set_key_transform :camel
+    end
+
+    after do
+      MovieSerializer.set_type :movie
+      MovieSerializer.transform_method = nil
+    end
+
+    it 'returns correct hash which type equals transformed set_type value' do
+      expect(serializable_hash[:data][:type]).to eq :FooBar
+    end
+  end
 end

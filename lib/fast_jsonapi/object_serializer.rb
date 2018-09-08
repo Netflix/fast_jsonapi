@@ -143,7 +143,11 @@ module FastJsonapi
         self.transform_method = mapping[transform_name.to_sym]
 
         # ensure that the record type is correctly transformed
-        set_type(reflected_record_type) if reflected_record_type
+        if record_type
+          set_type(record_type)
+        elsif reflected_record_type
+          set_type(reflected_record_type)
+        end
       end
 
       def run_key_transform(input)
