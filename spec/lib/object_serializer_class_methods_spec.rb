@@ -421,8 +421,8 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     after do
-      MovieSerializer.set_type :movie
       MovieSerializer.transform_method = nil
+      MovieSerializer.set_type :movie
     end
 
     it 'returns correct hash which type equals transformed set_type value' do
