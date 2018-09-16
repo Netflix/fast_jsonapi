@@ -416,7 +416,7 @@ describe FastJsonapi::ObjectSerializer do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
     before do
-      MovieSerializer.set_type :foo_bar
+      MovieSerializer.set_type type_name
       MovieSerializer.set_key_transform :camel
     end
 
@@ -425,8 +425,20 @@ describe FastJsonapi::ObjectSerializer do
       MovieSerializer.set_type :movie
     end
 
-    it 'returns correct hash which type equals transformed set_type value' do
-      expect(serializable_hash[:data][:type]).to eq :FooBar
+    context 'when sets singular type name' do
+      let(:type_name) { :film }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :Film
+      end
+    end
+
+    context 'when sets plural type name' do
+      let(:type_name) { :films }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :Films
+      end
     end
   end
 end
