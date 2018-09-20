@@ -245,6 +245,23 @@ class MovieSerializer
 end
 ```
 
+### Meta Per Resource
+
+For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  meta do |movie|
+    {
+      years_since_release: Date.current.year - movie.year
+    }
+  end
+end
+```
+
 ### Compound Document
 
 Support for top-level and nested included associations through ` options[:include] `.
@@ -351,15 +368,15 @@ class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
   attributes :name, :year
-  attribute :release_year, if: Proc.new do |record|
+  attribute :release_year, if: Proc.new { |record|
     # Release year will only be serialized if it's greater than 1990
     record.release_year > 1990
-  end
+  }
 
-  attribute :director, if: Proc.new do |record, params|
+  attribute :director, if: Proc.new { |record, params|
     # The director will be serialized only if the :admin key of params is true
     params && params[:admin] == true
-  end
+  }
 end
 
 # ...
@@ -409,6 +426,7 @@ serializer.serializable_hash
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
+key | Key of Object | ```belongs_to :owner, key: :user ```
 set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
