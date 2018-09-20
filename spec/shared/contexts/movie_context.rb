@@ -80,6 +80,8 @@ RSpec.shared_context 'movie class' do
             a.id = i
             a.title = "Test Award #{i}"
             a.actor_id = id
+            a.imdb_award_id = i * 10
+            a.year = 1990 + i
           end
         end
       end
@@ -110,7 +112,7 @@ RSpec.shared_context 'movie class' do
     end
 
     class Award
-      attr_accessor :id, :title, :actor_id
+      attr_accessor :id, :title, :actor_id, :year, :imdb_award_id
     end
 
     class State
@@ -225,6 +227,11 @@ RSpec.shared_context 'movie class' do
     class AwardSerializer
       include FastJsonapi::ObjectSerializer
       attributes :id, :title
+      attribute :year, if: Proc.new { |record, params|
+        params[:include_award_year].present? ? 
+          params[:include_award_year] : 
+          false
+      }
       belongs_to :actor
     end
 
