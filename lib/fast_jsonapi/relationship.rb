@@ -30,11 +30,11 @@ module FastJsonapi
       @links = links || {}
     end
 
-    def serialize(record, serialization_params, output_hash, &block)
+    def serialize(record, serialization_params, output_hash)
       if include_relationship?(record, serialization_params)
         empty_case = relationship_type == :has_many ? [] : nil
         output_hash[key] = {
-          data: ids_hash_from_record_and_relationship(record, serialization_params) || empty_case,
+          data: ids_hash_from_record_and_relationship(record, serialization_params) || empty_case
         }
         add_links_hash(record, serialization_params, output_hash) if links.present?
       end
