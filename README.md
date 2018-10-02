@@ -429,7 +429,7 @@ set_type | Type name of Object | ```set_type :movie ```
 key | Key of Object | ```belongs_to :owner, key: :user ```
 set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
-id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
+id_method_name | Set custom method name to get ID of an object (If block is provided for the relationship, `id_method_name` is invoked on the return value of the block instead of the resource object) | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor``` or ```has_many :actors, serializer: MyApp::Api::V1::ActorSerializer```
