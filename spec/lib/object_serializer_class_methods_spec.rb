@@ -355,6 +355,22 @@ describe FastJsonapi::ObjectSerializer do
         expect(serializable_hash[:data][:links][:url]).to eq movie.url
       end
     end
+
+    context 'when inheriting from a parent serializer' do
+      before do
+        MovieSerializer.link(:url) do |movie_object|
+          "http://movies.com/#{movie_object.id}"
+        end
+      end
+      subject(:action_serializable_hash) { ActionMovieSerializer.new(movie).serializable_hash }
+      subject(:horror_serializable_hash) { HorrorMovieSerializer.new(movie).serializable_hash }
+
+      let(:url) { "http://movies.com/#{movie.id}" }
+
+      it 'returns the link for the correct sub-class' do
+        expect(action_serializable_hash[:data][:links][:url]).to eq "/action-movie/#{movie.id}"
+      end
+    end
   end
 
   describe '#key_transform' do

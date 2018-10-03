@@ -181,6 +181,18 @@ RSpec.shared_context 'movie class' do
       has_one :advertising_campaign
     end
 
+    class GenreMovieSerializer < MovieSerializer
+      link(:something) { '/something/' }
+    end
+
+    class ActionMovieSerializer < GenreMovieSerializer
+      link(:url) { |object| "/action-movie/#{object.id}" }
+    end
+
+    class HorrorMovieSerializer < GenreMovieSerializer
+      link(:url) { |object| "/horror-movie/#{object.id}" }
+    end
+
     class MovieWithoutIdStructSerializer
       include FastJsonapi::ObjectSerializer
       attributes :name, :release_year
@@ -354,6 +366,9 @@ RSpec.shared_context 'movie class' do
 
   after(:context) do
     classes_to_remove = %i[
+      ActionMovieSerializer
+      GenreMovieSerializer
+      HorrorMovieSerializer
       Movie
       MovieSerializer
       Actor
