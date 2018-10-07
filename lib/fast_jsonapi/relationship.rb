@@ -1,6 +1,6 @@
 module FastJsonapi
   class Relationship
-    attr_reader :key, :name, :id_method_name, :record_type, :object_method_name, :object_block, :serializer, :relationship_type, :cached, :polymorphic, :conditional_proc, :links
+    attr_reader :key, :name, :id_method_name, :record_type, :object_method_name, :object_block, :serializer, :relationship_type, :cached, :polymorphic, :conditional_proc, :links, :lazy_load_data
 
     def initialize(
       key:,
@@ -14,7 +14,8 @@ module FastJsonapi
       cached: false,
       polymorphic:,
       conditional_proc:,
-      links:
+      links:,
+      lazy_load_data: false
     )
       @key = key
       @name = name
@@ -28,14 +29,17 @@ module FastJsonapi
       @polymorphic = polymorphic
       @conditional_proc = conditional_proc
       @links = links || {}
+      @lazy_load_data = lazy_load_data
     end
 
     def serialize(record, serialization_params, output_hash)
       if include_relationship?(record, serialization_params)
         empty_case = relationship_type == :has_many ? [] : nil
-        output_hash[key] = {
-          data: ids_hash_from_record_and_relationship(record, serialization_params) || empty_case
-        }
+
+        output_hash[key] = {}
+        unless lazy_load_data
+          output_hash[key][:data] = ids_hash_from_record_and_relationship(record, serialization_params) || empty_case
+        end
         add_links_hash(record, serialization_params, output_hash) if links.present?
       end
     end

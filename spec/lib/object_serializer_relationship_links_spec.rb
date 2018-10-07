@@ -6,22 +6,22 @@ describe FastJsonapi::ObjectSerializer do
   context "params option" do
     let(:hash) { serializer.serializable_hash }
 
-    before(:context) do
-      class MovieSerializer
-        has_many :actors, links: {
-          self:    :actors_relationship_url,
-          related: -> (object, params = {}) {
-            "#{params.has_key?(:secure) ? "https" : "http"}://movies.com/movies/#{object.name.parameterize}/actors/"
-          }
-        }
-      end
-    end
-
     context "generating links for a serializer relationship" do
       let(:params) { {  } }
       let(:options_with_params) { { params: params } }
       let(:relationship_url) { "http://movies.com/#{movie.id}/relationships/actors" }
       let(:related_url) { "http://movies.com/movies/#{movie.name.parameterize}/actors/" }
+
+      before(:context) do
+        class MovieSerializer
+          has_many :actors, lazy_load_data: false, links: {
+            self:    :actors_relationship_url,
+            related: -> (object, params = {}) {
+              "#{params.has_key?(:secure) ? "https" : "http"}://movies.com/movies/#{object.name.parameterize}/actors/"
+            }
+          }
+        end
+      end
 
       context "with a single record" do
         let(:serializer) { MovieSerializer.new(movie, options_with_params) }
@@ -48,6 +48,24 @@ describe FastJsonapi::ObjectSerializer do
         end
       end
 
+    end
+
+    context "lazy loading relationship data" do
+      before(:context) do
+        class LazyLoadingMovieSerializer < MovieSerializer
+          has_many :actors, lazy_load_data: true, links: {
+            related: :actors_relationship_url
+          }
+        end
+      end
+
+      let(:serializer) { LazyLoadingMovieSerializer.new(movie) }
+      let(:actor_hash) { hash[:data][:relationships][:actors] }
+
+      it "does not include the :data key" do
+        expect(actor_hash).to be_present
+        expect(actor_hash).not_to have_key(:data)
+      end
     end
   end
 end
