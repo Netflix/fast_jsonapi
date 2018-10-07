@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/object'
+require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
 require 'fast_jsonapi/attribute'
@@ -65,7 +65,7 @@ module FastJsonapi
     end
 
     def serialized_json
-      self.class.to_json(serializable_hash)
+      ActiveSupport::JSON.encode(serializable_hash)
     end
 
     private
@@ -143,7 +143,11 @@ module FastJsonapi
         self.transform_method = mapping[transform_name.to_sym]
 
         # ensure that the record type is correctly transformed
-        set_type(reflected_record_type) if reflected_record_type
+        if record_type
+          set_type(record_type)
+        elsif reflected_record_type
+          set_type(reflected_record_type)
+        end
       end
 
       def run_key_transform(input)
@@ -250,6 +254,7 @@ module FastJsonapi
           cached: options[:cached],
           polymorphic: fetch_polymorphic_option(options),
           conditional_proc: options[:if],
+          transform_method: @transform_method,
           links: options[:links],
           lazy_load_data: options[:lazy_load_data]
         )
@@ -294,10 +299,10 @@ module FastJsonapi
         includes.detect do |include_item|
           klass = self
           parse_include_item(include_item).each do |parsed_include|
-            relationship_to_include = klass.relationships_to_serialize[parsed_include]
+            relationships_to_serialize = klass.relationships_to_serialize || {}
+            relationship_to_include = relationships_to_serialize[parsed_include]
             raise ArgumentError, "#{parsed_include} is not specified as a relationship on #{klass.name}" unless relationship_to_include
-            raise NotImplementedError if relationship_to_include.polymorphic.is_a?(Hash)
-            klass = relationship_to_include.serializer.to_s.constantize
+            klass = relationship_to_include.serializer.to_s.constantize unless relationship_to_include.polymorphic.is_a?(Hash)
           end
         end
       end

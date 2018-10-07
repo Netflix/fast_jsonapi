@@ -221,7 +221,7 @@ end
 ```
 
 ### Links Per Object
-Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name.In this example, `public_url` is expected to be a property of the object being serialized.
+Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
 
 You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
 
@@ -449,6 +449,7 @@ serializer.serializable_hash
 Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
+key | Key of Object | ```belongs_to :owner, key: :user ```
 set_id | ID of Object | ```set_id :owner_id ```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
 id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
