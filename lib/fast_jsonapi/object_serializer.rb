@@ -3,6 +3,7 @@
 require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
+require 'active_support/core_ext/numeric/time'
 require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/relationship'
 require 'fast_jsonapi/link'
