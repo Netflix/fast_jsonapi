@@ -117,7 +117,7 @@ module FastJsonapi
         subclass.transform_method = transform_method
         subclass.cache_length = cache_length
         subclass.race_condition_ttl = race_condition_ttl
-        subclass.data_links = data_links
+        subclass.data_links = data_links.dup if data_links.present?
         subclass.cached = cached
         subclass.set_type(subclass.reflected_record_type) if subclass.reflected_record_type
         subclass.meta_to_serialize = meta_to_serialize
