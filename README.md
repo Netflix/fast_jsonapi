@@ -221,7 +221,7 @@ end
 ```
 
 ### Links Per Object
-Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
+Links are defined in FastJsonapi using the `link` method. By default, links are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
 
 You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
 
