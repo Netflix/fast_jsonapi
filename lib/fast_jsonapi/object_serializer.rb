@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'active_support/time'
 require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
@@ -72,6 +73,7 @@ module FastJsonapi
 
     def process_options(options)
       @fieldsets = deep_symbolize(options[:fields].presence || {})
+      @params = {}
 
       return if options.blank?
 

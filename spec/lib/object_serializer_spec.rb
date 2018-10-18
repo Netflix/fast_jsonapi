@@ -504,4 +504,10 @@ describe FastJsonapi::ObjectSerializer do
       end
     end
   end
+
+  context 'when attribute contents are determined by params data' do
+    it 'does not throw an error with no params are passed' do
+      expect { MovieOptionalAttributeContentsWithParamsSerializer.new(movie).serialized_json }.not_to raise_error
+    end
+  end
 end
