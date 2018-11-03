@@ -61,6 +61,10 @@ RSpec.shared_context 'movie class' do
       def url
         "http://movies.com/#{id}"
       end
+
+      def actors_relationship_url
+        "#{url}/relationships/actors"
+      end
     end
 
     class Actor
@@ -181,6 +185,18 @@ RSpec.shared_context 'movie class' do
       has_one :advertising_campaign
     end
 
+    class GenreMovieSerializer < MovieSerializer
+      link(:something) { '/something/' }
+    end
+
+    class ActionMovieSerializer < GenreMovieSerializer
+      link(:url) { |object| "/action-movie/#{object.id}" }
+    end
+
+    class HorrorMovieSerializer < GenreMovieSerializer
+      link(:url) { |object| "/horror-movie/#{object.id}" }
+    end
+
     class MovieWithoutIdStructSerializer
       include FastJsonapi::ObjectSerializer
       attributes :name, :release_year
@@ -228,8 +244,8 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       attributes :id, :title
       attribute :year, if: Proc.new { |record, params|
-        params[:include_award_year].present? ? 
-          params[:include_award_year] : 
+        params[:include_award_year].present? ?
+          params[:include_award_year] :
           false
       }
       belongs_to :actor
@@ -301,7 +317,7 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
+      attribute :director, if: Proc.new { |record, params| params[:admin] == true }
     end
 
     class MovieOptionalRelationshipSerializer
@@ -315,7 +331,19 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params && params[:admin] == true }
+      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params[:admin] == true }
+    end
+
+    class MovieOptionalAttributeContentsWithParamsSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :director do |record, params|
+        data = {}
+        data[:first_name] = 'steven'
+        data[:last_name] = 'spielberg' if params[:admin]
+        data
+      end
     end
   end
 
@@ -354,6 +382,9 @@ RSpec.shared_context 'movie class' do
 
   after(:context) do
     classes_to_remove = %i[
+      ActionMovieSerializer
+      GenreMovieSerializer
+      HorrorMovieSerializer
       Movie
       MovieSerializer
       Actor

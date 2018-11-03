@@ -15,7 +15,7 @@ describe FastJsonapi::ObjectSerializer do
 
       class MovieSerializer
         attribute :viewed do |movie, params|
-          params ? movie.viewed?(params[:user]) : false
+          params[:user] ? movie.viewed?(params[:user]) : false
         end
 
         attribute :no_param_attribute do |movie|

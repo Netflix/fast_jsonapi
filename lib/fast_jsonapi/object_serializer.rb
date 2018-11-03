@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+require 'active_support/time'
 require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
+require 'active_support/core_ext/numeric/time'
 require 'fast_jsonapi/attribute'
 require 'fast_jsonapi/relationship'
 require 'fast_jsonapi/link'
@@ -72,6 +74,7 @@ module FastJsonapi
 
     def process_options(options)
       @fieldsets = deep_symbolize(options[:fields].presence || {})
+      @params = {}
 
       return if options.blank?
 
@@ -117,7 +120,7 @@ module FastJsonapi
         subclass.transform_method = transform_method
         subclass.cache_length = cache_length
         subclass.race_condition_ttl = race_condition_ttl
-        subclass.data_links = data_links
+        subclass.data_links = data_links.dup if data_links.present?
         subclass.cached = cached
         subclass.set_type(subclass.reflected_record_type) if subclass.reflected_record_type
         subclass.meta_to_serialize = meta_to_serialize
@@ -143,7 +146,11 @@ module FastJsonapi
         self.transform_method = mapping[transform_name.to_sym]
 
         # ensure that the record type is correctly transformed
-        set_type(reflected_record_type) if reflected_record_type
+        if record_type
+          set_type(record_type)
+        elsif reflected_record_type
+          set_type(reflected_record_type)
+        end
       end
 
       def run_key_transform(input)
@@ -163,8 +170,8 @@ module FastJsonapi
         self.record_type = run_key_transform(type_name)
       end
 
-      def set_id(id_name)
-        self.record_id = id_name
+      def set_id(id_name = nil, &block)
+        self.record_id = block || id_name
       end
 
       def cache_options(cache_options)
@@ -250,7 +257,9 @@ module FastJsonapi
           cached: options[:cached],
           polymorphic: fetch_polymorphic_option(options),
           conditional_proc: options[:if],
-          transform_method: @transform_method
+          transform_method: @transform_method,
+          links: options[:links],
+          lazy_load_data: options[:lazy_load_data]
         )
       end
 

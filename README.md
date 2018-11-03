@@ -221,7 +221,7 @@ end
 ```
 
 ### Links Per Object
-Links are defined in FastJsonapi using the `link` method. By default, link are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
+Links are defined in FastJsonapi using the `link` method. By default, links are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
 
 You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
 
@@ -245,15 +245,38 @@ class MovieSerializer
 end
 ```
 
-### Meta Per Resource
+#### Links on a Relationship
 
-For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
-
+You can specify [relationship links](http://jsonapi.org/format/#document-resource-object-relationships) by using the `links:` option on the serializer. Relationship links in JSON API are useful if you want to load a parent document and then load associated documents later due to size constraints (see [related resource links](http://jsonapi.org/format/#document-resource-object-related-resource-links))
 
 ```ruby
 class MovieSerializer
   include FastJsonapi::ObjectSerializer
 
+  has_many :actors, links: {
+    self: :url,
+    related: -> (object) {
+      "https://movies.com/#{object.id}/actors"
+    }
+  }
+end
+```
+
+This will create a `self` reference for the relationship, and a `related` link for loading the actors relationship later. NB: This will not automatically disable loading the data in the relationship, you'll need to do that using the `lazy_load_data` option:
+
+```ruby
+  has_many :actors, lazy_load_data: true, links: {
+    self: :url,
+    related: -> (object) {
+      "https://movies.com/#{object.id}/actors"
+    }
+  }
+```
+
+### Meta Per Resource
+
+For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+```ruby
   meta do |movie|
     {
       years_since_release: Date.current.year - movie.year
@@ -427,9 +450,9 @@ Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
 key | Key of Object | ```belongs_to :owner, key: :user ```
-set_id | ID of Object | ```set_id :owner_id ```
+set_id | ID of Object | ```set_id :owner_id ``` or ```set_id { |record| "#{record.name.downcase}-#{record.id}" }```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
-id_method_name | Set custom method name to get ID of an object | ```has_many :locations, id_method_name: :place_ids ```
+id_method_name | Set custom method name to get ID of an object (If block is provided for the relationship, `id_method_name` is invoked on the return value of the block instead of the resource object) | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
 record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
 serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor``` or ```has_many :actors, serializer: MyApp::Api::V1::ActorSerializer```

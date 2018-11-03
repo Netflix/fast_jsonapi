@@ -195,28 +195,57 @@ describe FastJsonapi::ObjectSerializer do
   describe '#set_id' do
     subject(:serializable_hash) { MovieSerializer.new(resource).serializable_hash }
 
-    before do
-      MovieSerializer.set_id :owner_id
-    end
+    context 'method name' do
+      before do
+        MovieSerializer.set_id :owner_id
+      end
 
-    after do
-      MovieSerializer.set_id nil
-    end
+      after do
+        MovieSerializer.set_id nil
+      end
 
-    context 'when one record is given' do
-      let(:resource) { movie }
+      context 'when one record is given' do
+        let(:resource) { movie }
 
-      it 'returns correct hash which id equals owner_id' do
-        expect(serializable_hash[:data][:id].to_i).to eq movie.owner_id
+        it 'returns correct hash which id equals owner_id' do
+          expect(serializable_hash[:data][:id].to_i).to eq movie.owner_id
+        end
+      end
+
+      context 'when an array of records is given' do
+        let(:resource) { [movie, movie] }
+
+        it 'returns correct hash which id equals owner_id' do
+          expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
+          expect(serializable_hash[:data][1][:id].to_i).to eq movie.owner_id
+        end
       end
     end
 
-    context 'when an array of records is given' do
-      let(:resource) { [movie, movie] }
+    context 'with block' do
+      before do
+        MovieSerializer.set_id { |record| "movie-#{record.owner_id}" }
+      end
 
-      it 'returns correct hash which id equals owner_id' do
-        expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
-        expect(serializable_hash[:data][1][:id].to_i).to eq movie.owner_id
+      after do
+        MovieSerializer.set_id nil
+      end
+
+      context 'when one record is given' do
+        let(:resource) { movie }
+
+        it 'returns correct hash which id equals movie-id' do
+          expect(serializable_hash[:data][:id]).to eq "movie-#{movie.owner_id}"
+        end
+      end
+
+      context 'when an array of records is given' do
+        let(:resource) { [movie, movie] }
+
+        it 'returns correct hash which id equals movie-id' do
+          expect(serializable_hash[:data][0][:id]).to eq "movie-#{movie.owner_id}"
+          expect(serializable_hash[:data][1][:id]).to eq "movie-#{movie.owner_id}"
+        end
       end
     end
   end
@@ -355,6 +384,22 @@ describe FastJsonapi::ObjectSerializer do
         expect(serializable_hash[:data][:links][:url]).to eq movie.url
       end
     end
+
+    context 'when inheriting from a parent serializer' do
+      before do
+        MovieSerializer.link(:url) do |movie_object|
+          "http://movies.com/#{movie_object.id}"
+        end
+      end
+      subject(:action_serializable_hash) { ActionMovieSerializer.new(movie).serializable_hash }
+      subject(:horror_serializable_hash) { HorrorMovieSerializer.new(movie).serializable_hash }
+
+      let(:url) { "http://movies.com/#{movie.id}" }
+
+      it 'returns the link for the correct sub-class' do
+        expect(action_serializable_hash[:data][:links][:url]).to eq "/action-movie/#{movie.id}"
+      end
+    end
   end
 
   describe '#key_transform' do
@@ -409,6 +454,36 @@ describe FastJsonapi::ObjectSerializer do
       let(:key_transform) { :underscore }
 
       it_behaves_like 'returning key transformed hash', :movie_type, :underscore_movie_type, :release_year
+    end
+  end
+
+  describe '#set_key_transform after #set_type' do
+    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
+
+    before do
+      MovieSerializer.set_type type_name
+      MovieSerializer.set_key_transform :camel
+    end
+
+    after do
+      MovieSerializer.transform_method = nil
+      MovieSerializer.set_type :movie
+    end
+
+    context 'when sets singular type name' do
+      let(:type_name) { :film }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :Film
+      end
+    end
+
+    context 'when sets plural type name' do
+      let(:type_name) { :films }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :Films
+      end
     end
   end
 end
