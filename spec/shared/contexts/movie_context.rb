@@ -240,8 +240,8 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       attributes :id, :title
       attribute :year, if: Proc.new { |record, params|
-        params[:include_award_year].present? ? 
-          params[:include_award_year] : 
+        params[:include_award_year].present? ?
+          params[:include_award_year] :
           false
       }
       belongs_to :actor
@@ -313,7 +313,7 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
+      attribute :director, if: Proc.new { |record, params| params[:admin] == true }
     end
 
     class MovieOptionalRelationshipSerializer
@@ -327,7 +327,19 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params && params[:admin] == true }
+      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params[:admin] == true }
+    end
+
+    class MovieOptionalAttributeContentsWithParamsSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      attributes :name
+      attribute :director do |record, params|
+        data = {}
+        data[:first_name] = 'steven'
+        data[:last_name] = 'spielberg' if params[:admin]
+        data
+      end
     end
   end
 
