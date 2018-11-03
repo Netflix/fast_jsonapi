@@ -195,28 +195,57 @@ describe FastJsonapi::ObjectSerializer do
   describe '#set_id' do
     subject(:serializable_hash) { MovieSerializer.new(resource).serializable_hash }
 
-    before do
-      MovieSerializer.set_id :owner_id
-    end
+    context 'method name' do
+      before do
+        MovieSerializer.set_id :owner_id
+      end
 
-    after do
-      MovieSerializer.set_id nil
-    end
+      after do
+        MovieSerializer.set_id nil
+      end
 
-    context 'when one record is given' do
-      let(:resource) { movie }
+      context 'when one record is given' do
+        let(:resource) { movie }
 
-      it 'returns correct hash which id equals owner_id' do
-        expect(serializable_hash[:data][:id].to_i).to eq movie.owner_id
+        it 'returns correct hash which id equals owner_id' do
+          expect(serializable_hash[:data][:id].to_i).to eq movie.owner_id
+        end
+      end
+
+      context 'when an array of records is given' do
+        let(:resource) { [movie, movie] }
+
+        it 'returns correct hash which id equals owner_id' do
+          expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
+          expect(serializable_hash[:data][1][:id].to_i).to eq movie.owner_id
+        end
       end
     end
 
-    context 'when an array of records is given' do
-      let(:resource) { [movie, movie] }
+    context 'with block' do
+      before do
+        MovieSerializer.set_id { |record| "movie-#{record.owner_id}" }
+      end
 
-      it 'returns correct hash which id equals owner_id' do
-        expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
-        expect(serializable_hash[:data][1][:id].to_i).to eq movie.owner_id
+      after do
+        MovieSerializer.set_id nil
+      end
+
+      context 'when one record is given' do
+        let(:resource) { movie }
+
+        it 'returns correct hash which id equals movie-id' do
+          expect(serializable_hash[:data][:id]).to eq "movie-#{movie.owner_id}"
+        end
+      end
+
+      context 'when an array of records is given' do
+        let(:resource) { [movie, movie] }
+
+        it 'returns correct hash which id equals movie-id' do
+          expect(serializable_hash[:data][0][:id]).to eq "movie-#{movie.owner_id}"
+          expect(serializable_hash[:data][1][:id]).to eq "movie-#{movie.owner_id}"
+        end
       end
     end
   end

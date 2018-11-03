@@ -170,8 +170,8 @@ module FastJsonapi
         self.record_type = run_key_transform(type_name)
       end
 
-      def set_id(id_name)
-        self.record_id = id_name
+      def set_id(id_name = nil, &block)
+        self.record_id = block || id_name
       end
 
       def cache_options(cache_options)
