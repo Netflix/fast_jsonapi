@@ -33,6 +33,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Conditional Attributes](#conditional-attributes)
   * [Conditional Relationships](#conditional-relationships)
   * [Sparse Fieldsets](#sparse-fieldsets)
+  * [Using helper methods](#using-helper-methods)
 * [Contributing](#contributing)
 
 
@@ -447,6 +448,68 @@ end
 
 serializer = MovieSerializer.new(movie, { fields: { movie: [:name] } })
 serializer.serializable_hash
+```
+
+### Using helper methods
+
+You can mix-in code from another ruby module into your serializer class to reuse functions across your app.
+
+Since a serializer is evaluated in a the context of a `class` rather than an `instance` of a class, you need to make sure that your methods act as `class` methods when mixed in.
+
+
+##### Using ActiveSupport::Concern
+
+``` ruby
+
+module AvatarHelper
+  extend ActiveSupport::Concern
+
+  class_methods do
+    def avatar_url(user)
+      user.image.url
+    end
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  include AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
+```
+
+##### Using Plain Old Ruby
+
+``` ruby
+module AvatarHelper
+  def avatar_url(user)
+    user.image.url
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  extend AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
 ```
 
 ### Customizable Options
