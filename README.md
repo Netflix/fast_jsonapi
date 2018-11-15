@@ -276,7 +276,12 @@ This will create a `self` reference for the relationship, and a `related` link f
 ### Meta Per Resource
 
 For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+
+
 ```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
   meta do |movie|
     {
       years_since_release: Date.current.year - movie.year
