@@ -314,13 +314,6 @@ describe FastJsonapi::ObjectSerializer do
       expect(BlahBlahSerializer.record_type).to be :blah_blah
     end
 
-    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
-      class BlahBlahSerializerBuilder
-        include FastJsonapi::ObjectSerializer
-      end
-      expect(BlahBlahSerializerBuilder.record_type).to be_nil
-    end
-
     it 'should set default_type for a namespaced serializer' do
       module V1
         class BlahSerializer
@@ -328,6 +321,20 @@ describe FastJsonapi::ObjectSerializer do
         end
       end
       expect(V1::BlahSerializer.record_type).to be :blah
+    end
+
+    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
+      class BlahBlahSerializerBuilder
+        include FastJsonapi::ObjectSerializer
+      end
+      expect(BlahBlahSerializerBuilder.record_type).to be_nil
+    end
+
+    it 'shouldnt set default_type for an anonymous serializer' do
+      serializer_class = Class.new do
+        include FastJsonapi::ObjectSerializer
+      end
+      expect(serializer_class.record_type).to be_nil
     end
   end
 
