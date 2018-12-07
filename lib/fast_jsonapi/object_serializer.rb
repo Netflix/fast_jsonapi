@@ -63,7 +63,7 @@ module FastJsonapi
         self.class.record_hash(record, fieldset, @params)
       end
 
-      included = Rails.cache.fetch_multi(self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params)) do
+      included = Rails.cache.fetch_multi(self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params).map(&:cache_key)) do
         self.class.record_hash(record, fieldset, @params)
       end
 
