@@ -130,8 +130,7 @@ module FastJsonapi
             next if included_objects.blank?
             included_objects = [included_objects] unless relationship_type == :has_many
 
-            Rails.cache.fetch_multi(included_objects.map(&:cache_key),
-                                    expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
+            included_objects.each do |inc_obj|
               if relationship_item.polymorphic.is_a?(Hash)
                 record_type = inc_obj.class.name.demodulize.underscore
                 serializer = self.compute_serializer_name(inc_obj.class.name.demodulize.to_sym).to_s.constantize
@@ -147,7 +146,7 @@ module FastJsonapi
 
               known_included_objects[code] = inc_obj
 
-              included_records << serializer.record_hash(inc_obj, fieldsets[serializer.record_type], params)
+              included_records << inc_obj
             end
           end
         end

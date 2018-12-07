@@ -54,9 +54,17 @@ module FastJsonapi
       data = []
       included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
-      @resource.each do |record|
-        data << self.class.record_hash(record, fieldset, @params)
-        included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+      # @resource.each do |record|
+      #   data << self.class.record_hash(record, fieldset, @params)
+      #   included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+      # end
+
+      data = Rails.cache.fetch_multi(@resource.map(&cache_key)) do |record|
+        self.class.record_hash(record, fieldset, @params)
+      end
+
+      included = Rails.cache.fetch_multi(self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params)) do
+        self.class.record_hash(record, fieldset, @params)
       end
 
       serializable_hash[:data] = data
