@@ -67,7 +67,7 @@ module FastJsonapi
     end
 
     def serialized_json
-      ActiveSupport::JSON.encode(serializable_hash)
+      FastJsonapi::MultiToJson.to_json(serializable_hash)
     end
 
     private
