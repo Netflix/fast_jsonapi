@@ -69,7 +69,7 @@ module FastJsonapi
 
       included = Rails.cache.fetch_multi(*included_records) do |record|
         serializer = self.class.compute_serializer_name(record.class.name.demodulize.to_sym).to_s.constantize
-        serializer.record_hash(record, nil)
+        serializer.record_hash(record, nil, @params)
       end.values
 
       serializable_hash[:data] = data
