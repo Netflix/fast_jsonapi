@@ -59,17 +59,18 @@ module FastJsonapi
       #   included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       # end
 
-      data = Rails.cache.fetch_multi(@resource) do |record|
+      data = Rails.cache.fetch_multi(*@resource.to_a) do |record|
         self.class.record_hash(record, fieldset, @params)
-      end
+      end.values
 
       included_records = @resource.flat_map do |record|
-        self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params).map(&:cache_key)
+        self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params)
       end
 
-      included = Rails.cache.fetch_multi(included_records) do |record|
-        self.class.record_hash(record, fieldset, @params)
-      end
+      included = Rails.cache.fetch_multi(*included_records) do |record|
+        serializer = self.class.compute_serializer_name(record.class.name.demodulize.to_sym).to_s.constantize
+        serializer.record_hash(record, nil)
+      end.values
 
       serializable_hash[:data] = data
       serializable_hash[:included] = included if @includes.present?
