@@ -59,7 +59,9 @@ module FastJsonapi
       #   included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       # end
 
-      data = Rails.cache.fetch_multi(*@resource.to_a) do |record|
+      namespace = Digest::MD5.hexdigest( @params.to_a.sort_by { |k,v| k.to_s}.to_s )
+
+      data = Rails.cache.fetch_multi(*@resource.to_a, namespace: namespace) do |record|
         self.class.record_hash(record, fieldset, @params)
       end.values
 
@@ -67,7 +69,7 @@ module FastJsonapi
         self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params)
       end
 
-      included = Rails.cache.fetch_multi(*included_records) do |record|
+      included = Rails.cache.fetch_multi(*included_records, namespace: namespace) do |record|
         serializer = self.class.compute_serializer_name(record.class.name.demodulize.to_sym).to_s.constantize
         serializer.record_hash(record, nil, @params)
       end.values
