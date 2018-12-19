@@ -45,4 +45,38 @@ describe FastJsonapi::ObjectSerializer do
 
     expect(hash[:included][3][:relationships].keys.sort).to eq %i[movie]
   end
+
+  describe 'preset_fields' do
+    let(:movie) do
+      m = Movie.new
+      m.id = 232
+      m.name = 'test movie'
+      m.actor_ids = [1, 2, 3]
+      m.owner_id = 3
+      m.movie_type_id = 1
+      m.release_year = 2018
+      m
+    end
+
+    class MovieSerializer
+      include FastJsonapi::ObjectSerializer
+      set_type :movie
+      # director attr is not mentioned intentionally
+      attributes :name, :release_year
+      has_many :actors
+      belongs_to :owner, record_type: :user do |object, params|
+        object.owner
+      end
+      belongs_to :movie_type
+      has_one :advertising_campaign
+
+      preset_fields :summary, :name, :release_year, :movie_type
+    end
+
+    it 'include only location' do
+      data = MovieSerializer.new(movie, preset_fields: :summary).serializable_hash[:data]
+      expect(data[:attributes]).to eq name: 'test movie', release_year: 2018
+      expect(data[:relationships].keys).to eq [:movie_type]
+    end
+  end
 end

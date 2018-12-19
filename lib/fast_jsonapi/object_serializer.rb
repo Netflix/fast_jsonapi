@@ -89,6 +89,8 @@ module FastJsonapi
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
         self.class.validate_includes!(@includes)
       end
+
+      @fieldsets[self.class.record_type.to_sym] = self.class.fields_presets[options[:preset_fields]] if options[:preset_fields]
     end
 
     def deep_symbolize(collection)
@@ -197,6 +199,11 @@ module FastJsonapi
       end
 
       alias_method :attribute, :attributes
+
+      def preset_fields(preset_name, *fields)
+        self.fields_presets ||= {}
+        self.fields_presets[preset_name] = fields
+      end
 
       def add_relationship(relationship)
         self.relationships_to_serialize = {} if relationships_to_serialize.nil?

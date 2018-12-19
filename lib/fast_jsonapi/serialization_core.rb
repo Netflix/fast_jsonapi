@@ -22,7 +22,8 @@ module FastJsonapi
                       :race_condition_ttl,
                       :cached,
                       :data_links,
-                      :meta_to_serialize
+                      :meta_to_serialize,
+                      :fields_presets
       end
     end
 
