@@ -90,7 +90,10 @@ module FastJsonapi
         self.class.validate_includes!(@includes)
       end
 
-      @fieldsets[self.class.record_type.to_sym] = self.class.fields_presets[options[:preset_fields]] if options[:preset_fields]
+      if options[:preset_fields] && self.class.fields_presets
+        preset = self.class.fields_presets[options[:preset_fields]]
+        @fieldsets[self.class.record_type.to_sym] = preset if preset
+      end
     end
 
     def deep_symbolize(collection)

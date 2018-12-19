@@ -58,7 +58,7 @@ describe FastJsonapi::ObjectSerializer do
       m
     end
 
-    class MovieSerializer
+    class MovieWithPresetSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       # director attr is not mentioned intentionally
@@ -73,8 +73,8 @@ describe FastJsonapi::ObjectSerializer do
       preset_fields :summary, :name, :release_year, :movie_type
     end
 
-    it 'include only location' do
-      data = MovieSerializer.new(movie, preset_fields: :summary).serializable_hash[:data]
+    it 'include only summary preset' do
+      data = MovieWithPresetSerializer.new(movie, preset_fields: :summary).serializable_hash[:data]
       expect(data[:attributes]).to eq name: 'test movie', release_year: 2018
       expect(data[:relationships].keys).to eq [:movie_type]
     end
