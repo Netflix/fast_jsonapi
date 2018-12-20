@@ -65,6 +65,10 @@ RSpec.shared_context 'movie class' do
       def actors_relationship_url
         "#{url}/relationships/actors"
       end
+
+      def size
+        42
+      end
     end
 
     class Actor
