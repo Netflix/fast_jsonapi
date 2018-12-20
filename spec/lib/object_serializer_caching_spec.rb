@@ -16,7 +16,8 @@ describe FastJsonapi::ObjectSerializer do
       options[:links] = { self: 'self' }
 
       options[:include] = [:actors]
-      serializable_hash = CachingMovieSerializer.new([movie, movie], options).serializable_hash
+      movies = build_movies(2)
+      serializable_hash = CachingMovieSerializer.new(movies, options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
       expect(serializable_hash[:data][0][:relationships].length).to eq 3
