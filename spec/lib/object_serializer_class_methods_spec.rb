@@ -213,7 +213,7 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       context 'when an array of records is given' do
-        let(:resource) { [movie, movie] }
+        let(:resource) { build_movies(2) }
 
         it 'returns correct hash which id equals owner_id' do
           expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
@@ -240,7 +240,7 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       context 'when an array of records is given' do
-        let(:resource) { [movie, movie] }
+        let(:resource) { build_movies(2) }
 
         it 'returns correct hash which id equals movie-id' do
           expect(serializable_hash[:data][0][:id]).to eq "movie-#{movie.owner_id}"
@@ -403,7 +403,7 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   describe '#key_transform' do
-    subject(:hash) { movie_serializer_class.new([movie, movie], include: [:movie_type]).serializable_hash }
+    subject(:hash) { movie_serializer_class.new(build_movies(2), include: [:movie_type]).serializable_hash }
 
     let(:movie_serializer_class) { "#{key_transform}_movie_serializer".classify.constantize }
 
