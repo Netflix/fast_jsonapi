@@ -86,7 +86,7 @@ module FastJsonapi
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
       if options[:include].present?
-        @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
+        @includes = options[:include].reject(&:blank?).map(&:to_sym)
         self.class.validate_includes!(@includes)
       end
     end
