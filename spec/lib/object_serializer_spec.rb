@@ -473,6 +473,16 @@ describe FastJsonapi::ObjectSerializer do
         options[:include] = [:actors]
         expect(serializable_hash['included']).to be_blank
       end
+
+    end
+  end
+
+  context 'when include has frozen array' do
+    let(:options) { { include: [:actors].freeze }}
+    let(:json) { MovieOptionalRelationshipSerializer.new(movie, options).serialized_json }
+
+    it 'does not raise and error' do
+      expect(json['included']).to_not be_blank
     end
   end
 
