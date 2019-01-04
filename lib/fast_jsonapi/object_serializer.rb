@@ -299,7 +299,7 @@ module FastJsonapi
       def validate_includes!(includes)
         return if includes.blank?
 
-        includes.detect do |include_item|
+        includes.each do |include_item|
           klass = self
           parse_include_item(include_item).each do |parsed_include|
             relationships_to_serialize = klass.relationships_to_serialize || {}
