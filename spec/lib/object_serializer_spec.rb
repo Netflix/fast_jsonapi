@@ -142,9 +142,22 @@ describe FastJsonapi::ObjectSerializer do
       expect { MovieSerializer.new([movie, movie], options).serializable_hash }.to raise_error(ArgumentError)
     end
 
+    it 'returns errors when serializing with non-existent and existent includes keys' do
+      options = {}
+      options[:meta] = { total: 2 }
+      options[:include] = [:actors, :blah_blah]
+      expect { MovieSerializer.new([movie, movie], options).serializable_hash }.to raise_error(ArgumentError)
+    end
+
     it 'does not throw an error with non-empty string array includes key' do
       options = {}
       options[:include] = ['actors']
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
+    end
+
+    it 'does not throw an error with non-empty string array includes keys' do
+      options = {}
+      options[:include] = ['actors', 'owner']
       expect { MovieSerializer.new(movie, options) }.not_to raise_error
     end
 
