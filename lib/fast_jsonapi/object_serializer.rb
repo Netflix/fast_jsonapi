@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'active_support/time'
-require 'active_support/json'
 require 'active_support/concern'
 require 'active_support/inflector'
 require 'active_support/core_ext/numeric/time'
@@ -67,7 +66,7 @@ module FastJsonapi
     end
 
     def serialized_json
-      ActiveSupport::JSON.encode(serializable_hash)
+      self.class.to_json(serializable_hash)
     end
 
     private
