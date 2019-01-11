@@ -269,6 +269,7 @@ module FastJsonapi
             block
           ),
           record_type: options[:record_type] || run_key_transform(base_key_sym),
+          pluralize_type: options[:pluralize_type],
           object_method_name: options[:object_method_name] || name,
           object_block: block,
           serializer: compute_serializer_name(options[:serializer] || base_key_sym),
