@@ -153,9 +153,28 @@ module FastJsonapi
         end
       end
 
+      def pluralize_type(pluralize)
+        self.pluralized_type = pluralize
+
+        # ensure that the record type is correctly transformed
+        if record_type
+          set_type(record_type)
+        elsif reflected_record_type
+          set_type(reflected_record_type)
+        end
+      end
+
       def run_key_transform(input)
         if self.transform_method.present?
           input.to_s.send(*@transform_method).to_sym
+        else
+          input.to_sym
+        end
+      end
+
+      def run_key_pluralization(input)
+        if self.pluralized_type
+          input.to_s.pluralize.to_sym
         else
           input.to_sym
         end
@@ -167,7 +186,7 @@ module FastJsonapi
       end
 
       def set_type(type_name)
-        self.record_type = run_key_transform(type_name)
+        self.record_type = run_key_transform(run_key_pluralization(type_name))
       end
 
       def set_id(id_name = nil, &block)
