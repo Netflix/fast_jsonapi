@@ -65,7 +65,7 @@ module FastJsonapi
       def record_hash(record, fieldset, params = {})
         if cached
           record_hash = Rails.cache.fetch(record.cache_key, expires_in: cache_length, race_condition_ttl: race_condition_ttl) do
-            temp_hash = id_hash(id_from_record(record), record_type, true)
+            temp_hash = id_hash(id_from_record(record, params), record_type, true)
             temp_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
             temp_hash[:relationships] = {}
             temp_hash[:relationships] = relationships_hash(record, cachable_relationships_to_serialize, fieldset, params) if cachable_relationships_to_serialize.present?
@@ -76,7 +76,7 @@ module FastJsonapi
           record_hash[:meta] = meta_hash(record, params) if meta_to_serialize.present?
           record_hash
         else
-          record_hash = id_hash(id_from_record(record), record_type, true)
+          record_hash = id_hash(id_from_record(record, params), record_type, true)
           record_hash[:attributes] = attributes_hash(record, fieldset, params) if attributes_to_serialize.present?
           record_hash[:relationships] = relationships_hash(record, nil, fieldset, params) if relationships_to_serialize.present?
           record_hash[:links] = links_hash(record, params) if data_links.present?
@@ -85,8 +85,8 @@ module FastJsonapi
         end
       end
 
-      def id_from_record(record)
-        return record_id.call(record) if record_id.is_a?(Proc)
+      def id_from_record(record, params)
+        return record_id.call(record, params) if record_id.is_a?(Proc)
         return record.send(record_id) if record_id
         raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
         record.id
@@ -141,7 +141,7 @@ module FastJsonapi
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 
-              code = "#{record_type}_#{serializer.id_from_record(inc_obj)}"
+              code = "#{record_type}_#{serializer.id_from_record(inc_obj, params)}"
               next if known_included_objects.key?(code)
 
               known_included_objects[code] = inc_obj

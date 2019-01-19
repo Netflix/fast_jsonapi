@@ -193,7 +193,10 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   describe '#set_id' do
-    subject(:serializable_hash) { MovieSerializer.new(resource).serializable_hash }
+    let(:params) { {} }
+    subject(:serializable_hash) do
+      MovieSerializer.new(resource, { params: params }).serializable_hash
+    end
 
     context 'method name' do
       before do
@@ -223,8 +226,12 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     context 'with block' do
+      let(:params) { { prefix: 'movie' } }
+
       before do
-        MovieSerializer.set_id { |record| "movie-#{record.owner_id}" }
+        MovieSerializer.set_id do |record, params|
+          "#{params[:prefix]}-#{record.owner_id}"
+        end
       end
 
       after do
