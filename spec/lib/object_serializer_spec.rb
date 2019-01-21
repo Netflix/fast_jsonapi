@@ -4,13 +4,14 @@ describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
   include_context 'group class'
 
+  let(:movies) { build_movies(2) }
+
   context 'when testing instance methods of object serializer' do
     it 'returns correct hash when serializable_hash is called' do
       options = {}
       options[:meta] = { total: 2 }
       options[:links] = { self: 'self' }
       options[:include] = [:actors]
-      movies = build_movies(2)
       serializable_hash = MovieSerializer.new(movies, options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
@@ -59,7 +60,6 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns correct number of records when serialized_json is called for an array' do
       options = {}
       options[:meta] = { total: 2 }
-      movies = build_movies(2)
       json = MovieSerializer.new(movies, options).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data'].length).to eq 2
@@ -126,7 +126,6 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       it 'returns multiple records' do
-        movies = build_movies(2)
         json_hash = MovieSerializer.new(movies).as_json
         expect(json_hash['data'].length).to eq 2
       end
@@ -142,7 +141,6 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = [:blah_blah]
-      movies = build_movies(2)
       expect { MovieSerializer.new(movies, options).serializable_hash }.to raise_error(ArgumentError)
     end
 
@@ -156,7 +154,6 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = ['']
-      movies = build_movies(2)
       expect(MovieSerializer.new(movies, options).serializable_hash.keys).to eq [:data, :meta]
       options[:include] = [nil]
       expect(MovieSerializer.new(movies, options).serializable_hash.keys).to eq [:data, :meta]
