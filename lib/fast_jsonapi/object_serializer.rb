@@ -43,6 +43,8 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
+      record_type = @resource.class.name.demodulize.underscore
+      @known_included_objects["#{record_type}_#{self.class.id_from_record(@resource)}"] = @resource
       serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       serializable_hash
@@ -55,6 +57,8 @@ module FastJsonapi
       included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
       @resource.each do |record|
+        record_type = record.class.name.demodulize.underscore
+        @known_included_objects["#{record_type}_#{self.class.id_from_record(record)}"] = record
         data << self.class.record_hash(record, fieldset, @params)
         included.concat self.class.get_included_records(record, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       end
@@ -75,10 +79,10 @@ module FastJsonapi
     def process_options(options)
       @fieldsets = deep_symbolize(options[:fields].presence || {})
       @params = {}
+      @known_included_objects = {}
 
       return if options.blank?
 
-      @known_included_objects = {}
       @meta = options[:meta]
       @links = options[:links]
       @is_collection = options[:is_collection]
