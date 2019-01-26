@@ -68,6 +68,13 @@ module FastJsonapi
 
       return unless associated_object = fetch_associated_object(record, params)
 
+      if relationship_type == :belongs_to
+        return {
+          id: fetch_id(record, params),
+          type: run_key_transform(associated_object.class.name.demodulize.underscore)
+        }
+      end
+
       return associated_object.map do |object|
         id_hash_from_record object, polymorphic
       end if associated_object.respond_to? :map
