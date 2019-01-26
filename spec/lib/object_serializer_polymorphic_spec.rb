@@ -86,7 +86,7 @@ describe FastJsonapi::ObjectSerializer do
       expect(owner_relationship).to be_nil
     end
 
-    it 'should return nil for belongs_to when association is nil' do
+    it 'should return correct data for belongs_to with object_block when id_method_name is specified' do
       list = List.new
       list.id = 1
       list_hash = ListSerializer.new(list).to_hash
