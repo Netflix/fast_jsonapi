@@ -318,7 +318,7 @@ json_string = MovieSerializer.new([movie, movie], options).serialized_json
 
 You can use `is_collection` option to have better control over collection serialization.
 
-If this option is not provided or `nil` autedetect logic is used to try understand
+If this option is not provided or `nil` autodetect logic is used to try understand
 if provided resource is a single object or collection.
 
 Autodetect logic is compatible with most DB toolkits (ActiveRecord, Sequel, etc.) but
