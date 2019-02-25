@@ -1,9 +1,9 @@
-require 'spec_helper'
-require 'active_record'
-require 'sqlite3'
+require "spec_helper"
+require "active_record"
+require "sqlite3"
+require "pry"
 
-describe 'active record' do
-
+describe "active record" do
   # Setup DB
   before(:all) do
     @db_file = "test.db"
@@ -31,9 +31,9 @@ describe 'active record' do
     @supplier_id = 1
     @supplier_id_without_account = 3
     db.execute_batch <<-SQL
-      insert into suppliers values ('Supplier1', #{@supplier_id}),
-                                   ('SupplierWithoutAccount', #{@supplier_id_without_account});
-      insert into accounts values ('Dollar Account', #{@account_id}, #{@supplier_id});
+      insert into suppliers values ("Supplier1", #{@supplier_id}),
+                                   ("SupplierWithoutAccount", #{@supplier_id_without_account});
+      insert into accounts values ("Dollar Account", #{@account_id}, #{@supplier_id});
     SQL
   end
 
@@ -48,22 +48,20 @@ describe 'active record' do
     end
 
     ActiveRecord::Base.establish_connection(
-      :adapter => 'sqlite3',
-      :database  => @db_file
+      adapter: "sqlite3",
+      database: @db_file
     )
   end
 
-  context 'has one patch' do
-
-    it 'has account_id method for a supplier' do
+  context "has one patch" do
+    it "has account_id method for a supplier" do
       expect(Supplier.first.respond_to?(:account_id)).to be true
       expect(Supplier.first.account_id).to eq @account_id
     end
 
-    it 'has account_id method return nil if account not present' do
+    it "has account_id method return nil if account not present" do
       expect(Supplier.find(@supplier_id_without_account).account_id).to eq nil
     end
-
   end
 
   # Clean up DB
@@ -72,7 +70,7 @@ describe 'active record' do
   end
 end
 
-describe 'active record has_one through' do
+describe "active record has_one through" do
   # Setup DB
   before(:all) do
     @db_file = "test_two.db"
@@ -130,19 +128,19 @@ describe 'active record has_one through' do
     end
 
     ActiveRecord::Base.establish_connection(
-      :adapter => 'sqlite3',
-      :database  => @db_file
+      adapter: "sqlite3",
+      database: @db_file
     )
   end
 
-  context 'revenue' do
-    it 'has an forest_id' do
+  context "revenue" do
+    it "has an forest_id" do
       expect(Fruit.find(3).respond_to?(:forest_id)).to be true
       expect(Fruit.find(3).forest_id).to eq 1
       expect(Fruit.find(3).forest.name).to eq "sherwood"
     end
 
-    it 'has nil if tree id not available' do
+    it "has nil if tree id not available" do
       expect(Fruit.find(4).respond_to?(:tree_id)).to be true
       expect(Fruit.find(4).forest_id).to eq nil
     end

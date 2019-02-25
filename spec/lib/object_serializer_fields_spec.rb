@@ -1,7 +1,7 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe FastJsonapi::ObjectSerializer do
-  include_context 'movie class'
+  include_context "movie class"
 
   let(:fields) do
     {
@@ -10,37 +10,37 @@ describe FastJsonapi::ObjectSerializer do
     }
   end
 
-  it 'only returns specified fields' do
+  it "only returns specified fields" do
     hash = MovieSerializer.new(movie, fields: fields).serializable_hash
 
-    expect(hash[:data][:attributes].keys.sort).to eq %i[name]
+    expect(hash[:data].keys.sort).to eq %i[id name relationships]
   end
 
-  it 'only returns specified relationships' do
+  it "only returns specified relationships" do
     hash = MovieSerializer.new(movie, fields: fields).serializable_hash
 
     expect(hash[:data][:relationships].keys.sort).to eq %i[actors advertising_campaign]
   end
 
-  it 'only returns specified fields for included relationships' do
+  it "only returns specified fields for included relationships" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors]).serializable_hash
 
-    expect(hash[:included].first[:attributes].keys.sort).to eq %i[name]
+    expect(hash[:included].first.keys.sort).to eq %i[id name relationships]
   end
 
-  it 'only returns specified relationships for included relationships' do
+  it "only returns specified relationships for included relationships" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
 
     expect(hash[:included].first[:relationships].keys.sort).to eq %i[agency]
   end
 
-  it 'returns all fields for included relationships when no explicit fields have been specified' do
+  it "returns all fields for included relationships when no explicit fields have been specified" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
 
-    expect(hash[:included][3][:attributes].keys.sort).to eq %i[id name]
+    expect(hash[:included][3].keys.sort).to eq %i[id name relationships]
   end
 
-  it 'returns all fields for included relationships when no explicit fields have been specified' do
+  it "returns all fields for included relationships when no explicit fields have been specified" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
 
     expect(hash[:included][3][:relationships].keys.sort).to eq %i[movie]

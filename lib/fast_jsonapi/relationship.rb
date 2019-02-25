@@ -69,28 +69,22 @@ module FastJsonapi
       return unless associated_object = fetch_associated_object(record, params)
 
       return associated_object.map do |object|
-        id_hash_from_record object, polymorphic
+        id_hash object.id
       end if associated_object.respond_to? :map
 
-      id_hash_from_record associated_object, polymorphic
-    end
-
-    def id_hash_from_record(record, record_types)
-      # memoize the record type within the record_types dictionary, then assigning to record_type:
-      associated_record_type = record_types[record.class] ||= run_key_transform(record.class.name.demodulize.underscore)
-      id_hash(record.id, associated_record_type)
+      id_hash associated_object.id
     end
 
     def ids_hash(ids)
-      return ids.map { |id| id_hash(id, record_type) } if ids.respond_to? :map
-      id_hash(ids, record_type) # ids variable is just a single id here
+      return ids.map { |id| id_hash id } if ids.respond_to? :map
+      id_hash ids # ids variable is just a single id here
     end
 
-    def id_hash(id, record_type, default_return=false)
+    def id_hash(id, default_return=false)
       if id.present?
-        { id: id.to_s, type: record_type }
+        { id: id }
       else
-        default_return ? { id: nil, type: record_type } : nil
+        default_return ? { id: nil } : nil
       end
     end
 

@@ -1,55 +1,66 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe FastJsonapi::ObjectSerializer do
+  include_context "movie class"
 
-  include_context 'movie class'
-
-  describe '#has_many' do
+  describe "#has_many" do
     subject(:relationship) { serializer.relationships_to_serialize[:roles] }
 
     before do
-      serializer.has_many *children
+      serializer.has_many(*children)
     end
 
     after do
       serializer.relationships_to_serialize = {}
     end
 
-    context 'with namespace' do
+    context "with namespace" do
       let(:serializer) { AppName::V1::MovieSerializer }
       let(:children) { [:roles] }
 
-      context 'with overrides' do
+      context "with overrides" do
         let(:children) { [:roles, id_method_name: :roles_only_ids, record_type: :super_role] }
 
-        it_behaves_like 'returning correct relationship hash', :'AppName::V1::RoleSerializer', :roles_only_ids, :super_role
+        it_behaves_like "returning correct relationship hash",
+                        :"AppName::V1::RoleSerializer",
+                        :roles_only_ids,
+                        :super_role
       end
 
-      context 'without overrides' do
+      context "without overrides" do
         let(:children) { [:roles] }
 
-        it_behaves_like 'returning correct relationship hash', :'AppName::V1::RoleSerializer', :role_ids, :role
+        it_behaves_like "returning correct relationship hash",
+                        :"AppName::V1::RoleSerializer",
+                        :role_ids,
+                        :role
       end
     end
 
-    context 'without namespace' do
+    context "without namespace" do
       let(:serializer) { MovieSerializer }
 
-      context 'with overrides' do
+      context "with overrides" do
         let(:children) { [:roles, id_method_name: :roles_only_ids, record_type: :super_role] }
 
-        it_behaves_like 'returning correct relationship hash', :'RoleSerializer', :roles_only_ids, :super_role
+        it_behaves_like "returning correct relationship hash",
+                        :RoleSerializer,
+                        :roles_only_ids,
+                        :super_role
       end
 
-      context 'without overrides' do
+      context "without overrides" do
         let(:children) { [:roles] }
 
-        it_behaves_like 'returning correct relationship hash', :'RoleSerializer', :role_ids, :role
+        it_behaves_like "returning correct relationship hash",
+                        :RoleSerializer,
+                        :role_ids,
+                        :role
       end
     end
   end
 
-  describe '#has_many with block' do
+  describe "#has_many with block" do
     before do
       MovieSerializer.has_many :awards do |movie|
         movie.actors.map(&:awards).flatten
@@ -60,34 +71,34 @@ describe FastJsonapi::ObjectSerializer do
       MovieSerializer.relationships_to_serialize.delete(:awards)
     end
 
-    context 'awards is not included' do
+    context "awards is not included" do
       subject(:hash) { MovieSerializer.new(movie).serializable_hash }
 
-      it 'returns correct hash' do
+      it "returns correct hash" do
         expect(hash[:data][:relationships][:awards][:data].length).to eq(6)
-        expect(hash[:data][:relationships][:awards][:data][0]).to eq({ id: '9', type: :award })
-        expect(hash[:data][:relationships][:awards][:data][-1]).to eq({ id: '28', type: :award })
+        expect(hash[:data][:relationships][:awards][:data][0]).to eq(id: 9)
+        expect(hash[:data][:relationships][:awards][:data][-1]).to eq(id: 28)
       end
     end
 
-    context 'state is included' do
+    context "state is included" do
       subject(:hash) { MovieSerializer.new(movie, include: [:awards]).serializable_hash }
 
-      it 'returns correct hash' do
+      it "returns correct hash" do
         expect(hash[:included].length).to eq 6
-        expect(hash[:included][0][:id]).to eq '9'
-        expect(hash[:included][0][:type]).to eq :award
-        expect(hash[:included][0][:attributes]).to eq({ id: 9, title: 'Test Award 9' })
-        expect(hash[:included][0][:relationships]).to eq({ actor: { data: { id: '1', type: :actor } } })
-        expect(hash[:included][-1][:id]).to eq '28'
-        expect(hash[:included][-1][:type]).to eq :award
-        expect(hash[:included][-1][:attributes]).to eq({ id: 28, title: 'Test Award 28' })
-        expect(hash[:included][-1][:relationships]).to eq({ actor: { data: { id: '3', type: :actor } } })
+        expect(hash[:included][0][:id]).to eq 9
+        expect(hash[:included][0][:title]).to eq "Test Award 9"
+        expect(hash[:included][0][:relationships]).to eq(actor: { data: { id: 1 } })
+        expect(hash[:included][-1][:id]).to eq 28
+        expect(hash[:included][-1][:title]).to eq "Test Award 28"
+        expect(hash[:included][-1][:relationships]).to eq(
+          actor: { data: { id: 3 } }
+        )
       end
     end
   end
 
-  describe '#has_many with block and id_method_name' do
+  describe "#has_many with block and id_method_name" do
     before do
       MovieSerializer.has_many(:awards, id_method_name: :imdb_award_id) do |movie|
         movie.actors.map(&:awards).flatten
@@ -98,13 +109,13 @@ describe FastJsonapi::ObjectSerializer do
       MovieSerializer.relationships_to_serialize.delete(:awards)
     end
 
-    context 'awards is not included' do
+    context "awards is not included" do
       subject(:hash) { MovieSerializer.new(movie).serializable_hash }
 
-      it 'returns correct hash where id is obtained from the method specified via `id_method_name`' do
-        expected_award_data = movie.actors.map(&:awards).flatten.map do |actor|
-          { id: actor.imdb_award_id.to_s, type: actor.class.name.downcase.to_sym }
-        end
+      it "returns correct hash where id is obtained from the method specified via `id_method_name`" do
+        expected_award_data = movie.actors.map(&:awards).flatten.map { |actor|
+          { id: actor.imdb_award_id }
+        }
         serialized_award_data = hash[:data][:relationships][:awards][:data]
 
         expect(serialized_award_data).to eq(expected_award_data)
@@ -112,31 +123,39 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
-  describe '#belongs_to' do
+  describe "#belongs_to" do
     subject(:relationship) { MovieSerializer.relationships_to_serialize[:area] }
 
     before do
-      MovieSerializer.belongs_to *parent
+      MovieSerializer.belongs_to(*parent)
     end
 
     after do
       MovieSerializer.relationships_to_serialize = {}
     end
 
-    context 'with overrides' do
-      let(:parent) { [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area] }
+    context "with overrides" do
+      let(:parent) {
+        [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area]
+      }
 
-      it_behaves_like 'returning correct relationship hash', :'MyAreaSerializer', :blah_id, :awesome_area
+      it_behaves_like "returning correct relationship hash",
+                      :MyAreaSerializer,
+                      :blah_id,
+                      :awesome_area
     end
 
-    context 'without overrides' do
+    context "without overrides" do
       let(:parent) { [:area] }
 
-      it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+      it_behaves_like "returning correct relationship hash",
+                      :AreaSerializer,
+                      :area_id,
+                      :area
     end
   end
 
-  describe '#belongs_to with block' do
+  describe "#belongs_to with block" do
     before do
       ActorSerializer.belongs_to :state do |actor|
         actor.agency.state
@@ -147,55 +166,64 @@ describe FastJsonapi::ObjectSerializer do
       ActorSerializer.relationships_to_serialize.delete(:actorc)
     end
 
-    context 'state is not included' do
+    context "state is not included" do
       subject(:hash) { ActorSerializer.new(actor).serializable_hash }
 
-      it 'returns correct hash' do
-        expect(hash[:data][:relationships][:state][:data]).to eq({ id: '1', type: :state })
+      it "returns correct hash" do
+        expect(hash[:data][:relationships][:state][:data]).to eq(id: 1)
       end
     end
 
-    context 'state is included' do
+    context "state is included" do
       subject(:hash) { ActorSerializer.new(actor, include: [:state]).serializable_hash }
 
-      it 'returns correct hash' do
+      it "returns correct hash" do
         expect(hash[:included].length).to eq 1
-        expect(hash[:included][0][:id]).to eq '1'
-        expect(hash[:included][0][:type]).to eq :state
-        expect(hash[:included][0][:attributes]).to eq({ id: 1, name: 'Test State 1' })
-        expect(hash[:included][0][:relationships]).to eq({ agency: { data: [{ id: '432', type: :agency }] } })
+        expect(hash[:included][0][:id]).to eq 1
+        expect(hash[:included][0][:name]).to eq "Test State 1"
+        expect(hash[:included][0][:relationships]).to eq(
+          agency: { data: [{ id: 432 }] }
+        )
       end
     end
   end
 
-  describe '#has_one' do
+  describe "#has_one" do
     subject(:relationship) { MovieSerializer.relationships_to_serialize[:area] }
 
     before do
-      MovieSerializer.has_one *partner
+      MovieSerializer.has_one(*partner)
     end
 
     after do
       MovieSerializer.relationships_to_serialize = {}
     end
 
-    context 'with overrides' do
-      let(:partner) { [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area] }
+    context "with overrides" do
+      let(:partner) {
+        [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area]
+      }
 
-      it_behaves_like 'returning correct relationship hash', :'MyAreaSerializer', :blah_id, :awesome_area
+      it_behaves_like "returning correct relationship hash",
+                      :MyAreaSerializer,
+                      :blah_id,
+                      :awesome_area
     end
 
-    context 'without overrides' do
+    context "without overrides" do
       let(:partner) { [:area] }
 
-      it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+      it_behaves_like "returning correct relationship hash",
+                      :AreaSerializer,
+                      :area_id,
+                      :area
     end
   end
 
-  describe '#set_id' do
+  describe "#set_id" do
     subject(:serializable_hash) { MovieSerializer.new(resource).serializable_hash }
 
-    context 'method name' do
+    context "method name" do
       before do
         MovieSerializer.set_id :owner_id
       end
@@ -204,25 +232,25 @@ describe FastJsonapi::ObjectSerializer do
         MovieSerializer.set_id nil
       end
 
-      context 'when one record is given' do
+      context "when one record is given" do
         let(:resource) { movie }
 
-        it 'returns correct hash which id equals owner_id' do
-          expect(serializable_hash[:data][:id].to_i).to eq movie.owner_id
+        it "returns correct hash which id equals owner_id" do
+          expect(serializable_hash[:data][:id]).to eq movie.owner_id
         end
       end
 
-      context 'when an array of records is given' do
+      context "when an array of records is given" do
         let(:resource) { [movie, movie] }
 
-        it 'returns correct hash which id equals owner_id' do
-          expect(serializable_hash[:data][0][:id].to_i).to eq movie.owner_id
-          expect(serializable_hash[:data][1][:id].to_i).to eq movie.owner_id
+        it "returns correct hash which id equals owner_id" do
+          expect(serializable_hash[:data][0][:id]).to eq movie.owner_id
+          expect(serializable_hash[:data][1][:id]).to eq movie.owner_id
         end
       end
     end
 
-    context 'with block' do
+    context "with block" do
       before do
         MovieSerializer.set_id { |record| "movie-#{record.owner_id}" }
       end
@@ -231,18 +259,18 @@ describe FastJsonapi::ObjectSerializer do
         MovieSerializer.set_id nil
       end
 
-      context 'when one record is given' do
+      context "when one record is given" do
         let(:resource) { movie }
 
-        it 'returns correct hash which id equals movie-id' do
+        it "returns correct hash which id equals movie-id" do
           expect(serializable_hash[:data][:id]).to eq "movie-#{movie.owner_id}"
         end
       end
 
-      context 'when an array of records is given' do
+      context "when an array of records is given" do
         let(:resource) { [movie, movie] }
 
-        it 'returns correct hash which id equals movie-id' do
+        it "returns correct hash which id equals movie-id" do
           expect(serializable_hash[:data][0][:id]).to eq "movie-#{movie.owner_id}"
           expect(serializable_hash[:data][1][:id]).to eq "movie-#{movie.owner_id}"
         end
@@ -250,24 +278,25 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
-  describe '#use_hyphen' do
+  describe "#use_hyphen" do
     subject { MovieSerializer.use_hyphen }
 
     after do
       MovieSerializer.transform_method = nil
     end
 
-    it 'sets the correct transform_method when use_hyphen is used' do
-      warning_message = "DEPRECATION WARNING: use_hyphen is deprecated and will be removed from fast_jsonapi 2.0 use (set_key_transform :dash) instead\n"
+    it "sets the correct transform_method when use_hyphen is used" do
+      warning_message = "DEPRECATION WARNING: use_hyphen is deprecated and will be removed " \
+                        "from fast_jsonapi 2.0 use (set_key_transform :dash) instead\n"
       expect { subject }.to output(warning_message).to_stderr
       expect(MovieSerializer.instance_variable_get(:@transform_method)).to eq :dasherize
     end
   end
 
-  describe '#attribute' do
+  describe "#attribute" do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
-    context 'with block' do
+    context "with block" do
       before do
         movie.release_year = 2008
         MovieSerializer.attribute :title_with_year do |record|
@@ -279,13 +308,15 @@ describe FastJsonapi::ObjectSerializer do
         MovieSerializer.attributes_to_serialize.delete(:title_with_year)
       end
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:attributes][:name]).to eq movie.name
-        expect(serializable_hash[:data][:attributes][:title_with_year]).to eq "#{movie.name} (#{movie.release_year})"
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:name]).to eq movie.name
+        expect(serializable_hash[:data][:title_with_year]).to(
+          eq "#{movie.name} (#{movie.release_year})"
+        )
       end
     end
 
-    context 'with &:proc' do
+    context "with &:proc" do
       before do
         movie.release_year = 2008
         MovieSerializer.attribute :released_in_year, &:release_year
@@ -296,14 +327,14 @@ describe FastJsonapi::ObjectSerializer do
         MovieSerializer.attributes_to_serialize.delete(:released_in_year)
       end
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:attributes][:name]).to eq "english #{movie.name}"
-        expect(serializable_hash[:data][:attributes][:released_in_year]).to eq movie.release_year
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:name]).to eq "english #{movie.name}"
+        expect(serializable_hash[:data][:released_in_year]).to eq movie.release_year
       end
     end
   end
 
-  describe '#meta' do
+  describe "#meta" do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
     before do
@@ -320,8 +351,10 @@ describe FastJsonapi::ObjectSerializer do
       MovieSerializer.meta_to_serialize = nil
     end
 
-    it 'returns correct hash when serializable_hash is called' do
-      expect(serializable_hash[:data][:meta]).to eq ({ years_since_release: year_since_release_calculator(movie.release_year) })
+    it "returns correct hash when serializable_hash is called" do
+      expect(serializable_hash[:data][:meta]).to eq(
+        years_since_release: year_since_release_calculator(movie.release_year)
+      )
     end
 
     private
@@ -331,7 +364,7 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
-  describe '#link' do
+  describe "#link" do
     subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
 
     after do
@@ -339,20 +372,19 @@ describe FastJsonapi::ObjectSerializer do
       ActorSerializer.data_links = {}
     end
 
-    context 'with block calling instance method on serializer' do
+    context "with block calling instance method on serializer" do
       before do
-        MovieSerializer.link(:self) do |movie_object|
-          movie_object.url
-        end
+        MovieSerializer.link(:self) { |movie_object| movie_object.url } # rubocop:disable Style/SymbolProc
       end
+
       let(:url) { "http://movies.com/#{movie.id}" }
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:links][:self]).to eq url
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:self]).to eq url
       end
     end
 
-    context 'with block and param' do
+    context "with block and param" do
       before do
         MovieSerializer.link(:public_url) do |movie_object|
           "http://movies.com/#{movie_object.id}"
@@ -360,32 +392,32 @@ describe FastJsonapi::ObjectSerializer do
       end
       let(:url) { "http://movies.com/#{movie.id}" }
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:links][:public_url]).to eq url
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:public_url]).to eq url
       end
     end
 
-    context 'with method' do
+    context "with method" do
       before do
         MovieSerializer.link(:object_id, :id)
       end
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:links][:object_id]).to eq movie.id
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:object_id]).to eq movie.id
       end
     end
 
-    context 'with method and convention' do
+    context "with method and convention" do
       before do
         MovieSerializer.link(:url)
       end
 
-      it 'returns correct hash when serializable_hash is called' do
-        expect(serializable_hash[:data][:links][:url]).to eq movie.url
+      it "returns correct hash when serializable_hash is called" do
+        expect(serializable_hash[:data][:url]).to eq movie.url
       end
     end
 
-    context 'when inheriting from a parent serializer' do
+    context "when inheriting from a parent serializer" do
       before do
         MovieSerializer.link(:url) do |movie_object|
           "http://movies.com/#{movie_object.id}"
@@ -396,19 +428,21 @@ describe FastJsonapi::ObjectSerializer do
 
       let(:url) { "http://movies.com/#{movie.id}" }
 
-      it 'returns the link for the correct sub-class' do
-        expect(action_serializable_hash[:data][:links][:url]).to eq "/action-movie/#{movie.id}"
+      it "returns the link for the correct sub-class" do
+        expect(action_serializable_hash[:data][:url]).to eq "/action-movie/#{movie.id}"
       end
     end
   end
 
-  describe '#key_transform' do
-    subject(:hash) { movie_serializer_class.new([movie, movie], include: [:movie_type]).serializable_hash }
+  describe "#key_transform" do
+    subject(:hash) {
+      movie_serializer_class.new([movie, movie], include: [:movie_type]).serializable_hash
+    }
 
     let(:movie_serializer_class) { "#{key_transform}_movie_serializer".classify.constantize }
 
     before(:context) do
-      [:dash, :camel, :camel_lower, :underscore].each do |key_transform|
+      %i[dash camel camel_lower underscore].each do |key_transform|
         movie_serializer_name = "#{key_transform}_movie_serializer".classify
         movie_type_serializer_name = "#{key_transform}_movie_type_serializer".classify
         # https://stackoverflow.com/questions/4113479/dynamic-class-definition-with-a-class-name
@@ -432,58 +466,40 @@ describe FastJsonapi::ObjectSerializer do
       end
     end
 
-    context 'when key_transform is dash' do
+    context "when key_transform is dash" do
       let(:key_transform) { :dash }
 
-      it_behaves_like 'returning key transformed hash', :'movie-type', :'dash-movie-type', :'release-year'
+      it_behaves_like "returning key transformed hash",
+                      :"movie-type",
+                      :"dash-movie-type",
+                      :"release-year"
     end
 
-    context 'when key_transform is camel' do
+    context "when key_transform is camel" do
       let(:key_transform) { :camel }
 
-      it_behaves_like 'returning key transformed hash', :MovieType, :CamelMovieType, :ReleaseYear
+      it_behaves_like "returning key transformed hash",
+                      :MovieType,
+                      :CamelMovieType,
+                      :ReleaseYear
     end
 
-    context 'when key_transform is camel_lower' do
+    context "when key_transform is camel_lower" do
       let(:key_transform) { :camel_lower }
 
-      it_behaves_like 'returning key transformed hash', :movieType, :camelLowerMovieType, :releaseYear
+      it_behaves_like "returning key transformed hash",
+                      :movieType,
+                      :camelLowerMovieType,
+                      :releaseYear
     end
 
-    context 'when key_transform is underscore' do
+    context "when key_transform is underscore" do
       let(:key_transform) { :underscore }
 
-      it_behaves_like 'returning key transformed hash', :movie_type, :underscore_movie_type, :release_year
-    end
-  end
-
-  describe '#set_key_transform after #set_type' do
-    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
-
-    before do
-      MovieSerializer.set_type type_name
-      MovieSerializer.set_key_transform :camel
-    end
-
-    after do
-      MovieSerializer.transform_method = nil
-      MovieSerializer.set_type :movie
-    end
-
-    context 'when sets singular type name' do
-      let(:type_name) { :film }
-
-      it 'returns correct hash which type equals transformed set_type value' do
-        expect(serializable_hash[:data][:type]).to eq :Film
-      end
-    end
-
-    context 'when sets plural type name' do
-      let(:type_name) { :films }
-
-      it 'returns correct hash which type equals transformed set_type value' do
-        expect(serializable_hash[:data][:type]).to eq :Films
-      end
+      it_behaves_like "returning key transformed hash",
+                      :movie_type,
+                      :underscore_movie_type,
+                      :release_year
     end
   end
 end
