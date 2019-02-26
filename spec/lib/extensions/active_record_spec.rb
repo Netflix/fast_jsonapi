@@ -1,7 +1,6 @@
 require "spec_helper"
 require "active_record"
 require "sqlite3"
-require "pry"
 
 describe "active record" do
   # Setup DB

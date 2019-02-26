@@ -1,10 +1,9 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe FastJsonapi::ObjectSerializer do
-  include_context 'movie class'
+  include_context "movie class"
 
-  context 'instrument' do
-
+  context "instrument" do
     before(:each) do
       options = {}
       options[:meta] = { total: 2 }
@@ -13,9 +12,8 @@ describe FastJsonapi::ObjectSerializer do
       @serializer = MovieSerializer.new([movie, movie], options)
     end
 
-    context 'serializable_hash' do
-
-      it 'should send not notifications' do
+    context "serializable_hash" do
+      it "should send not notifications" do
         events = []
 
         ActiveSupport::Notifications.subscribe(FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION) do |*args|
@@ -28,14 +26,11 @@ describe FastJsonapi::ObjectSerializer do
 
         expect(serialized_hash.key?(:data)).to eq(true)
         expect(serialized_hash.key?(:meta)).to eq(true)
-        expect(serialized_hash.key?(:included)).to eq(true)
       end
-
     end
 
-    context 'serialized_json' do
-
-      it 'should send not notifications' do
+    context "serialized_json" do
+      it "should send not notifications" do
         events = []
 
         ActiveSupport::Notifications.subscribe(FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION) do |*args|
@@ -48,9 +43,6 @@ describe FastJsonapi::ObjectSerializer do
 
         expect(json.length).to be > 50
       end
-
     end
-
   end
-
 end

@@ -1,5 +1,4 @@
-RSpec.shared_context 'jsonapi-serializers group class' do
-
+RSpec.shared_context "jsonapi-serializers group class" do
   # Person, Group Classes and serializers
   before(:context) do
     # models
@@ -17,7 +16,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
       attributes :first_name, :last_name
 
       def type
-        'person'
+        "person"
       end
     end
 
@@ -27,7 +26,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
       has_many :groupees
 
       def type
-        'group'
+        "group"
       end
     end
 
@@ -48,69 +47,49 @@ RSpec.shared_context 'jsonapi-serializers group class' do
   end
 
   after :context do
-    classes_to_remove = %i[
+    %i[
       JSPerson
       JSGroup
       JSPersonSerializer
-      JSGroupSerializer]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+      JSGroupSerializer
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:jsonapi_groups) do
-    group_count = 0
-    person_count = 0
-    3.times.map do |i|
-      group = JSGroup.new
-      group.id = group_count + 1
-      group.name = "Test Group #{group.id}"
-      group_count = group.id
-
-      person = JSPerson.new
-      person.id = person_count + 1
-      person.last_name = "Last Name #{person.id}"
-      person.first_name = "First Name #{person.id}"
-      person_count = person.id
-
-      child_group = JSGroup.new
-      child_group.id = group_count + 1
-      child_group.name = "Test Group #{child_group.id}"
-      group_count = child_group.id
-
-      group.groupees = [person, child_group]
-      group
-    end
+    build_jsonapis_groups(3)
   end
 
   let(:jsonapis_person) do
-    person = JSPerson.new
-    person.id = 3
-    person
+    JSPerson.new.tap { |person| person.id = 3 }
   end
 
   def build_jsonapis_groups(count)
     group_count = 0
     person_count = 0
-    count.times.map do |i|
-      group = JSGroup.new
-      group.id = group_count + 1
-      group.name = "Test Group #{group.id}"
-      group_count = group.id
 
-      person = JSPerson.new
-      person.id = person_count + 1
-      person.last_name = "Last Name #{person.id}"
-      person.first_name = "First Name #{person.id}"
-      person_count = person.id
+    Array.new(count) do
+      JSGroup.new.tap do |group|
+        group.id = group_count + 1
+        group.name = "Test Group #{group.id}"
+        group_count = group.id
 
-      child_group = JSGroup.new
-      child_group.id = group_count + 1
-      child_group.name = "Test Group #{child_group.id}"
-      group_count = child_group.id
+        group.groupees = [
+          JSPerson.new.tap do |person|
+            person.id = person_count + 1
+            person.last_name = "Last Name #{person.id}"
+            person.first_name = "First Name #{person.id}"
+            person_count = person.id
+          end,
 
-      group.groupees = [person, child_group]
-      group
+          JSGroup.new.tap do |child_group|
+            child_group.id = group_count + 1
+            child_group.name = "Test Group #{child_group.id}"
+            group_count = child_group.id
+          end
+        ]
+      end
     end
   end
 end

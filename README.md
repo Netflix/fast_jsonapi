@@ -120,30 +120,14 @@ json_string = MovieSerializer.new(movie).serialized_json
 {
   "data": {
     "id": "3",
-    "type": "movie",
-    "attributes": {
-      "name": "test movie",
-      "year": null
-    },
-    "relationships": {
-      "actors": {
-        "data": [
-          {
-            "id": "1",
-            "type": "actor"
-          },
-          {
-            "id": "2",
-            "type": "actor"
-          }
-        ]
-      },
-      "owner": {
-        "data": {
-          "id": "3",
-          "type": "user"
-        }
-      }
+    "name": "test movie",
+    "year": null
+    "actors": [
+      { "id": "1" },
+      { "id": "2" }
+    ],
+    "owner": {
+      "id": "3"
     }
   }
 }
@@ -245,9 +229,9 @@ class MovieSerializer
 end
 ```
 
-#### Links on a Relationship
+#### ~Links on a Relationship~
 
-You can specify [relationship links](http://jsonapi.org/format/#document-resource-object-relationships) by using the `links:` option on the serializer. Relationship links in JSON API are useful if you want to load a parent document and then load associated documents later due to size constraints (see [related resource links](http://jsonapi.org/format/#document-resource-object-related-resource-links))
+~You can specify [relationship links](http://jsonapi.org/format/#document-resource-object-relationships) by using the `links:` option on the serializer. Relationship links in JSON API are useful if you want to load a parent document and then load associated documents later due to size constraints (see [related resource links](http://jsonapi.org/format/#document-resource-object-related-resource-links))~
 
 ```ruby
 class MovieSerializer
@@ -262,7 +246,7 @@ class MovieSerializer
 end
 ```
 
-This will create a `self` reference for the relationship, and a `related` link for loading the actors relationship later. NB: This will not automatically disable loading the data in the relationship, you'll need to do that using the `lazy_load_data` option:
+~This will create a `self` reference for the relationship, and a `related` link for loading the actors relationship later. NB: This will not automatically disable loading the data in the relationship, you'll need to do that using the `lazy_load_data` option:~
 
 ```ruby
   has_many :actors, lazy_load_data: true, links: {
@@ -297,7 +281,7 @@ options[:links] = {
   next: '...',
   prev: '...'
 }
-options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
+options[:include] = { actors: { agency: :state } }
 MovieSerializer.new([movie, movie], options).serialized_json
 ```
 
@@ -375,7 +359,7 @@ end
 
 # ...
 current_user = User.find(cookies[:current_user_id])
-serializer = MovieSerializer.new(movie, {params: {current_user: current_user}})
+serializer = MovieSerializer.new(movie, params: { current_user: current_user })
 serializer.serializable_hash
 ```
 
@@ -404,7 +388,7 @@ end
 
 # ...
 current_user = User.find(cookies[:current_user_id])
-serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer = MovieSerializer.new(movie, params: { admin: current_user.admin? })
 serializer.serializable_hash
 ```
 
@@ -425,7 +409,7 @@ end
 
 # ...
 current_user = User.find(cookies[:current_user_id])
-serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
+serializer = MovieSerializer.new(movie, params: { admin: current_user.admin? })
 serializer.serializable_hash
 ```
 
@@ -440,7 +424,7 @@ class MovieSerializer
   attributes :name, :year
 end
 
-serializer = MovieSerializer.new(movie, { fields: { movie: [:name] } })
+serializer = MovieSerializer.new(movie, fields: { movie: [:name] })
 serializer.serializable_hash
 ```
 

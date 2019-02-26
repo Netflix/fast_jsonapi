@@ -1,16 +1,15 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe FastJsonapi::ObjectSerializer do
-  include_context 'movie class'
+  include_context "movie class"
 
-  context 'instrument' do
-
+  context "instrument", instrumentation: true do
     before(:all) do
-      require 'fast_jsonapi/instrumentation'
+      require "fast_jsonapi/instrumentation"
     end
 
     after(:all) do
-      [ :serialized_json, :serializable_hash ].each do |m|
+      [:serialized_json, :serializable_hash].each do |m|
         alias_command = "alias_method :#{m}, :#{m}_without_instrumentation"
         FastJsonapi::ObjectSerializer.class_eval(alias_command)
 
@@ -27,9 +26,8 @@ describe FastJsonapi::ObjectSerializer do
       @serializer = MovieSerializer.new([movie, movie], options)
     end
 
-    context 'serializable_hash' do
-
-      it 'should send notifications' do
+    context "serializable_hash" do
+      it "should send notifications" do
         events = []
 
         ActiveSupport::Notifications.subscribe(FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION) do |*args|
@@ -43,19 +41,16 @@ describe FastJsonapi::ObjectSerializer do
         event = events.first
 
         expect(event.duration).to be > 0
-        expect(event.payload).to eq({ name: 'MovieSerializer' })
+        expect(event.payload).to eq(name: "MovieSerializer")
         expect(event.name).to eq(FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION)
 
         expect(serialized_hash.key?(:data)).to eq(true)
         expect(serialized_hash.key?(:meta)).to eq(true)
-        expect(serialized_hash.key?(:included)).to eq(true)
       end
-
     end
 
-    context 'serialized_json' do
-
-      it 'should send notifications' do
+    context "serialized_json" do
+      it "should send notifications" do
         events = []
 
         ActiveSupport::Notifications.subscribe(FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION) do |*args|
@@ -69,14 +64,11 @@ describe FastJsonapi::ObjectSerializer do
         event = events.first
 
         expect(event.duration).to be > 0
-        expect(event.payload).to eq({ name: 'MovieSerializer' })
+        expect(event.payload).to eq(name: "MovieSerializer")
         expect(event.name).to eq(FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION)
 
         expect(json.length).to be > 50
       end
-
     end
-
   end
-
 end

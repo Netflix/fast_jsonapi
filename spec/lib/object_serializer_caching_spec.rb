@@ -19,22 +19,20 @@ describe FastJsonapi::ObjectSerializer do
       serializable_hash = CachingMovieSerializer.new([movie, movie], options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
-      expect(serializable_hash[:data][0][:relationships].length).to eq 3
-      expect(serializable_hash[:data][0].length).to eq 4
+      expect(serializable_hash[:data][0].length).to eq 6
 
       expect(serializable_hash[:meta]).to be_instance_of(Hash)
       expect(serializable_hash[:links]).to be_instance_of(Hash)
 
-      expect(serializable_hash[:included]).to be_instance_of(Array)
-      expect(serializable_hash[:included][0]).to be_instance_of(Hash)
-      expect(serializable_hash[:included].length).to eq 3
+      expect(serializable_hash[:data][0]).to be_instance_of(Hash)
+      expect(serializable_hash[:data][0][:actors]).to be_instance_of(Array)
+      expect(serializable_hash[:data][0][:actors].length).to eq 3
 
       serializable_hash = CachingMovieSerializer.new(movie).serializable_hash
 
       expect(serializable_hash[:data]).to be_instance_of(Hash)
       expect(serializable_hash[:meta]).to be nil
       expect(serializable_hash[:links]).to be nil
-      expect(serializable_hash[:included]).to be nil
     end
 
     it "uses cached values for the record" do
@@ -50,7 +48,7 @@ describe FastJsonapi::ObjectSerializer do
       serializable_hash = CachingMovieSerializer.new(movie).serializable_hash
 
       expect(serializable_hash[:data][:name]).to eq(previous_name)
-      expect(serializable_hash[:data][:relationships][:actors][:data].length).to eq movie.actors.length
+      expect(serializable_hash[:data][:actors].length).to eq movie.actors.length
     end
 
     it "uses cached values for has many as specified" do
@@ -66,7 +64,7 @@ describe FastJsonapi::ObjectSerializer do
       serializable_hash = CachingMovieWithHasManySerializer.new(movie).serializable_hash
 
       expect(serializable_hash[:data][:name]).to eq(previous_name)
-      expect(serializable_hash[:data][:relationships][:actors][:data].length).to eq previous_actors.length
+      expect(serializable_hash[:data][:actors].length).to eq previous_actors.length
     end
   end
 end

@@ -1,5 +1,4 @@
-RSpec.shared_context 'jsonapi group class' do
-
+RSpec.shared_context "jsonapi group class" do
   # Person, Group Classes and serializers
   before(:context) do
     # models
@@ -13,12 +12,12 @@ RSpec.shared_context 'jsonapi group class' do
 
     # serializers
     class JSONAPIPersonSerializer < JSONAPI::Serializable::Resource
-      type 'person'
+      type "person"
       attributes :first_name, :last_name
     end
 
     class JSONAPIGroupSerializer < JSONAPI::Serializable::Resource
-      type 'group'
+      type "group"
       attributes :name
       has_many :groupees
     end
@@ -26,10 +25,12 @@ RSpec.shared_context 'jsonapi group class' do
     class JSONAPISerializerB
       def initialize(data, options = {})
         @serializer = JSONAPI::Serializable::Renderer.new
-        @options = options.merge(class: {
-          JSONAPIPerson: JSONAPIPersonSerializer,
-          JSONAPIGroup: JSONAPIGroupSerializer
-        })
+        @options = options.merge(
+          class: {
+            JSONAPIPerson: JSONAPIPersonSerializer,
+            JSONAPIGroup: JSONAPIGroupSerializer
+          }
+        )
         @data = data
       end
 
@@ -44,69 +45,49 @@ RSpec.shared_context 'jsonapi group class' do
   end
 
   after :context do
-    classes_to_remove = %i[
+    %i[
       JSONAPIPerson
       JSONAPIGroup
       JSONAPIPersonSerializer
-      JSONAPIGroupSerializer]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+      JSONAPIGroupSerializer
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:jsonapi_groups) do
-    group_count = 0
-    person_count = 0
-    3.times.map do |i|
-      group = JSONAPIGroup.new
-      group.id = group_count + 1
-      group.name = "Test Group #{group.id}"
-      group_count = group.id
-
-      person = JSONAPIPerson.new
-      person.id = person_count + 1
-      person.last_name = "Last Name #{person.id}"
-      person.first_name = "First Name #{person.id}"
-      person_count = person.id
-
-      child_group = JSONAPIGroup.new
-      child_group.id = group_count + 1
-      child_group.name = "Test Group #{child_group.id}"
-      group_count = child_group.id
-
-      group.groupees = [person, child_group]
-      group
-    end
+    build_jsonapi_groups(3)
   end
 
   let(:jsonapi_person) do
-    person = JSONAPIPerson.new
-    person.id = 3
-    person
+    JSONAPIPerson.new.tap { |person| person.id = 3 }
   end
 
   def build_jsonapi_groups(count)
     group_count = 0
     person_count = 0
-    count.times.map do |i|
-      group = JSONAPIGroup.new
-      group.id = group_count + 1
-      group.name = "Test Group #{group.id}"
-      group_count = group.id
 
-      person = JSONAPIPerson.new
-      person.id = person_count + 1
-      person.last_name = "Last Name #{person.id}"
-      person.first_name = "First Name #{person.id}"
-      person_count = person.id
+    Array.new(count) do
+      JSONAPIGroup.new.tap do |group|
+        group.id = group_count + 1
+        group.name = "Test Group #{group.id}"
+        group_count = group.id
 
-      child_group = JSONAPIGroup.new
-      child_group.id = group_count + 1
-      child_group.name = "Test Group #{child_group.id}"
-      group_count = child_group.id
+        group.groupees = [
+          JSONAPIPerson.new.tap do |person|
+            person.id = person_count + 1
+            person.last_name = "Last Name #{person.id}"
+            person.first_name = "First Name #{person.id}"
+            person_count = person.id
+          end,
 
-      group.groupees = [person, child_group]
-      group
+          JSONAPIGroup.new.tap do |child_group|
+            child_group.id = group_count + 1
+            child_group.name = "Test Group #{child_group.id}"
+            group_count = child_group.id
+          end
+        ]
+      end
     end
   end
 end

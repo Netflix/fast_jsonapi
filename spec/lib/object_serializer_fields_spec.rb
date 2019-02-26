@@ -10,39 +10,28 @@ describe FastJsonapi::ObjectSerializer do
     }
   end
 
-  it "only returns specified fields" do
+  it "only returns specified fields and relationships" do
     hash = MovieSerializer.new(movie, fields: fields).serializable_hash
 
-    expect(hash[:data].keys.sort).to eq %i[id name relationships]
-  end
-
-  it "only returns specified relationships" do
-    hash = MovieSerializer.new(movie, fields: fields).serializable_hash
-
-    expect(hash[:data][:relationships].keys.sort).to eq %i[actors advertising_campaign]
+    expect(hash[:data].keys.sort).to eq %i[actors advertising_campaign id name]
   end
 
   it "only returns specified fields for included relationships" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors]).serializable_hash
 
-    expect(hash[:included].first.keys.sort).to eq %i[id name relationships]
+    expect(hash[:data][:actors][0].keys.sort).to eq %i[agency id name]
   end
 
   it "only returns specified relationships for included relationships" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
 
-    expect(hash[:included].first[:relationships].keys.sort).to eq %i[agency]
+    expect(hash[:data][:actors][0].keys.sort).to eq %i[agency id name]
+    expect(hash[:data][:advertising_campaign].keys.sort).to eq %i[id movie name]
   end
 
   it "returns all fields for included relationships when no explicit fields have been specified" do
     hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
 
-    expect(hash[:included][3].keys.sort).to eq %i[id name relationships]
-  end
-
-  it "returns all fields for included relationships when no explicit fields have been specified" do
-    hash = MovieSerializer.new(movie, fields: fields, include: %i[actors advertising_campaign]).serializable_hash
-
-    expect(hash[:included][3][:relationships].keys.sort).to eq %i[movie]
+    expect(hash[:data][:advertising_campaign].keys.sort).to eq %i[id movie name]
   end
 end

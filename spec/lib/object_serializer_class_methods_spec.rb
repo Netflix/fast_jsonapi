@@ -75,9 +75,9 @@ describe FastJsonapi::ObjectSerializer do
       subject(:hash) { MovieSerializer.new(movie).serializable_hash }
 
       it "returns correct hash" do
-        expect(hash[:data][:relationships][:awards][:data].length).to eq(6)
-        expect(hash[:data][:relationships][:awards][:data][0]).to eq(id: 9)
-        expect(hash[:data][:relationships][:awards][:data][-1]).to eq(id: 28)
+        expect(hash[:data][:awards].length).to eq(6)
+        expect(hash[:data][:awards][0]).to eq(id: 9)
+        expect(hash[:data][:awards][-1]).to eq(id: 28)
       end
     end
 
@@ -85,15 +85,13 @@ describe FastJsonapi::ObjectSerializer do
       subject(:hash) { MovieSerializer.new(movie, include: [:awards]).serializable_hash }
 
       it "returns correct hash" do
-        expect(hash[:included].length).to eq 6
-        expect(hash[:included][0][:id]).to eq 9
-        expect(hash[:included][0][:title]).to eq "Test Award 9"
-        expect(hash[:included][0][:relationships]).to eq(actor: { data: { id: 1 } })
-        expect(hash[:included][-1][:id]).to eq 28
-        expect(hash[:included][-1][:title]).to eq "Test Award 28"
-        expect(hash[:included][-1][:relationships]).to eq(
-          actor: { data: { id: 3 } }
-        )
+        expect(hash[:data].length).to eq 4
+        expect(hash[:data][:awards][0][:id]).to eq 9
+        expect(hash[:data][:awards][0][:title]).to eq "Test Award 9"
+        expect(hash[:data][:awards][0]).to include(actor: { id: 1 })
+        expect(hash[:data][:awards][-1][:id]).to eq 28
+        expect(hash[:data][:awards][-1][:title]).to eq "Test Award 28"
+        expect(hash[:data][:awards][-1]).to include(actor: { id: 3 })
       end
     end
   end
@@ -116,7 +114,7 @@ describe FastJsonapi::ObjectSerializer do
         expected_award_data = movie.actors.map(&:awards).flatten.map { |actor|
           { id: actor.imdb_award_id }
         }
-        serialized_award_data = hash[:data][:relationships][:awards][:data]
+        serialized_award_data = hash[:data][:awards]
 
         expect(serialized_award_data).to eq(expected_award_data)
       end
@@ -170,7 +168,7 @@ describe FastJsonapi::ObjectSerializer do
       subject(:hash) { ActorSerializer.new(actor).serializable_hash }
 
       it "returns correct hash" do
-        expect(hash[:data][:relationships][:state][:data]).to eq(id: 1)
+        expect(hash[:data][:state]).to eq(id: 1)
       end
     end
 
@@ -178,12 +176,10 @@ describe FastJsonapi::ObjectSerializer do
       subject(:hash) { ActorSerializer.new(actor, include: [:state]).serializable_hash }
 
       it "returns correct hash" do
-        expect(hash[:included].length).to eq 1
-        expect(hash[:included][0][:id]).to eq 1
-        expect(hash[:included][0][:name]).to eq "Test State 1"
-        expect(hash[:included][0][:relationships]).to eq(
-          agency: { data: [{ id: 432 }] }
-        )
+        expect(hash[:data][:state].length).to eq 3
+        expect(hash[:data][:state][:id]).to eq 1
+        expect(hash[:data][:state][:name]).to eq "Test State 1"
+        expect(hash[:data][:state]).to include(agencies: [{ id: 432 }])
       end
     end
   end
@@ -275,21 +271,6 @@ describe FastJsonapi::ObjectSerializer do
           expect(serializable_hash[:data][1][:id]).to eq "movie-#{movie.owner_id}"
         end
       end
-    end
-  end
-
-  describe "#use_hyphen" do
-    subject { MovieSerializer.use_hyphen }
-
-    after do
-      MovieSerializer.transform_method = nil
-    end
-
-    it "sets the correct transform_method when use_hyphen is used" do
-      warning_message = "DEPRECATION WARNING: use_hyphen is deprecated and will be removed " \
-                        "from fast_jsonapi 2.0 use (set_key_transform :dash) instead\n"
-      expect { subject }.to output(warning_message).to_stderr
-      expect(MovieSerializer.instance_variable_get(:@transform_method)).to eq :dasherize
     end
   end
 

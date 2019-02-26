@@ -1,5 +1,4 @@
-RSpec.shared_context 'group class' do
-
+RSpec.shared_context "group class" do
   # Person, Group Classes and serializers
   before(:context) do
     # models
@@ -38,60 +37,49 @@ RSpec.shared_context 'group class' do
   end
 
   after(:context) do
-    classes_to_remove = %i[
+    %i[
       Person
       PersonSerializer
       Group
       GroupSerializer
       PersonStruct
       GroupStruct
-    ]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:group) do
-    group = Group.new
-    group.id = 1
-    group.name = 'Group 1'
-
-    person = Person.new
-    person.id = 1
-    person.last_name = "Last Name 1"
-    person.first_name = "First Name 1"
-
-    child_group = Group.new
-    child_group.id = 2
-    child_group.name = 'Group 2'
-
-    group.groupees = [person, child_group]
-    group
+    build_groups(1).first.tap do |group|
+      [group.name, group.groupees.last.name].each { |s| s.sub("Test ", "") }
+    end
   end
 
   def build_groups(count)
     group_count = 0
     person_count = 0
 
-    count.times.map do |i|
-      group = Group.new
-      group.id = group_count + 1
-      group.name = "Test Group #{group.id}"
-      group_count = group.id
+    Array.new(count) do
+      Group.new.tap do |group|
+        group.id = group_count + 1
+        group.name = "Test Group #{group.id}"
+        group_count = group.id
 
-      person = Person.new
-      person.id = person_count + 1
-      person.last_name = "Last Name #{person.id}"
-      person.first_name = "First Name #{person.id}"
-      person_count = person.id
+        group.groupees = [
+          Person.new.tap do |person|
+            person.id = person_count + 1
+            person.last_name = "Last Name #{person.id}"
+            person.first_name = "First Name #{person.id}"
+            person_count = person.id
+          end,
 
-      child_group = Group.new
-      child_group.id = group_count + 1
-      child_group.name = "Test Group #{child_group.id}"
-      group_count = child_group.id
-
-      group.groupees = [person, child_group]
-      group
+          Group.new.tap do |child_group|
+            child_group.id = group_count + 1
+            child_group.name = "Test Group #{child_group.id}"
+            group_count = child_group.id
+          end
+        ]
+      end
     end
   end
 end

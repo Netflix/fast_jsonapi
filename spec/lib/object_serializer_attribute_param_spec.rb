@@ -27,7 +27,7 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     after(:context) do
-      Object.send(:remove_const, User) if Object.constants.include?(User)
+      Object.__send__(:remove_const, :User) if Object.constants.include?(:User)
     end
 
     context "enforces a hash only params" do

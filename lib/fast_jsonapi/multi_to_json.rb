@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'logger'
+require "logger"
 
 # Usage:
 #   class Movie
@@ -31,11 +31,9 @@ module FastJsonapi
       end
 
       def value!
-        if ok?
-          @value
-        else
-          raise @error
-        end
+        raise @error unless ok?
+
+        @value
       end
 
       def rescue
@@ -45,37 +43,39 @@ module FastJsonapi
       end
     end
 
-    def self.logger(device=nil)
+    def self.logger(device = nil)
       return @logger = Logger.new(device) if device
+
       @logger ||= Logger.new(IO::NULL)
     end
 
     # Encoder-compatible with default MultiJSON adapters and defaults
     def self.to_json_method
-      encode_method = String.new(%(def _fast_to_json(object)\n ))
-      encode_method << Result.new(LoadError) {
-        require 'oj'
-        %(::Oj.dump(object, mode: :compat, time_format: :ruby, use_to_json: true))
-      }.rescue {
-        require 'yajl'
-        %(::Yajl::Encoder.encode(object))
-      }.rescue {
-        require 'jrjackson' unless defined?(::JrJackson)
-        %(::JrJackson::Json.dump(object))
-      }.rescue {
-        require 'json'
-        %(JSON.fast_generate(object, create_additions: false, quirks_mode: true))
-      }.rescue {
-        require 'gson'
-        %(::Gson::Encoder.new({}).encode(object))
-      }.rescue {
-        require 'active_support/json/encoding'
-        %(::ActiveSupport::JSON.encode(object))
-      }.rescue {
-        warn "No JSON encoder found. Falling back to `object.to_json`"
-        %(object.to_json)
-      }.value!
-      encode_method << "\nend"
+      String.new(%(def _fast_to_json(object)\n )).tap do |encode_method|
+        encode_method << Result.new(LoadError) {
+          require "oj"
+          %(::Oj.dump(object, mode: :compat, time_format: :ruby, use_to_json: true))
+        }.rescue {
+          require "yajl"
+          %(::Yajl::Encoder.encode(object))
+        }.rescue {
+          require "jrjackson" unless defined?(::JrJackson)
+          %(::JrJackson::Json.dump(object))
+        }.rescue {
+          require "json"
+          %(JSON.fast_generate(object, create_additions: false, quirks_mode: true))
+        }.rescue {
+          require "gson"
+          %(::Gson::Encoder.new({}).encode(object))
+        }.rescue {
+          require "active_support/json/encoding"
+          %(::ActiveSupport::JSON.encode(object))
+        }.rescue {
+          warn "No JSON encoder found. Falling back to `object.to_json`"
+          %(object.to_json)
+        }.value!
+        encode_method << "\nend"
+      end
     end
 
     def self.to_json(object)
@@ -86,7 +86,7 @@ module FastJsonapi
     end
 
     def self.define_to_json(receiver)
-      cl = caller_locations[0]
+      cl = caller_locations(1..1)[0]
       method_body = to_json_method
       logger.debug { "Defining #{receiver}._fast_to_json as #{method_body.inspect}" }
       receiver.instance_eval method_body, cl.absolute_path, cl.lineno

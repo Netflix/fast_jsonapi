@@ -1,4 +1,4 @@
-RSpec.shared_context 'jsonapi-serializers movie class' do
+RSpec.shared_context "jsonapi-serializers movie class" do
   before(:context) do
     # models
     class JSMovie
@@ -23,25 +23,28 @@ RSpec.shared_context 'jsonapi-serializers movie class' do
       attributes :name, :email
 
       def type
-        'actor'
+        "actor"
       end
     end
+
     class JSUserSerializer
       include JSONAPI::Serializer
       attributes :name
 
       def type
-        'user'
+        "user"
       end
     end
+
     class JSMovieTypeSerializer
       include JSONAPI::Serializer
       attributes :name
 
       def type
-        'movie_type'
+        "movie_type"
       end
     end
+
     class JSMovieSerializer
       include JSONAPI::Serializer
       attributes :name, :release_year
@@ -50,7 +53,7 @@ RSpec.shared_context 'jsonapi-serializers movie class' do
       has_one :movie_type
 
       def type
-        'movie'
+        "movie"
       end
     end
 
@@ -71,7 +74,7 @@ RSpec.shared_context 'jsonapi-serializers movie class' do
   end
 
   after(:context) do
-    classes_to_remove = %i[
+    %i[
       JSMovie
       JSActor
       JSUser
@@ -80,44 +83,42 @@ RSpec.shared_context 'jsonapi-serializers movie class' do
       JSActorSerializer
       JSUserSerializer
       JSMovieTypeSerializer
-      JSMovieSerializer]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+      JSMovieSerializer
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:js_actors) do
-    3.times.map do |i|
-      a = JSActor.new
-      a.id = i + 1
-      a.name = "Test #{a.id}"
-      a.email = "test#{a.id}@test.com"
-      a
+    Array.new(3) do |i|
+      JSActor.new.tap do |a|
+        a.id = i + 1
+        a.name = "Test #{a.id}"
+        a.email = "test#{a.id}@test.com"
+      end
     end
   end
 
   let(:js_user) do
-    ams_user = JSUser.new
-    ams_user.id = 3
-    ams_user
+    JSUser.new.tap { |ams_user| ams_user.id = 3 }
   end
 
   let(:js_movie_type) do
-    ams_movie_type = JSMovieType.new
-    ams_movie_type.id = 1
-    ams_movie_type.name = 'episode'
-    ams_movie_type
+    JSMovieType.new.tap do |ams_movie_type|
+      ams_movie_type.id = 1
+      ams_movie_type.name = "episode"
+    end
   end
 
   def build_js_movies(count)
-    count.times.map do |i|
-      m = JSMovie.new
-      m.id = i + 1
-      m.name = 'test movie'
-      m.actors = js_actors
-      m.owner = js_user
-      m.movie_type = js_movie_type
-      m
+    Array.new(count) do |i|
+      JSMovie.new.tap do |m|
+        m.id = i + 1
+        m.name = "test movie"
+        m.actors = js_actors
+        m.owner = js_user
+        m.movie_type = js_movie_type
+      end
     end
   end
 end

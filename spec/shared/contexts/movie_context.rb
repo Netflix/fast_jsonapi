@@ -1,5 +1,4 @@
-RSpec.shared_context 'movie class' do
-
+RSpec.shared_context "movie class" do
   # Movie, Actor Classes and serializers
   before(:context) do
     # models
@@ -14,21 +13,21 @@ RSpec.shared_context 'movie class' do
 
       def actors
         actor_ids.map.with_index do |id, i|
-          a = Actor.new
-          a.id = id
-          a.name = "Test #{a.id}"
-          a.email = "test#{a.id}@test.com"
-          a.agency_id = i
-          a
+          Actor.new.tap do |a|
+            a.id = id
+            a.name = "Test #{a.id}"
+            a.email = "test#{a.id}@test.com"
+            a.agency_id = i
+          end
         end
       end
 
       def movie_type
-        mt = MovieType.new
-        mt.id = movie_type_id
-        mt.name = 'Episode'
-        mt.movie_ids = [id]
-        mt
+        MovieType.new.tap do |mt|
+          mt.id = movie_type_id
+          mt.name = "Episode"
+          mt.movie_ids = [id]
+        end
       end
 
       def advertising_campaign_id
@@ -36,22 +35,19 @@ RSpec.shared_context 'movie class' do
       end
 
       def advertising_campaign
-        ac = AdvertisingCampaign.new
-        ac.id = 1
-        ac.movie_id = id
-        ac.name = "Movie #{name} is incredible!!"
-        ac
+        AdvertisingCampaign.new.tap do |ac|
+          ac.id = 1
+          ac.movie_id = id
+          ac.name = "Movie #{name} is incredible!!"
+        end
       end
 
       def owner
-        return unless owner_id
-        ow = Owner.new
-        ow.id = owner_id
-        ow
+        Owner.new.tap { |owner| owner.id = owner_id } if owner_id
       end
 
       def cache_key
-        "#{id}"
+        id.to_s
       end
 
       def local_name(locale = :english)
@@ -104,7 +100,7 @@ RSpec.shared_context 'movie class' do
     end
 
     class Agency
-      attr_accessor :id, :name, :state_id
+      attr_accessor :id, :name, :state_id, :actor_ids
 
       def state
         State.new.tap do |s|
@@ -127,35 +123,23 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id, :name, :movie_ids
 
       def movies
-        movie_ids.map.with_index do |id, i|
-          m = Movie.new
-          m.id = 232
-          m.name = 'test movie'
-          m.actor_ids = [1, 2, 3]
-          m.owner_id = 3
-          m.movie_type_id = 1
-          m
+        movie_ids.map do
+          Movie.new.tap do |m|
+            m.id = 232
+            m.name = "test movie"
+            m.actor_ids = [1, 2, 3]
+            m.owner_id = 3
+            m.movie_type_id = 1
+          end
         end
       end
-    end
-
-    class Agency
-      attr_accessor :id, :name, :actor_ids
-    end
-
-    class Agency
-      attr_accessor :id, :name, :actor_ids
     end
 
     class Supplier
       attr_accessor :id, :account_id
 
       def account
-        if account_id
-          a = Account.new
-          a.id = account_id
-          a
-        end
+        Account.new.tap { |a| a.id = account_id } if account_id
       end
     end
 
@@ -174,19 +158,22 @@ RSpec.shared_context 'movie class' do
     # serializers
     class MovieSerializer
       include FastJsonapi::ObjectSerializer
+
       set_type :movie
       # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
-      belongs_to :owner, record_type: :user do |object, params|
+
+      belongs_to :owner, record_type: :user do |object, _params|
         object.owner
       end
+
       belongs_to :movie_type
       has_one :advertising_campaign
     end
 
     class GenreMovieSerializer < MovieSerializer
-      link(:something) { '/something/' }
+      link(:something) { "/something/" }
     end
 
     class ActionMovieSerializer < GenreMovieSerializer
@@ -243,10 +230,8 @@ RSpec.shared_context 'movie class' do
     class AwardSerializer
       include FastJsonapi::ObjectSerializer
       attributes :id, :title
-      attribute :year, if: Proc.new { |record, params|
-        params[:include_award_year].present? ?
-          params[:include_award_year] :
-          false
+      attribute :year, if: ->(_, params) {
+        params[:include_award_year].present? ? params[:include_award_year] : false
       }
       belongs_to :actor
     end
@@ -254,7 +239,7 @@ RSpec.shared_context 'movie class' do
     class StateSerializer
       include FastJsonapi::ObjectSerializer
       attributes :id, :name
-      has_many :agency
+      has_many :agencies
     end
 
     class AdvertisingCampaignSerializer
@@ -310,43 +295,42 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :release_year, if: Proc.new { |record| record.release_year >= 2000 }
+      attribute :release_year, if: ->(record, _params) { record.release_year >= 2000 }
     end
 
     class MovieOptionalParamsDataSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :director, if: Proc.new { |record, params| params[:admin] == true }
+      attribute :director, if: ->(_record, params) { params[:admin] == true }
     end
 
     class MovieOptionalRelationshipSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      has_many :actors, if: Proc.new { |record| record.actors.any? }
+      has_many :actors, if: ->(record, _params) { record.actors.any? }
     end
 
     class MovieOptionalRelationshipWithParamsSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params[:admin] == true }
+      belongs_to :owner, record_type: :user, if: ->(_record, params) { params[:admin] == true }
     end
 
     class MovieOptionalAttributeContentsWithParamsSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :director do |record, params|
-        data = {}
-        data[:first_name] = 'steven'
-        data[:last_name] = 'spielberg' if params[:admin]
-        data
+      attribute :director do |_, params|
+        {}.tap do |data|
+          data[:first_name] = "steven"
+          data[:last_name] = "spielberg" if params[:admin]
+        end
       end
     end
   end
-
 
   # Namespaced MovieSerializer
   before(:context) do
@@ -381,7 +365,7 @@ RSpec.shared_context 'movie class' do
   end
 
   after(:context) do
-    classes_to_remove = %i[
+    %i[
       ActionMovieSerializer
       GenreMovieSerializer
       HorrorMovieSerializer
@@ -402,82 +386,66 @@ RSpec.shared_context 'movie class' do
       AgencySerializer
       AdvertisingCampaign
       AdvertisingCampaignSerializer
-    ]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:movie_struct) do
-
-    agency = AgencyStruct
-
-    actors = []
-
-    3.times.each do |id|
-      actors << ActorStruct.new(id, id.to_s, id.to_s, id, [id])
+    MovieStruct.new.tap do |movie|
+      movie[:id] = 23
+      movie[:name] = "struct movie"
+      movie[:release_year] = 1987
+      movie[:actor_ids] = [1, 2, 3]
+      movie[:owner_id] = 3
+      movie[:movie_type_id] = 2
+      movie[:actors] = Array.new(3) do |id|
+        ActorStruct.new(id, id.to_s, id.to_s, id, [id])
+      end
     end
-
-    m = MovieStruct.new
-    m[:id] = 23
-    m[:name] = 'struct movie'
-    m[:release_year] = 1987
-    m[:actor_ids] = [1,2,3]
-    m[:owner_id] = 3
-    m[:movie_type_id] = 2
-    m[:actors] = actors
-    m
   end
 
   let(:movie_struct_without_id) do
-    MovieWithoutIdStruct.new('struct without id', 2018)
+    MovieWithoutIdStruct.new("struct without id", 2018)
   end
 
   let(:movie) do
-    m = Movie.new
-    m.id = 232
-    m.name = 'test movie'
-    m.actor_ids = [1, 2, 3]
-    m.owner_id = 3
-    m.movie_type_id = 1
-    m
+    build_movies(1).first.tap { |movie| movie.id = 232 }
   end
 
   let(:actor) do
     Actor.new.tap do |a|
       a.id = 234
-      a.name = 'test actor'
-      a.email = 'test@test.com'
+      a.name = "test actor"
+      a.email = "test@test.com"
       a.agency_id = 432
     end
   end
 
   let(:movie_type) do
-     movie
-
-     mt = MovieType.new
-     mt.id = movie.movie_type_id
-     mt.name = 'Foreign Thriller'
-     mt.movie_ids = [movie.id]
-     mt
+    MovieType.new.tap do |movie_type|
+      movie_type.id = movie.movie_type_id
+      movie_type.name = "Foreign Thriller"
+      movie_type.movie_ids = [movie.id]
+    end
   end
 
   let(:supplier) do
-    s = Supplier.new
-    s.id = 1
-    s.account_id = 1
-    s
+    Supplier.new.tap do |supplier|
+      supplier.id = 1
+      supplier.account_id = 1
+    end
   end
 
   def build_movies(count)
-    count.times.map do |i|
-      m = Movie.new
-      m.id = i + 1
-      m.name = 'test movie'
-      m.actor_ids = [1, 2, 3]
-      m.owner_id = 3
-      m.movie_type_id = 1
-      m
+    Array.new(count) do |i|
+      Movie.new.tap do |movie|
+        movie.id = i + 1
+        movie.name = "test movie"
+        movie.actor_ids = [1, 2, 3]
+        movie.owner_id = 3
+        movie.movie_type_id = 1
+      end
     end
   end
 end

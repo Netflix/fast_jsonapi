@@ -1,4 +1,4 @@
-RSpec.shared_context 'jsonapi movie class' do
+RSpec.shared_context "jsonapi movie class" do
   before(:context) do
     # models
     class JSONAPIMovie
@@ -19,7 +19,7 @@ RSpec.shared_context 'jsonapi movie class' do
 
     # serializers
     class JSONAPIMovieSerializer < JSONAPI::Serializable::Resource
-      type 'movie'
+      type "movie"
       attributes :name, :release_year
 
       has_many :actors
@@ -28,29 +28,31 @@ RSpec.shared_context 'jsonapi movie class' do
     end
 
     class JSONAPIActorSerializer < JSONAPI::Serializable::Resource
-      type 'actor'
+      type "actor"
       attributes :name, :email
     end
 
     class JSONAPIUserSerializer < JSONAPI::Serializable::Resource
-      type 'user'
+      type "user"
       attributes :name
     end
 
     class JSONAPIMovieTypeSerializer < JSONAPI::Serializable::Resource
-      type 'movie_type'
+      type "movie_type"
       attributes :name
     end
 
     class JSONAPISerializer
       def initialize(data, options = {})
         @serializer = JSONAPI::Serializable::Renderer.new
-        @options = options.merge(class: {
-          JSONAPIMovie: JSONAPIMovieSerializer,
-          JSONAPIActor: JSONAPIActorSerializer,
-          JSONAPIUser: JSONAPIUserSerializer,
-          JSONAPIMovieType: JSONAPIMovieTypeSerializer
-        })
+        @options = options.merge(
+          class: {
+            JSONAPIMovie: JSONAPIMovieSerializer,
+            JSONAPIActor: JSONAPIActorSerializer,
+            JSONAPIUser: JSONAPIUserSerializer,
+            JSONAPIMovieType: JSONAPIMovieTypeSerializer
+          }
+        )
         @data = data
       end
 
@@ -65,7 +67,7 @@ RSpec.shared_context 'jsonapi movie class' do
   end
 
   after :context do
-    classes_to_remove = %i[
+    %i[
       JSONAPIMovie
       JSONAPIActor
       JSONAPIUser
@@ -73,44 +75,42 @@ RSpec.shared_context 'jsonapi movie class' do
       JSONAPIMovieSerializer
       JSONAPIActorSerializer
       JSONAPIUserSerializer
-      JSONAPIMovieTypeSerializer]
-    classes_to_remove.each do |klass_name|
-      Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
+      JSONAPIMovieTypeSerializer
+    ].each do |klass_name|
+      Object.__send__(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
   end
 
   let(:jsonapi_actors) do
-    3.times.map do |i|
-      j = JSONAPIActor.new
-      j.id = i + 1
-      j.name = "Test #{j.id}"
-      j.email = "test#{j.id}@test.com"
-      j
+    Array.new(3) do |i|
+      JSONAPIActor.new.tap do |j|
+        j.id = i + 1
+        j.name = "Test #{j.id}"
+        j.email = "test#{j.id}@test.com"
+      end
     end
   end
 
   let(:jsonapi_user) do
-    jsonapi_user = JSONAPIUser.new
-    jsonapi_user.id = 3
-    jsonapi_user
+    JSONAPIUser.new.tap { |user| user.id = 3 }
   end
 
   let(:jsonapi_movie_type) do
-    jsonapi_movie_type = JSONAPIMovieType.new
-    jsonapi_movie_type.id = 1
-    jsonapi_movie_type.name = 'episode'
-    jsonapi_movie_type
+    JSONAPIMovieType.new.tap do |jsonapi_movie_type|
+      jsonapi_movie_type.id = 1
+      jsonapi_movie_type.name = "episode"
+    end
   end
 
   def build_jsonapi_movies(count)
-    count.times.map do |i|
-      m = JSONAPIMovie.new
-      m.id = i + 1
-      m.name = 'test movie'
-      m.actors = jsonapi_actors
-      m.owner = jsonapi_user
-      m.movie_type = jsonapi_movie_type
-      m
+    Array.new(count) do |i|
+      JSONAPIMovie.new.tap do |m|
+        m.id = i + 1
+        m.name = "test movie"
+        m.actors = jsonapi_actors
+        m.owner = jsonapi_user
+        m.movie_type = jsonapi_movie_type
+      end
     end
   end
 end
