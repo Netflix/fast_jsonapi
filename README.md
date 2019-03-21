@@ -4,6 +4,10 @@
 
 A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
 
+Note: this gem deals only with implementing the JSON:API spec. If your API
+responses are not formatted according to the JSON:API spec, this library will
+not work for you.
+
 # Performance Comparison
 
 We compare serialization times with Active Model Serializer as part of RSpec performance tests included on this library. We want to ensure that with every change on this library, serialization time is at least `25 times` faster than Active Model Serializers on up to current benchmark of 1000 records. Please read the [performance document](https://github.com/Netflix/fast_jsonapi/blob/master/performance_methodology.md) for any questions related to methodology.
