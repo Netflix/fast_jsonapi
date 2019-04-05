@@ -18,32 +18,33 @@ Fast JSON API serialized 250 records in 3.01 ms
 
 # Table of Contents
 
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Rails Generator](#rails-generator)
-  - [Model Definition](#model-definition)
-  - [Serializer Definition](#serializer-definition)
-  - [Object Serialization](#object-serialization)
-  - [Compound Document](#compound-document)
-  - [Key Transforms](#key-transforms)
-  - [Pluralize Type](#pluralize-type)
-  - [Collection Serialization](#collection-serialization)
-  - [Caching](#caching)
-  - [Params](#params)
-  - [Conditional Attributes](#conditional-attributes)
-  - [Conditional Relationships](#conditional-relationships)
-  - [Sparse Fieldsets](#sparse-fieldsets)
-  - [Using helper methods](#using-helper-methods)
-- [Contributing](#contributing)
+* [Features](#features)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Rails Generator](#rails-generator)
+  * [Model Definition](#model-definition)
+  * [Serializer Definition](#serializer-definition)
+  * [Object Serialization](#object-serialization)
+  * [Compound Document](#compound-document)
+  * [Key Transforms](#key-transforms)
+  * [Pluralize Type](#pluralize-type)
+  * [Collection Serialization](#collection-serialization)
+  * [Caching](#caching)
+  * [Params](#params)
+  * [Conditional Attributes](#conditional-attributes)
+  * [Conditional Relationships](#conditional-relationships)
+  * [Sparse Fieldsets](#sparse-fieldsets)
+  * [Using helper methods](#using-helper-methods)
+* [Contributing](#contributing)
+
 
 ## Features
 
-- Declaration syntax similar to Active Model Serializer
-- Support for `belongs_to`, `has_many` and `has_one`
-- Support for compound documents (included)
-- Optimized serialization of compound documents
-- Caching
+* Declaration syntax similar to Active Model Serializer
+* Support for `belongs_to`, `has_many` and `has_one`
+* Support for compound documents (included)
+* Optimized serialization of compound documents
+* Caching
 
 ## Installation
 
@@ -62,7 +63,6 @@ $ bundle install
 ## Usage
 
 ### Rails Generator
-
 You can use the bundled generator if you are using the library inside of
 a Rails project:
 
@@ -107,13 +107,11 @@ movie
 ### Object Serialization
 
 #### Return a hash
-
 ```ruby
 hash = MovieSerializer.new(movie).serializable_hash
 ```
 
 #### Return Serialized JSON
-
 ```ruby
 json_string = MovieSerializer.new(movie).serialized_json
 ```
@@ -151,10 +149,10 @@ json_string = MovieSerializer.new(movie).serialized_json
     }
   }
 }
+
 ```
 
 ### Key Transforms
-
 By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform:
 
 ```ruby
@@ -164,7 +162,6 @@ class MovieSerializer
   set_key_transform :camel
 end
 ```
-
 Here are examples of how these options transform the keys.
 
 ```ruby
@@ -198,10 +195,9 @@ end
 The most common use case for this feature is to easily migrate from serialization engines that pluralize by default, such as AMS.
 
 ### Attributes
+Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
 
-Attributes are defined in FastJsonapi using the `attributes` method. This method is also aliased as `attribute`, which is useful when defining a single attribute.
-
-By default, attributes are read directly from the model property of the same name. In this example, `name` is expected to be a property of the object being serialized:
+By default, attributes are read directly from the model property of the same name.  In this example, `name` is expected to be a property of the object being serialized:
 
 ```ruby
 class MovieSerializer
@@ -250,7 +246,6 @@ end
 ```
 
 ### Links Per Object
-
 Links are defined in FastJsonapi using the `link` method. By default, links are read directly from the model property of the same name. In this example, `public_url` is expected to be a property of the object being serialized.
 
 You can configure the method to use on the object for example a link with key `self` will get set to the value returned by a method called `url` on the movie object.
@@ -322,7 +317,7 @@ end
 
 ### Compound Document
 
-Support for top-level and nested included associations through `options[:include]`.
+Support for top-level and nested included associations through ` options[:include] `.
 
 ```ruby
 options = {}
@@ -366,11 +361,10 @@ options[:is_collection]
 was introduced to be able to have precise control this behavior
 
 - `nil` or not provided: will try to autodetect single vs collection (please, see notes above)
-- `true` will always treat input resource as _collection_
-- `false` will always treat input resource as _single object_
+- `true` will always treat input resource as *collection*
+- `false` will always treat input resource as *single object*
 
 ### Caching
-
 Requires a `cache_key` method be defined on model:
 
 ```ruby
@@ -544,18 +538,18 @@ end
 
 ### Customizable Options
 
-| Option             | Purpose                                                                                                                                                                                | Example                                                                                                          |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| set_type           | Type name of Object                                                                                                                                                                    | `set_type :movie`                                                                                                |
-| key                | Key of Object                                                                                                                                                                          | `belongs_to :owner, key: :user`                                                                                  |
-| set_id             | ID of Object                                                                                                                                                                           | `set_id :owner_id` or `set_id { |record| "#{record.name.downcase}-#{record.id}" }`                               |
-| cache_options      | Hash to enable caching and set cache length                                                                                                                                            | `cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds`                            |
-| id_method_name     | Set custom method name to get ID of an object (If block is provided for the relationship, `id_method_name` is invoked on the return value of the block instead of the resource object) | `has_many :locations, id_method_name: :place_ids`                                                                |
-| object_method_name | Set custom method name to get related objects                                                                                                                                          | `has_many :locations, object_method_name: :places`                                                               |
-| record_type        | Set custom Object Type for a relationship                                                                                                                                              | `belongs_to :owner, record_type: :user`                                                                          |
-| serializer         | Set custom Serializer for a relationship                                                                                                                                               | `has_many :actors, serializer: :custom_actor` or `has_many :actors, serializer: MyApp::Api::V1::ActorSerializer` |
-| polymorphic        | Allows different record types for a polymorphic association                                                                                                                            | `has_many :targets, polymorphic: true`                                                                           |
-| polymorphic        | Sets custom record types for each object class in a polymorphic association                                                                                                            | `has_many :targets, polymorphic: { Person => :person, Group => :group }`                                         |
+Option | Purpose | Example
+------------ | ------------- | -------------
+set_type | Type name of Object | ```set_type :movie ```
+key | Key of Object | ```belongs_to :owner, key: :user ```
+set_id | ID of Object | ```set_id :owner_id ``` or ```set_id { |record| "#{record.name.downcase}-#{record.id}" }```
+cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
+id_method_name | Set custom method name to get ID of an object (If block is provided for the relationship, `id_method_name` is invoked on the return value of the block instead of the resource object) | ```has_many :locations, id_method_name: :place_ids ```
+object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
+record_type | Set custom Object Type for a relationship | ```belongs_to :owner, record_type: :user```
+serializer | Set custom Serializer for a relationship | ```has_many :actors, serializer: :custom_actor``` or ```has_many :actors, serializer: MyApp::Api::V1::ActorSerializer```
+polymorphic | Allows different record types for a polymorphic association | ```has_many :targets, polymorphic: true```
+polymorphic | Sets custom record types for each object class in a polymorphic association | ```has_many :targets, polymorphic: { Person => :person, Group => :group }```
 
 ### Instrumentation
 
@@ -572,9 +566,8 @@ require 'fast_jsonapi/instrumentation'
 ```
 
 The two instrumented notifcations are supplied by these two constants:
-
-- `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
-- `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
+* `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
+* `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
 
 It is also possible to instrument one method without the other by using one of the following require statements:
 
@@ -584,18 +577,15 @@ require 'fast_jsonapi/instrumentation/serialized_json'
 ```
 
 Same goes for the Skylight integration:
-
 ```ruby
 require 'fast_jsonapi/instrumentation/skylight/normalizers/serializable_hash'
 require 'fast_jsonapi/instrumentation/skylight/normalizers/serialized_json'
 ```
 
 ## Contributing
-
 Please see [contribution check](https://github.com/Netflix/fast_jsonapi/blob/master/CONTRIBUTING.md) for more details on contributing
 
 ### Running Tests
-
 We use [RSpec](http://rspec.info/) for testing. We have unit tests, functional tests and performance tests. To run tests use the following command:
 
 ```bash
@@ -618,4 +608,4 @@ rspec spec --tag performance:true
 
 Join the Netflix Studio Engineering team and help us build gems like this!
 
-- [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
+* [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
