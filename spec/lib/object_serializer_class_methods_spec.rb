@@ -486,4 +486,63 @@ describe FastJsonapi::ObjectSerializer do
       end
     end
   end
+
+  describe '#pluralize_type' do
+    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
+
+    before do
+      MovieSerializer.pluralize_type pluralize
+    end
+
+    after do
+      MovieSerializer.pluralize_type nil
+      MovieSerializer.set_type :movie
+    end
+
+    context 'when pluralize is true' do
+      let(:pluralize) { true }
+
+      it 'returns correct hash which type equals pluralized value' do
+        expect(serializable_hash[:data][:type]).to eq :movies
+      end
+    end
+
+    context 'when pluralize is false' do
+      let(:pluralize) { false }
+
+      it 'returns correct hash which type equals non-pluralized value' do
+        expect(serializable_hash[:data][:type]).to eq :movie
+      end
+    end
+  end
+
+  describe '#pluralize_type after #set_type' do
+    subject(:serializable_hash) { MovieSerializer.new(movie).serializable_hash }
+
+    before do
+      MovieSerializer.set_type type_name
+      MovieSerializer.pluralize_type true
+    end
+
+    after do
+      MovieSerializer.pluralize_type nil
+      MovieSerializer.set_type :movie
+    end
+
+    context 'when sets singular type name' do
+      let(:type_name) { :film }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :films
+      end
+    end
+
+    context 'when sets plural type name' do
+      let(:type_name) { :films }
+
+      it 'returns correct hash which type equals transformed set_type value' do
+        expect(serializable_hash[:data][:type]).to eq :films
+      end
+    end
+  end
 end

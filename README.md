@@ -31,12 +31,14 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Object Serialization](#object-serialization)
   * [Compound Document](#compound-document)
   * [Key Transforms](#key-transforms)
+  * [Pluralize Type](#pluralize-type)
   * [Collection Serialization](#collection-serialization)
   * [Caching](#caching)
   * [Params](#params)
   * [Conditional Attributes](#conditional-attributes)
   * [Conditional Relationships](#conditional-relationships)
   * [Sparse Fieldsets](#sparse-fieldsets)
+  * [Using helper methods](#using-helper-methods)
 * [Contributing](#contributing)
 
 
@@ -166,7 +168,7 @@ json_string = MovieSerializer.new(movie).serialized_json
 ```
 
 ### Key Transforms
-By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform
+By default fast_jsonapi underscores the key names. It supports the same key transforms that are supported by AMS. Here is the syntax of specifying a key transform:
 
 ```ruby
 class MovieSerializer
@@ -175,7 +177,7 @@ class MovieSerializer
   set_key_transform :camel
 end
 ```
-Here are examples of how these options transform the keys
+Here are examples of how these options transform the keys.
 
 ```ruby
 set_key_transform :camel # "some_key" => "SomeKey"
@@ -183,6 +185,29 @@ set_key_transform :camel_lower # "some_key" => "someKey"
 set_key_transform :dash # "some_key" => "some-key"
 set_key_transform :underscore # "some_key" => "some_key"
 ```
+
+### Pluralize Type
+
+By default fast_jsonapi does not pluralize type names. You can turn pluralization on using this syntax:
+
+```ruby
+class AwardSerializer
+  include FastJsonapi::ObjectSerializer
+  belongs_to :actor
+  pluralize_type true # "award" => "awards"
+end
+```
+
+Relationship types are not automatically pluralized, even when their base types have `pluralize_type` set. Pluralization can be enabled in the relationship definition.
+
+```ruby
+class ActorSerializer
+  include FastJsonapi::ObjectSerializer
+  has_many :awards, pluralize_type: true # "award" => "awards"
+end
+```
+
+The most common use case for this feature is to easily migrate from serialization engines that pluralize by default, such as AMS.
 
 ### Attributes
 Attributes are defined in FastJsonapi using the `attributes` method.  This method is also aliased as `attribute`, which is useful when defining a single attribute.
@@ -291,7 +316,12 @@ This will create a `self` reference for the relationship, and a `related` link f
 ### Meta Per Resource
 
 For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+
+
 ```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
   meta do |movie|
     {
       years_since_release: Date.current.year - movie.year
@@ -457,6 +487,68 @@ end
 
 serializer = MovieSerializer.new(movie, { fields: { movie: [:name] } })
 serializer.serializable_hash
+```
+
+### Using helper methods
+
+You can mix-in code from another ruby module into your serializer class to reuse functions across your app.
+
+Since a serializer is evaluated in a the context of a `class` rather than an `instance` of a class, you need to make sure that your methods act as `class` methods when mixed in.
+
+
+##### Using ActiveSupport::Concern
+
+``` ruby
+
+module AvatarHelper
+  extend ActiveSupport::Concern
+
+  class_methods do
+    def avatar_url(user)
+      user.image.url
+    end
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  include AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
+```
+
+##### Using Plain Old Ruby
+
+``` ruby
+module AvatarHelper
+  def avatar_url(user)
+    user.image.url
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  extend AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
 ```
 
 ### Customizable Options

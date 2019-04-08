@@ -118,6 +118,7 @@ module FastJsonapi
         subclass.cachable_relationships_to_serialize = cachable_relationships_to_serialize.dup if cachable_relationships_to_serialize.present?
         subclass.uncachable_relationships_to_serialize = uncachable_relationships_to_serialize.dup if uncachable_relationships_to_serialize.present?
         subclass.transform_method = transform_method
+        subclass.pluralized_type = pluralized_type
         subclass.cache_length = cache_length
         subclass.race_condition_ttl = race_condition_ttl
         subclass.data_links = data_links.dup if data_links.present?
@@ -153,9 +154,28 @@ module FastJsonapi
         end
       end
 
+      def pluralize_type(pluralize)
+        self.pluralized_type = pluralize
+
+        # ensure that the record type is correctly transformed
+        if record_type
+          set_type(record_type)
+        elsif reflected_record_type
+          set_type(reflected_record_type)
+        end
+      end
+
       def run_key_transform(input)
         if self.transform_method.present?
           input.to_s.send(*@transform_method).to_sym
+        else
+          input.to_sym
+        end
+      end
+
+      def run_key_pluralization(input)
+        if self.pluralized_type
+          input.to_s.pluralize.to_sym
         else
           input.to_sym
         end
@@ -167,7 +187,7 @@ module FastJsonapi
       end
 
       def set_type(type_name)
-        self.record_type = run_key_transform(type_name)
+        self.record_type = run_key_transform(run_key_pluralization(type_name))
       end
 
       def set_id(id_name = nil, &block)
@@ -250,6 +270,7 @@ module FastJsonapi
             block
           ),
           record_type: options[:record_type] || run_key_transform(base_key_sym),
+          pluralize_type: options[:pluralize_type],
           object_method_name: options[:object_method_name] || name,
           object_block: block,
           serializer: compute_serializer_name(options[:serializer] || base_key_sym),

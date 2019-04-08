@@ -95,13 +95,23 @@ describe FastJsonapi::ObjectSerializer do
     has_one :account
   end
 
+  class LegacyUserSerializer < UserSerializer
+    pluralize_type true
+  end
+
+  class LegacyEmployeeSerializer < LegacyUserSerializer
+    attributes :location
+    attributes :compensation
+
+    has_one :account
+  end
+
   it 'sets the correct record type' do
     expect(EmployeeSerializer.reflected_record_type).to eq :employee
     expect(EmployeeSerializer.record_type).to eq :employee
   end
 
   context 'when testing inheritance of attributes' do
-
     it 'includes parent attributes' do
       subclass_attributes = EmployeeSerializer.attributes_to_serialize
       superclass_attributes = UserSerializer.attributes_to_serialize
@@ -157,12 +167,15 @@ describe FastJsonapi::ObjectSerializer do
     end
   end
 
-  context 'when test inheritence of other attributes' do
-
-    it 'inherits the tranform method' do
+  context 'when testing inheritence of other attributes' do
+    it 'inherits the transform method' do
       EmployeeSerializer
       expect(UserSerializer.transform_method).to eq EmployeeSerializer.transform_method
     end
 
+    it 'inherits pluralized_type' do
+      LegacyEmployeeSerializer
+      expect(LegacyUserSerializer.pluralized_type).to eq LegacyEmployeeSerializer.pluralized_type
+    end
   end
 end
