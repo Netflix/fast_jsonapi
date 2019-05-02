@@ -99,9 +99,9 @@ module FastJsonapi
 
     def deep_symbolize(collection)
       if collection.is_a? Hash
-        Hash[collection.map do |k, v|
-          [k.to_sym, deep_symbolize(v)]
-        end]
+        collection.each_with_object({}) do |(k, v), hsh|
+          hsh[k.to_sym] = deep_symbolize(v)
+        end
       elsif collection.is_a? Array
         collection.map { |i| deep_symbolize(i) }
       else
