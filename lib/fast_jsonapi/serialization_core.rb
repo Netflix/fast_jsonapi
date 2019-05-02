@@ -109,9 +109,7 @@ module FastJsonapi
       def remaining_items(items)
         return unless items.size > 1
 
-        items_copy = items.dup
-        items_copy.delete_at(0)
-        [items_copy.join('.').to_sym]
+        [items[1..-1].join('.').to_sym]
       end
 
       # includes handler
