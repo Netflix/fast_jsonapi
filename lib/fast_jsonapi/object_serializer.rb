@@ -17,6 +17,12 @@ module FastJsonapi
 
     SERIALIZABLE_HASH_NOTIFICATION = 'render.fast_jsonapi.serializable_hash'
     SERIALIZED_JSON_NOTIFICATION = 'render.fast_jsonapi.serialized_json'
+    TRANSFORMS_MAPPING = {
+      camel: :camelize,
+      camel_lower: [:camelize, :lower],
+      dash: :dasherize,
+      underscore: :underscore
+    }.freeze
 
     included do
       # Set record_type based on the name of the serializer class
@@ -137,13 +143,7 @@ module FastJsonapi
       end
 
       def set_key_transform(transform_name)
-        mapping = {
-          camel: :camelize,
-          camel_lower: [:camelize, :lower],
-          dash: :dasherize,
-          underscore: :underscore
-        }
-        self.transform_method = mapping[transform_name.to_sym]
+        self.transform_method = TRANSFORMS_MAPPING[transform_name.to_sym]
 
         # ensure that the record type is correctly transformed
         if record_type
