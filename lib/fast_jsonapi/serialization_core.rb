@@ -102,7 +102,8 @@ module FastJsonapi
 
       def parse_include_item(include_item)
         return [include_item.to_sym] unless include_item.to_s.include?('.')
-        include_item.to_s.split('.').map { |item| item.to_sym }
+
+        include_item.to_s.split('.').map!(&:to_sym)
       end
 
       def remaining_items(items)
