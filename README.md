@@ -541,7 +541,7 @@ Skylight relies on `ActiveSupport::Notifications` to track these two core method
 require 'fast_jsonapi/instrumentation'
 ```
 
-The two instrumented notifcations are supplied by these two constants:
+The two instrumented notifications are supplied by these two constants:
 * `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
 * `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
 
