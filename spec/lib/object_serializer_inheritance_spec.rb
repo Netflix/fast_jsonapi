@@ -48,6 +48,12 @@ describe FastJsonapi::ObjectSerializer do
     has_many :addresses, cached: true
     belongs_to :country
     has_one :photo
+
+    meta do |object|
+      {
+        user_meta: true
+      }
+    end
   end
 
   class Photo
@@ -93,6 +99,12 @@ describe FastJsonapi::ObjectSerializer do
     attributes :compensation
 
     has_one :account
+
+    meta do
+      {
+        employee_meta: true
+      }
+    end
   end
 
   it 'sets the correct record type' do
@@ -165,4 +177,23 @@ describe FastJsonapi::ObjectSerializer do
     end
 
   end
+
+  context 'when testing inheritance of meta' do
+
+    it 'includes parent meta' do
+      subclass_meta = EmployeeSerializer.meta_to_serialize
+      superclass_meta = UserSerializer.meta_to_serialize
+      expect(subclass_meta).to include(*superclass_meta)
+    end
+
+    it 'includes child meta' do
+      expect(EmployeeSerializer.meta_to_serialize.map(&:call)).to eq([{ user_meta: true }, { employee_meta: true }])
+    end
+
+    it 'doesnt change parent class attributes' do
+      EmployeeSerializer
+      expect(UserSerializer.meta_to_serialize.map(&:call)).to eq([{ user_meta: true }])
+    end
+  end
+
 end
