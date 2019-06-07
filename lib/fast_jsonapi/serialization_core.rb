@@ -62,7 +62,13 @@ module FastJsonapi
       end
 
       def meta_hash(record, params = {})
-        meta_to_serialize.call(record, params)
+        called = meta_to_serialize.map do |meta|
+          meta.call(record, params)
+        end.select(&:present?)
+
+        return if called.blank?
+
+        called.inject { |agg, meta| agg.deep_merge!(meta) }
       end
 
       def record_hash(record, fieldset, params = {})
