@@ -67,5 +67,23 @@ describe FastJsonapi::ObjectSerializer do
         expect(actor_hash).not_to have_key(:data)
       end
     end
+
+    context "included lazy loaded relationships" do
+      before(:context) do
+        class LazyLoadingMovieSerializer < MovieSerializer
+          has_many :actors, lazy_load_data: true, links: {
+            related: :actors_relationship_url
+          }
+        end
+      end
+
+      let(:serializer) { LazyLoadingMovieSerializer.new(movie, include: [:actors]) }
+      let(:actor_hash) { hash[:data][:relationships][:actors] }
+
+      it "includes the :data key" do
+        expect(actor_hash).to be_present
+        expect(actor_hash).to have_key(:data)
+      end
+    end
   end
 end
