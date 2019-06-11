@@ -579,9 +579,3 @@ To run tests only performance tests:
 ```bash
 rspec spec --tag performance:true
 ```
-
-### We're Hiring!
-
-Join the Netflix Studio Engineering team and help us build gems like this!
-
-* [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)
