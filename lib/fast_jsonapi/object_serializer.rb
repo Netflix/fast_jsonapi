@@ -86,7 +86,7 @@ module FastJsonapi
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
       if options[:include].present?
-        @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
+        @includes = options[:include].reject(&:blank?).map(&:to_sym)
         self.class.validate_includes!(@includes)
       end
     end
@@ -130,7 +130,7 @@ module FastJsonapi
         return @reflected_record_type if defined?(@reflected_record_type)
 
         @reflected_record_type ||= begin
-          if self.name.end_with?('Serializer')
+          if self.name && self.name.end_with?('Serializer')
             self.name.split('::').last.chomp('Serializer').underscore.to_sym
           end
         end
@@ -299,7 +299,7 @@ module FastJsonapi
       def validate_includes!(includes)
         return if includes.blank?
 
-        includes.detect do |include_item|
+        includes.each do |include_item|
           klass = self
           parse_include_item(include_item).each do |parsed_include|
             relationships_to_serialize = klass.relationships_to_serialize || {}

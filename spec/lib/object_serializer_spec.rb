@@ -4,13 +4,15 @@ describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
   include_context 'group class'
 
+  let(:movies) { build_movies(2) }
+
   context 'when testing instance methods of object serializer' do
     it 'returns correct hash when serializable_hash is called' do
       options = {}
       options[:meta] = { total: 2 }
       options[:links] = { self: 'self' }
       options[:include] = [:actors]
-      serializable_hash = MovieSerializer.new([movie, movie], options).serializable_hash
+      serializable_hash = MovieSerializer.new(movies, options).serializable_hash
 
       expect(serializable_hash[:data].length).to eq 2
       expect(serializable_hash[:data][0][:relationships].length).to eq 4
@@ -58,7 +60,7 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns correct number of records when serialized_json is called for an array' do
       options = {}
       options[:meta] = { total: 2 }
-      json = MovieSerializer.new([movie, movie], options).serialized_json
+      json = MovieSerializer.new(movies, options).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data'].length).to eq 2
       expect(serializable_hash['meta']).to be_instance_of(Hash)
@@ -124,7 +126,7 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       it 'returns multiple records' do
-        json_hash = MovieSerializer.new([movie, movie]).as_json
+        json_hash = MovieSerializer.new(movies).as_json
         expect(json_hash['data'].length).to eq 2
       end
 
@@ -139,6 +141,13 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = [:blah_blah]
+      expect { MovieSerializer.new(movies, options).serializable_hash }.to raise_error(ArgumentError)
+    end
+
+    it 'returns errors when serializing with non-existent and existent includes keys' do
+      options = {}
+      options[:meta] = { total: 2 }
+      options[:include] = [:actors, :blah_blah]
       expect { MovieSerializer.new([movie, movie], options).serializable_hash }.to raise_error(ArgumentError)
     end
 
@@ -148,13 +157,19 @@ describe FastJsonapi::ObjectSerializer do
       expect { MovieSerializer.new(movie, options) }.not_to raise_error
     end
 
+    it 'does not throw an error with non-empty string array includes keys' do
+      options = {}
+      options[:include] = ['actors', 'owner']
+      expect { MovieSerializer.new(movie, options) }.not_to raise_error
+    end
+
     it 'returns keys when serializing with empty string/nil array includes key' do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = ['']
-      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
+      expect(MovieSerializer.new(movies, options).serializable_hash.keys).to eq [:data, :meta]
       options[:include] = [nil]
-      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
+      expect(MovieSerializer.new(movies, options).serializable_hash.keys).to eq [:data, :meta]
     end
   end
 
@@ -314,13 +329,6 @@ describe FastJsonapi::ObjectSerializer do
       expect(BlahBlahSerializer.record_type).to be :blah_blah
     end
 
-    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
-      class BlahBlahSerializerBuilder
-        include FastJsonapi::ObjectSerializer
-      end
-      expect(BlahBlahSerializerBuilder.record_type).to be_nil
-    end
-
     it 'should set default_type for a namespaced serializer' do
       module V1
         class BlahSerializer
@@ -328,6 +336,20 @@ describe FastJsonapi::ObjectSerializer do
         end
       end
       expect(V1::BlahSerializer.record_type).to be :blah
+    end
+
+    it 'shouldnt set default_type for a serializer that doesnt follow convention' do
+      class BlahBlahSerializerBuilder
+        include FastJsonapi::ObjectSerializer
+      end
+      expect(BlahBlahSerializerBuilder.record_type).to be_nil
+    end
+
+    it 'shouldnt set default_type for an anonymous serializer' do
+      serializer_class = Class.new do
+        include FastJsonapi::ObjectSerializer
+      end
+      expect(serializer_class.record_type).to be_nil
     end
   end
 
@@ -473,6 +495,16 @@ describe FastJsonapi::ObjectSerializer do
         options[:include] = [:actors]
         expect(serializable_hash['included']).to be_blank
       end
+
+    end
+  end
+
+  context 'when include has frozen array' do
+    let(:options) { { include: [:actors].freeze }}
+    let(:json) { MovieOptionalRelationshipSerializer.new(movie, options).serialized_json }
+
+    it 'does not raise and error' do
+      expect(json['included']).to_not be_blank
     end
   end
 

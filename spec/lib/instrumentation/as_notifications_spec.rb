@@ -24,7 +24,8 @@ describe FastJsonapi::ObjectSerializer do
       options[:meta] = { total: 2 }
       options[:include] = [:actors]
 
-      @serializer = MovieSerializer.new([movie, movie], options)
+      movies = build_movies(2)
+      @serializer = MovieSerializer.new(movies, options)
     end
 
     context 'serializable_hash' do
