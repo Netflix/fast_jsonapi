@@ -37,5 +37,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency(%q<jsonapi-rb>, ["~> 0.5.0"])
   gem.add_development_dependency(%q<jsonapi-serializers>, ["~> 1.0.0"])
   # This is our gem dependency
-  spec.add_dependency 'fast_jsonapi-staging'
+  gem.add_dependency 'fast_jsonapi-staging'
 end
