@@ -21,22 +21,22 @@ module FastJsonapi
       set_type(reflected_record_type) if reflected_record_type
     end
 
-    def initialize(resource, options = {}, includes = {})
+    def initialize(resource, options = {}, _includes = {})
       if is_collection?(resource, options[:is_collection]) && options[:pagination]
         options[:meta] = {
-            page: resource.blank? ? 0 : resource.current_page.to_i,
-            per_page: resource.blank? ? 0 : resource.per_page.to_i,
-            total_pages: resource.blank? ? 0 : resource.total_pages.to_i,
-            total_entries: resource.blank? ? 0 : resource.total_entries.to_i
+          page: resource.blank? ? 0 : resource.current_page.to_i,
+          per_page: resource.blank? ? 0 : resource.per_page.to_i,
+          total_pages: resource.blank? ? 0 : resource.total_pages.to_i,
+          total_entries: resource.blank? ? 0 : resource.total_entries.to_i
         }
       end
       process_options(options)
 
-      @resource = resource.includes(self.class.includes) if !self.class.includes.blank? && is_collection?(resource, options[:is_collection]) && !resource.blank? && !resource.kind_of?(Array)
-      @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if !self.class.includes.blank? && !is_collection?(resource, options[:is_collection]) && !resource.blank?
+      @resource = resource.includes(self.class.includes) if self.class.includes.present? && is_collection?(resource, options[:is_collection]) && resource.present? && !resource.is_a?(Array)
+      @resource = resource.class.where(id: resource.id).includes(self.class.includes).first if self.class.includes.present? && !is_collection?(resource, options[:is_collection]) && resource.present?
       @resource = resource if self.class.includes.blank? && !is_collection?(resource, options[:is_collection])
       @resource = resource if self.class.includes.blank? && is_collection?(resource, options[:is_collection])
-      @resource = resource if !self.class.includes.blank? && is_collection?(resource, options[:is_collection]) && resource.blank?
+      @resource = resource if self.class.includes.present? && is_collection?(resource, options[:is_collection]) && resource.blank?
     end
 
     def serializable_hash
@@ -44,7 +44,7 @@ module FastJsonapi
 
       hash_for_one_record
     end
-    alias_method :to_hash, :serializable_hash
+    alias to_hash serializable_hash
 
     def hash_for_one_record
       serializable_hash = { data: nil }
@@ -61,7 +61,7 @@ module FastJsonapi
 
     def hash_for_collection
       serializable_hash = {}
-      @resource = [] if @resource == nil
+      @resource = [] if @resource.nil?
       data = []
       # included = []
       fieldset = @fieldsets[self.class.record_type.to_sym]
@@ -76,6 +76,7 @@ module FastJsonapi
       serializable_hash[:meta] = @meta if @meta.present?
       serializable_hash[:links] = @links if @links.present?
       return data if @pagination == false
+
       serializable_hash
     end
 
@@ -97,7 +98,7 @@ module FastJsonapi
       @pagination = options[:pagination].nil? ? true : options[:pagination]
       @root_of_object = options[:root].nil? ? true : options[:root]
       @params = options[:params] || {}
-      raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
+      raise ArgumentError, '`params` option passed to serializer must be a hash' unless @params.is_a?(Hash)
 
       if options[:include].present?
         @includes = options[:include].delete_if(&:blank?).map(&:to_sym)
@@ -124,7 +125,6 @@ module FastJsonapi
     end
 
     class_methods do
-
       def inherited(subclass)
         super(subclass)
         subclass.attributes_to_serialize = attributes_to_serialize.dup if attributes_to_serialize.present?
@@ -143,16 +143,14 @@ module FastJsonapi
         return @reflected_record_type if defined?(@reflected_record_type)
 
         @reflected_record_type ||= begin
-          if self.name.end_with?('Serializer')
-            self.name.split('::').last.chomp('Serializer').underscore.to_sym
-          end
+          name.split('::').last.chomp('Serializer').underscore.to_sym if name.end_with?('Serializer')
         end
       end
 
       def set_key_transform(transform_name)
         mapping = {
           camel: :camelize,
-          camel_lower: [:camelize, :lower],
+          camel_lower: %i[camelize lower],
           dash: :dasherize,
           underscore: :underscore
         }
@@ -163,7 +161,7 @@ module FastJsonapi
       end
 
       def run_key_transform(input)
-        if self.transform_method.present?
+        if transform_method.present?
           input.to_s.send(*@transform_method).to_sym
         else
           input.to_sym
@@ -196,7 +194,7 @@ module FastJsonapi
       def attributes(*attributes_list, &block)
         attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
         options = attributes_list.last.is_a?(Hash) ? attributes_list.pop : {}
-        self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
+        self.attributes_to_serialize = {} if attributes_to_serialize.nil?
 
         attributes_list.each do |attr_name|
           method_name = attr_name
@@ -217,11 +215,11 @@ module FastJsonapi
         self.uncachable_relationships_to_serialize = {} if uncachable_relationships_to_serialize.nil?
 
         if !relationship.cached
-          self.uncachable_relationships_to_serialize[relationship.name] = relationship
+          uncachable_relationships_to_serialize[relationship.name] = relationship
         else
-          self.cachable_relationships_to_serialize[relationship.name] = relationship
+          cachable_relationships_to_serialize[relationship.name] = relationship
         end
-        self.relationships_to_serialize[relationship.name] = relationship
+        relationships_to_serialize[relationship.name] = relationship
       end
 
       def has_many(relationship_name, options = {}, &block)
@@ -267,6 +265,7 @@ module FastJsonapi
 
       def compute_serializer_name(serializer_key)
         return serializer_key unless serializer_key.is_a? Symbol
+
         # namespace = self.name.gsub(/()?\w+Serializer$/, '')
         serializer_key.to_s.classify + 'Serializer'
         # (namespace + serializer_name).to_sym
@@ -274,17 +273,18 @@ module FastJsonapi
 
       def fetch_polymorphic_option(options)
         option = options[:polymorphic]
-        return false unless option.present?
+        return false if option.blank?
         return option if option.respond_to? :keys
+
         {}
       end
 
       def link(link_name, link_method_name = nil, &block)
-        self.data_links = {} if self.data_links.nil?
+        self.data_links = {} if data_links.nil?
         link_method_name = link_name if link_method_name.nil?
         key = run_key_transform(link_name)
 
-        self.data_links[key] = Link.new(
+        data_links[key] = Link.new(
           key: key,
           method: block || link_method_name
         )
@@ -299,6 +299,7 @@ module FastJsonapi
             relationship_to_include = klass.relationships_to_serialize[parsed_include]
             raise ArgumentError, "#{parsed_include} is not specified as a relationship on #{klass.name}" unless relationship_to_include
             raise NotImplementedError if relationship_to_include.polymorphic.is_a?(Hash)
+
             klass = relationship_to_include.serializer.to_s.constantize
           end
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'ams movie class' do
   before(:context) do
     # models
@@ -136,7 +138,7 @@ RSpec.shared_context 'ams movie class' do
   let(:ams_advertising_campaign) do
     campaign = AMSAdvertisingCampaign.new
     campaign.id = 1
-    campaign.name = "Movie is incredible!!"
+    campaign.name = 'Movie is incredible!!'
     campaign
   end
 

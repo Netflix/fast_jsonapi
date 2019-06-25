@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_examples 'returning correct relationship hash' do |serializer, id_method_name, record_type|
   it 'returns correct relationship hash' do
     expect(relationship).to be_instance_of(FastJsonapi::Relationship)

@@ -1,16 +1,17 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
 
   context 'instrument' do
-
     before(:all) do
       require 'fast_jsonapi/instrumentation'
     end
 
     after(:all) do
-      [ :serialized_json, :serializable_hash ].each do |m|
+      %i[serialized_json serializable_hash].each do |m|
         alias_command = "alias_method :#{m}, :#{m}_without_instrumentation"
         FastJsonapi::ObjectSerializer.class_eval(alias_command)
 
@@ -28,7 +29,6 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     context 'serializable_hash' do
-
       it 'should send notifications' do
         events = []
 
@@ -43,18 +43,16 @@ describe FastJsonapi::ObjectSerializer do
         event = events.first
 
         expect(event.duration).to be > 0
-        expect(event.payload).to eq({ name: 'MovieSerializer' })
+        expect(event.payload).to eq(name: 'MovieSerializer')
         expect(event.name).to eq(FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION)
 
         expect(serialized_hash.key?(:data)).to eq(true)
         expect(serialized_hash.key?(:meta)).to eq(true)
         expect(serialized_hash.key?(:included)).to eq(true)
       end
-
     end
 
     context 'serialized_json' do
-
       it 'should send notifications' do
         events = []
 
@@ -69,14 +67,11 @@ describe FastJsonapi::ObjectSerializer do
         event = events.first
 
         expect(event.duration).to be > 0
-        expect(event.payload).to eq({ name: 'MovieSerializer' })
+        expect(event.payload).to eq(name: 'MovieSerializer')
         expect(event.name).to eq(FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION)
 
         expect(json.length).to be > 50
       end
-
     end
-
   end
-
 end

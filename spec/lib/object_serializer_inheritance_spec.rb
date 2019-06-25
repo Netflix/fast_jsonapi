@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
-
   after(:all) do
     classes_to_remove = %i[
       User
@@ -41,7 +42,7 @@ describe FastJsonapi::ObjectSerializer do
     set_type :user
     attributes :first_name, :last_name
 
-    attribute :full_name do |user, params|
+    attribute :full_name do |user, _params|
       "#{user.first_name} #{user.last_name}"
     end
 
@@ -101,7 +102,6 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   context 'when testing inheritance of attributes' do
-
     it 'includes parent attributes' do
       subclass_attributes = EmployeeSerializer.attributes_to_serialize
       superclass_attributes = UserSerializer.attributes_to_serialize
@@ -138,7 +138,7 @@ describe FastJsonapi::ObjectSerializer do
       e = Employee.new
       e.country_id = 1
       relationships_hash = EmployeeSerializer.new(e).serializable_hash[:data][:relationships][:country]
-      expect(relationships_hash).to include(data: { id: "1", type: :country })
+      expect(relationships_hash).to include(data: { id: '1', type: :country })
     end
 
     it 'includes child relationships' do
@@ -158,11 +158,9 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   context 'when test inheritence of other attributes' do
-
     it 'inherits the tranform method' do
       EmployeeSerializer
       expect(UserSerializer.transform_method).to eq EmployeeSerializer.transform_method
     end
-
   end
 end

@@ -1,5 +1,6 @@
-RSpec.shared_context 'movie class' do
+# frozen_string_literal: true
 
+RSpec.shared_context 'movie class' do
   # Movie, Actor Classes and serializers
   before(:context) do
     # models
@@ -45,13 +46,14 @@ RSpec.shared_context 'movie class' do
 
       def owner
         return unless owner_id
+
         ow = Owner.new
         ow.id = owner_id
         ow
       end
 
       def cache_key
-        "#{id}"
+        id.to_s
       end
 
       def local_name(locale = :english)
@@ -121,7 +123,7 @@ RSpec.shared_context 'movie class' do
       attr_accessor :id, :name, :movie_ids
 
       def movies
-        movie_ids.map.with_index do |id, i|
+        movie_ids.map.with_index do |_id, _i|
           m = Movie.new
           m.id = 232
           m.name = 'test movie'
@@ -172,7 +174,7 @@ RSpec.shared_context 'movie class' do
       # director attr is not mentioned intentionally
       attributes :name, :release_year
       has_many :actors
-      belongs_to :owner, record_type: :user do |object, params|
+      belongs_to :owner, record_type: :user do |object, _params|
         object.owner
       end
       belongs_to :movie_type
@@ -287,31 +289,30 @@ RSpec.shared_context 'movie class' do
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :release_year, if: Proc.new { |record| record.release_year >= 2000 }
+      attribute :release_year, if: proc { |record| record.release_year >= 2000 }
     end
 
     class MovieOptionalParamsDataSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      attribute :director, if: Proc.new { |record, params| params && params[:admin] == true }
+      attribute :director, if: proc { |_record, params| params && params[:admin] == true }
     end
 
     class MovieOptionalRelationshipSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      has_many :actors, if: Proc.new { |record| record.actors.any? }
+      has_many :actors, if: proc { |record| record.actors.any? }
     end
 
     class MovieOptionalRelationshipWithParamsSerializer
       include FastJsonapi::ObjectSerializer
       set_type :movie
       attributes :name
-      belongs_to :owner, record_type: :user, if: Proc.new { |record, params| params && params[:admin] == true }
+      belongs_to :owner, record_type: :user, if: proc { |_record, params| params && params[:admin] == true }
     end
   end
-
 
   # Namespaced MovieSerializer
   before(:context) do
@@ -371,7 +372,6 @@ RSpec.shared_context 'movie class' do
   end
 
   let(:movie_struct) do
-
     agency = AgencyStruct
 
     actors = []
@@ -384,7 +384,7 @@ RSpec.shared_context 'movie class' do
     m[:id] = 23
     m[:name] = 'struct movie'
     m[:release_year] = 1987
-    m[:actor_ids] = [1,2,3]
+    m[:actor_ids] = [1, 2, 3]
     m[:owner_id] = 3
     m[:movie_type_id] = 2
     m[:actors] = actors
@@ -415,13 +415,13 @@ RSpec.shared_context 'movie class' do
   end
 
   let(:movie_type) do
-     movie
+    movie
 
-     mt = MovieType.new
-     mt.id = movie.movie_type_id
-     mt.name = 'Foreign Thriller'
-     mt.movie_ids = [movie.id]
-     mt
+    mt = MovieType.new
+    mt.id = movie.movie_type_id
+    mt.name = 'Foreign Thriller'
+    mt.movie_ids = [movie.id]
+    mt
   end
 
   let(:supplier) do

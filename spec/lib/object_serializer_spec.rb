@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
@@ -36,12 +38,12 @@ describe FastJsonapi::ObjectSerializer do
       include_object_total = 6
 
       options = {}
-      options[:include] = [:actors, :'actors.agency']
+      options[:include] = %i[actors actors.agency]
       serializable_hash = MovieSerializer.new([movie], options).serializable_hash
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
+      (0..include_object_total - 1).each do |include|
         expect(serializable_hash[:included][include]).to be_instance_of(Hash)
       end
 
@@ -50,7 +52,7 @@ describe FastJsonapi::ObjectSerializer do
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
+      (0..include_object_total - 1).each do |include|
         expect(serializable_hash[:included][include]).to be_instance_of(Hash)
       end
     end
@@ -99,7 +101,7 @@ describe FastJsonapi::ObjectSerializer do
 
     it 'returns correct json when belongs_to returns nil and there is a block for the relationship' do
       movie.owner_id = nil
-      json = MovieSerializer.new(movie, {include: [:owner]}).serialized_json
+      json = MovieSerializer.new(movie, include: [:owner]).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data']['relationships']['owner']['data']).to be nil
     end
@@ -152,9 +154,9 @@ describe FastJsonapi::ObjectSerializer do
       options = {}
       options[:meta] = { total: 2 }
       options[:include] = ['']
-      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
+      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq %i[data meta]
       options[:include] = [nil]
-      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq [:data, :meta]
+      expect(MovieSerializer.new([movie, movie], options).serializable_hash.keys).to eq %i[data meta]
     end
   end
 
@@ -164,12 +166,12 @@ describe FastJsonapi::ObjectSerializer do
       include_object_total = 6
 
       options = {}
-      options[:include] = [:actors, :'actors.agency']
+      options[:include] = %i[actors actors.agency]
       serializable_hash = MovieSerializer.new([movie], options).serializable_hash
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
+      (0..include_object_total - 1).each do |include|
         expect(serializable_hash[:included][include]).to be_instance_of(Hash)
       end
 
@@ -178,7 +180,7 @@ describe FastJsonapi::ObjectSerializer do
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
       expect(serializable_hash[:included].length).to eq include_object_total
-      (0..include_object_total-1).each do |include|
+      (0..include_object_total - 1).each do |include|
         expect(serializable_hash[:included][include]).to be_instance_of(Hash)
       end
     end
@@ -188,7 +190,7 @@ describe FastJsonapi::ObjectSerializer do
       include_object_total = 7
 
       options = {}
-      options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
+      options[:include] = %i[actors actors.agency actors.agency.state]
       serializable_hash = MovieSerializer.new([movie], options).serializable_hash
 
       expect(serializable_hash[:included]).to be_instance_of(Array)
@@ -215,7 +217,7 @@ describe FastJsonapi::ObjectSerializer do
 
     it 'has_many => has_one returns correct nested includes when serializable_hash is called' do
       options = {}
-      options[:include] = [:movies, :'movies.advertising_campaign']
+      options[:include] = %i[movies movies.advertising_campaign]
       serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
 
       movies_serialized = serializable_hash[:included].find_all { |included| included[:type] == :movie }.map { |included| included[:id].to_i }
@@ -240,7 +242,7 @@ describe FastJsonapi::ObjectSerializer do
       end
 
       options = {}
-      options[:include] = [:movies, :'movies.advertising_campaign']
+      options[:include] = %i[movies movies.advertising_campaign]
 
       serializable_hash = MovieTypeSerializer.new([movie_type], options).serializable_hash
 
@@ -255,7 +257,7 @@ describe FastJsonapi::ObjectSerializer do
     it 'polymorphic throws an error that polymorphic is not supported' do
       options = {}
       options[:include] = [:groupees]
-      expect(-> { GroupSerializer.new([group], options)}).to raise_error(NotImplementedError)
+      expect(-> { GroupSerializer.new([group], options) }).to raise_error(NotImplementedError)
     end
   end
 
@@ -293,9 +295,7 @@ describe FastJsonapi::ObjectSerializer do
 
   context 'when serializing included, serialize any links' do
     before do
-      ActorSerializer.link(:self) do |actor_object|
-        actor_object.url
-      end
+      ActorSerializer.link(:self, &:url)
     end
     subject(:serializable_hash) do
       options = {}
@@ -368,23 +368,23 @@ describe FastJsonapi::ObjectSerializer do
       movie.release_year = 1970
       json = MovieOptionalRecordDataSerializer.new(movie).serialized_json
       serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['attributes'].has_key?('release_year')).to be_falsey
+      expect(serializable_hash['data']['attributes'].key?('release_year')).to be_falsey
     end
   end
 
   context 'when optional attributes are determined by params data' do
     it 'returns optional attribute when attribute is included' do
       movie.director = 'steven spielberg'
-      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: true }}).serialized_json
+      json = MovieOptionalParamsDataSerializer.new(movie, params: { admin: true }).serialized_json
       serializable_hash = JSON.parse(json)
       expect(serializable_hash['data']['attributes']['director']).to eq 'steven spielberg'
     end
 
     it "doesn't return optional attribute when attribute is not included" do
       movie.director = 'steven spielberg'
-      json = MovieOptionalParamsDataSerializer.new(movie, { params: { admin: false }}).serialized_json
+      json = MovieOptionalParamsDataSerializer.new(movie, params: { admin: false }).serialized_json
       serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['attributes'].has_key?('director')).to be_falsey
+      expect(serializable_hash['data']['attributes'].key?('director')).to be_falsey
     end
   end
 
@@ -392,23 +392,23 @@ describe FastJsonapi::ObjectSerializer do
     it 'returns optional relationship when relationship is included' do
       json = MovieOptionalRelationshipSerializer.new(movie).serialized_json
       serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_truthy
+      expect(serializable_hash['data']['relationships'].key?('actors')).to be_truthy
     end
 
-    context "when relationship is not included" do
-      let(:json) {
+    context 'when relationship is not included' do
+      let(:json) do
         MovieOptionalRelationshipSerializer.new(movie, options).serialized_json
-      }
-      let(:options) {
+      end
+      let(:options) do
         {}
-      }
-      let(:serializable_hash) {
+      end
+      let(:serializable_hash) do
         JSON.parse(json)
-      }
+      end
 
       it "doesn't return optional relationship" do
         movie.actor_ids = []
-        expect(serializable_hash['data']['relationships'].has_key?('actors')).to be_falsey
+        expect(serializable_hash['data']['relationships'].key?('actors')).to be_falsey
       end
 
       it "doesn't include optional relationship" do
@@ -421,24 +421,24 @@ describe FastJsonapi::ObjectSerializer do
 
   context 'when optional relationships are determined by params data' do
     it 'returns optional relationship when relationship is included' do
-      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, { params: { admin: true }}).serialized_json
+      json = MovieOptionalRelationshipWithParamsSerializer.new(movie, params: { admin: true }).serialized_json
       serializable_hash = JSON.parse(json)
-      expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_truthy
+      expect(serializable_hash['data']['relationships'].key?('owner')).to be_truthy
     end
 
-    context "when relationship is not included" do
-      let(:json) {
+    context 'when relationship is not included' do
+      let(:json) do
         MovieOptionalRelationshipWithParamsSerializer.new(movie, options).serialized_json
-      }
-      let(:options) {
-        { params: { admin: false }}
-      }
-      let(:serializable_hash) {
+      end
+      let(:options) do
+        { params: { admin: false } }
+      end
+      let(:serializable_hash) do
         JSON.parse(json)
-      }
+      end
 
       it "doesn't return optional relationship" do
-        expect(serializable_hash['data']['relationships'].has_key?('owner')).to be_falsey
+        expect(serializable_hash['data']['relationships'].key?('owner')).to be_falsey
       end
 
       it "doesn't include optional relationship" do

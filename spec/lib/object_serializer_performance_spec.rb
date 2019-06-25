@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer, performance: true do
@@ -31,7 +33,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     jsonapis: {
       name: 'jsonapi-serializers'
     }
-  }
+  }.freeze
 
   context 'when testing performance of serialization' do
     it 'should create a hash of 1000 records in less than 50 ms' do
@@ -69,27 +71,27 @@ describe FastJsonapi::ObjectSerializer, performance: true do
 
     name_length = SERIALIZERS.collect { |s| s[1].fetch(:name, s[0]).length }.max
 
-    puts format("%-#{name_length+1}s %-10s %-10s %s", 'Serializer', 'Records', 'Time', 'Speed Up')
+    puts format("%-#{name_length + 1}s %-10s %-10s %s", 'Serializer', 'Records', 'Time', 'Speed Up')
 
-    report_format = "%-#{name_length+1}s %-10s %-10s"
+    report_format = "%-#{name_length + 1}s %-10s %-10s"
     fast_jsonapi_time = data[:fast_jsonapi][:time]
     puts format(report_format, 'Fast serializer', count, fast_jsonapi_time.round(2).to_s + ' ms')
 
-    data.reject { |k,v| k == :fast_jsonapi }.each_pair do |k,v|
+    data.reject { |k, _v| k == :fast_jsonapi }.each_pair do |k, v|
       t = v[:time]
       factor = t / fast_jsonapi_time
 
       speed_factor = SERIALIZERS[k].fetch(:speed_factor, 1)
       result = factor >= speed_factor ? '✔' : '✘'
 
-      puts format("%-#{name_length+1}s %-10s %-10s %sx %s", SERIALIZERS[k][:name], count, t.round(2).to_s + ' ms', factor.round(2), result)
+      puts format("%-#{name_length + 1}s %-10s %-10s %sx %s", SERIALIZERS[k][:name], count, t.round(2).to_s + ' ms', factor.round(2), result)
     end
   end
 
   def run_hash_benchmark(message, movie_count, serializers)
-    data = Hash[serializers.keys.collect { |k| [ k, { hash: nil, time: nil, speed_factor: nil }] }]
+    data = Hash[serializers.keys.collect { |k| [k, { hash: nil, time: nil, speed_factor: nil }] }]
 
-    serializers.each_pair do |k,v|
+    serializers.each_pair do |k, v|
       hash_method = SERIALIZERS[k].key?(:hash_method) ? SERIALIZERS[k][:hash_method] : :to_hash
       data[k][:time] = Benchmark.measure { data[k][:hash] = v.send(hash_method) }.real * 1000
     end
@@ -100,10 +102,10 @@ describe FastJsonapi::ObjectSerializer, performance: true do
   end
 
   def run_json_benchmark(message, movie_count, serializers)
-    data = Hash[serializers.keys.collect { |k| [ k, { json: nil, time: nil, speed_factor: nil }] }]
+    data = Hash[serializers.keys.collect { |k| [k, { json: nil, time: nil, speed_factor: nil }] }]
 
-    serializers.each_pair do |k,v|
-    ams_json = nil
+    serializers.each_pair do |k, v|
+      ams_json = nil
       json_method = SERIALIZERS[k].key?(:json_method) ? SERIALIZERS[k][:json_method] : :to_json
       data[k][:time] = Benchmark.measure { data[k][:json] = v.send(json_method) }.real * 1000
     end
@@ -129,7 +131,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
         }
 
         message = "Serialize to JSON string #{movie_count} records"
-        json_benchmarks  = run_json_benchmark(message, movie_count, serializers)
+        json_benchmarks = run_json_benchmark(message, movie_count, serializers)
 
         message = "Serialize to Ruby Hash #{movie_count} records"
         hash_benchmarks = run_hash_benchmark(message, movie_count, serializers)
@@ -155,7 +157,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
 
         options = {}
         options[:meta] = { total: movie_count }
-        options[:include] = [:actors, :movie_type]
+        options[:include] = %i[actors movie_type]
 
         serializers = {
           fast_jsonapi: MovieSerializer.new(movies, options),

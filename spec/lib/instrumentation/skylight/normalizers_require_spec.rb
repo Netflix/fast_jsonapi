@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
-
   context 'instrument' do
     context 'skylight' do
       # skip for normal runs because this could alter some

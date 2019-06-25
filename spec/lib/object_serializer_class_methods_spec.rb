@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
-
   include_context 'movie class'
 
   describe '#has_many' do
@@ -38,13 +39,13 @@ describe FastJsonapi::ObjectSerializer do
       context 'with overrides' do
         let(:children) { [:roles, id_method_name: :roles_only_ids, record_type: :super_role] }
 
-        it_behaves_like 'returning correct relationship hash', :'RoleSerializer', :roles_only_ids, :super_role
+        it_behaves_like 'returning correct relationship hash', :RoleSerializer, :roles_only_ids, :super_role
       end
 
       context 'without overrides' do
         let(:children) { [:roles] }
 
-        it_behaves_like 'returning correct relationship hash', :'RoleSerializer', :role_ids, :role
+        it_behaves_like 'returning correct relationship hash', :RoleSerializer, :role_ids, :role
       end
     end
   end
@@ -65,8 +66,8 @@ describe FastJsonapi::ObjectSerializer do
 
       it 'returns correct hash' do
         expect(hash[:data][:relationships][:awards][:data].length).to eq(6)
-        expect(hash[:data][:relationships][:awards][:data][0]).to eq({ id: '9', type: :award })
-        expect(hash[:data][:relationships][:awards][:data][-1]).to eq({ id: '28', type: :award })
+        expect(hash[:data][:relationships][:awards][:data][0]).to eq(id: '9', type: :award)
+        expect(hash[:data][:relationships][:awards][:data][-1]).to eq(id: '28', type: :award)
       end
     end
 
@@ -77,12 +78,12 @@ describe FastJsonapi::ObjectSerializer do
         expect(hash[:included].length).to eq 6
         expect(hash[:included][0][:id]).to eq '9'
         expect(hash[:included][0][:type]).to eq :award
-        expect(hash[:included][0][:attributes]).to eq({ id: 9, title: 'Test Award 9' })
-        expect(hash[:included][0][:relationships]).to eq({ actor: { data: { id: '1', type: :actor } } })
+        expect(hash[:included][0][:attributes]).to eq(id: 9, title: 'Test Award 9')
+        expect(hash[:included][0][:relationships]).to eq(actor: { data: { id: '1', type: :actor } })
         expect(hash[:included][-1][:id]).to eq '28'
         expect(hash[:included][-1][:type]).to eq :award
-        expect(hash[:included][-1][:attributes]).to eq({ id: 28, title: 'Test Award 28' })
-        expect(hash[:included][-1][:relationships]).to eq({ actor: { data: { id: '3', type: :actor } } })
+        expect(hash[:included][-1][:attributes]).to eq(id: 28, title: 'Test Award 28')
+        expect(hash[:included][-1][:relationships]).to eq(actor: { data: { id: '3', type: :actor } })
       end
     end
   end
@@ -101,13 +102,13 @@ describe FastJsonapi::ObjectSerializer do
     context 'with overrides' do
       let(:parent) { [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area] }
 
-      it_behaves_like 'returning correct relationship hash', :'MyAreaSerializer', :blah_id, :awesome_area
+      it_behaves_like 'returning correct relationship hash', :MyAreaSerializer, :blah_id, :awesome_area
     end
 
     context 'without overrides' do
       let(:parent) { [:area] }
 
-      it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+      it_behaves_like 'returning correct relationship hash', :AreaSerializer, :area_id, :area
     end
   end
 
@@ -126,7 +127,7 @@ describe FastJsonapi::ObjectSerializer do
       subject(:hash) { ActorSerializer.new(actor).serializable_hash }
 
       it 'returns correct hash' do
-        expect(hash[:data][:relationships][:state][:data]).to eq({ id: '1', type: :state })
+        expect(hash[:data][:relationships][:state][:data]).to eq(id: '1', type: :state)
       end
     end
 
@@ -137,8 +138,8 @@ describe FastJsonapi::ObjectSerializer do
         expect(hash[:included].length).to eq 1
         expect(hash[:included][0][:id]).to eq '1'
         expect(hash[:included][0][:type]).to eq :state
-        expect(hash[:included][0][:attributes]).to eq({ id: 1, name: 'Test State 1' })
-        expect(hash[:included][0][:relationships]).to eq({ agency: { data: [{ id: '432', type: :agency }] } })
+        expect(hash[:included][0][:attributes]).to eq(id: 1, name: 'Test State 1')
+        expect(hash[:included][0][:relationships]).to eq(agency: { data: [{ id: '432', type: :agency }] })
       end
     end
   end
@@ -157,13 +158,13 @@ describe FastJsonapi::ObjectSerializer do
     context 'with overrides' do
       let(:partner) { [:area, id_method_name: :blah_id, record_type: :awesome_area, serializer: :my_area] }
 
-      it_behaves_like 'returning correct relationship hash', :'MyAreaSerializer', :blah_id, :awesome_area
+      it_behaves_like 'returning correct relationship hash', :MyAreaSerializer, :blah_id, :awesome_area
     end
 
     context 'without overrides' do
       let(:partner) { [:area] }
 
-      it_behaves_like 'returning correct relationship hash', :'AreaSerializer', :area_id, :area
+      it_behaves_like 'returning correct relationship hash', :AreaSerializer, :area_id, :area
     end
   end
 
@@ -259,9 +260,7 @@ describe FastJsonapi::ObjectSerializer do
 
     context 'with block calling instance method on serializer' do
       before do
-        MovieSerializer.link(:self) do |movie_object|
-          movie_object.url
-        end
+        MovieSerializer.link(:self, &:url)
       end
       let(:url) { "http://movies.com/#{movie.id}" }
 
@@ -310,7 +309,7 @@ describe FastJsonapi::ObjectSerializer do
     let(:movie_serializer_class) { "#{key_transform}_movie_serializer".classify.constantize }
 
     before(:context) do
-      [:dash, :camel, :camel_lower, :underscore].each do |key_transform|
+      %i[dash camel camel_lower underscore].each do |key_transform|
         movie_serializer_name = "#{key_transform}_movie_serializer".classify
         movie_type_serializer_name = "#{key_transform}_movie_type_serializer".classify
         # https://stackoverflow.com/questions/4113479/dynamic-class-definition-with-a-class-name

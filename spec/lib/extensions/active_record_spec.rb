@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'active_record'
 require 'sqlite3'
 
 describe 'active record' do
-
   # Setup DB
   before(:all) do
-    @db_file = "test.db"
+    @db_file = 'test.db'
 
     # Open a database
     db = SQLite3::Database.new @db_file
@@ -39,22 +40,21 @@ describe 'active record' do
 
   # Setup Active Record
   before(:all) do
-    class Supplier < ActiveRecord::Base
+    class Supplier < ApplicationRecord
       has_one :account
     end
 
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier
     end
 
     ActiveRecord::Base.establish_connection(
-      :adapter => 'sqlite3',
-      :database  => @db_file
+      adapter: 'sqlite3',
+      database: @db_file
     )
   end
 
   context 'has one patch' do
-
     it 'has account_id method for a supplier' do
       expect(Supplier.first.respond_to?(:account_id)).to be true
       expect(Supplier.first.account_id).to eq @account_id
@@ -63,7 +63,6 @@ describe 'active record' do
     it 'has account_id method return nil if account not present' do
       expect(Supplier.find(@supplier_id_without_account).account_id).to eq nil
     end
-
   end
 
   # Clean up DB

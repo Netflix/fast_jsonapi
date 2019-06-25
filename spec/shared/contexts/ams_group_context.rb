@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'ams group class' do
   before(:context) do
     # models
@@ -32,7 +34,7 @@ RSpec.shared_context 'ams group class' do
   let(:ams_groups) do
     group_count = 0
     person_count = 0
-    3.times.map do |i|
+    3.times.map do |_i|
       group = AMSGroup.new
       group.id = group_count + 1
       group.name = "Test Group #{group.id}"
@@ -63,7 +65,7 @@ RSpec.shared_context 'ams group class' do
   def build_ams_groups(count)
     group_count = 0
     person_count = 0
-    count.times.map do |i|
+    count.times.map do |_i|
       group = AMSGroup.new
       group.id = group_count + 1
       group.name = "Test Group #{group.id}"

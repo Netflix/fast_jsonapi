@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
-  include_context "movie class"
+  include_context 'movie class'
   include_context 'group class'
 
   context 'when testing class methods of serialization core' do
     it 'returns correct hash when id_hash is called' do
-      inputs = [{id: 23, record_type: :movie}, {id: 'x', record_type: 'person'}]
+      inputs = [{ id: 23, record_type: :movie }, { id: 'x', record_type: 'person' }]
       inputs.each do |hash|
         result_hash = MovieSerializer.send(:id_hash, hash[:id], hash[:record_type])
         expect(result_hash[:id]).to eq hash[:id].to_s
@@ -39,14 +41,14 @@ describe FastJsonapi::ObjectSerializer do
       relationships_hash = MovieSerializer.send(:relationships_hash, movie)
       relationship_names = relationships_hash.keys.sort
       relationships_hashes = MovieSerializer.relationships_to_serialize.values
-      expected_names = relationships_hashes.map{|relationship| relationship.key}.sort
+      expected_names = relationships_hashes.map(&:key).sort
       expect(relationship_names).to eq expected_names
     end
 
     it 'returns correct values when relationships_hash is called' do
       relationships_hash = MovieSerializer.relationships_hash(movie)
-      actors_hash = movie.actor_ids.map { |id|  {id: id.to_s, type: :actor} }
-      owner_hash = {id: movie.owner_id.to_s, type: :user}
+      actors_hash = movie.actor_ids.map { |id| { id: id.to_s, type: :actor } }
+      owner_hash = { id: movie.owner_id.to_s, type: :user }
       expect(relationships_hash[:actors][:data]).to match_array actors_hash
       expect(relationships_hash[:owner][:data]).to eq owner_hash
     end

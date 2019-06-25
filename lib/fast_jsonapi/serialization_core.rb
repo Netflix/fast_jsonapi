@@ -27,7 +27,7 @@ module FastJsonapi
     end
 
     class_methods do
-      def id_hash(id, record_type, default_return=false)
+      def id_hash(id, _record_type, default_return = false)
         if id.present?
           # { id: id.to_s, type: record_type }
           { id: id.to_s }
@@ -70,7 +70,8 @@ module FastJsonapi
             temp_hash = temp_hash.merge!(relationships_hash(record, cachable_relationships_to_serialize, fieldset, params)) if cachable_relationships_to_serialize.present?
             # temp_hash[:links] = links_hash(record, params) if data_links.present?
             # temp_hash
-            return {record_type => temp_hash} if root_of_object
+            return { record_type => temp_hash } if root_of_object
+
             temp_hash
           end
           # record_hash[:relationships] = record_hash[:relationships].merge(relationships_hash(record, uncachable_relationships_to_serialize, params)) if uncachable_relationships_to_serialize.present?
@@ -82,15 +83,17 @@ module FastJsonapi
           record_hash = record_hash.merge!(relationships_hash(record, nil, fieldset, params)) if relationships_to_serialize.present?
           # record_hash[:links] = links_hash(record, params) if data_links.present?
           # record_hash
-          return {record_type => record_hash} if root_of_object
+          return { record_type => record_hash } if root_of_object
+
           record_hash
         end
       end
 
       def id_from_record(record)
-         return record.send(record_id) if record_id
-         raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
-         record.id
+        return record.send(record_id) if record_id
+        raise MandatoryField, 'id is a mandatory field in the jsonapi spec' unless record.respond_to?(:id)
+
+        record.id
       end
 
       # Override #to_json for alternative implementation
@@ -100,7 +103,8 @@ module FastJsonapi
 
       def parse_include_item(include_item)
         return [include_item.to_sym] unless include_item.to_s.include?('.')
-        include_item.to_s.split('.').map! { |item| item.to_sym }
+
+        include_item.to_s.split('.').map!(&:to_sym)
       end
 
       def remaining_items(items)
@@ -113,21 +117,24 @@ module FastJsonapi
 
       # includes handler
       def get_included_records(record, includes_list, known_included_objects, fieldsets, params = {})
-        return unless includes_list.present?
+        return if includes_list.blank?
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
           items = parse_include_item(include_item)
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
+
             relationship_item = relationships_to_serialize[item]
             next unless relationship_item.include_relationship?(record, params)
             raise NotImplementedError if relationship_item.polymorphic.is_a?(Hash)
+
             record_type = relationship_item.record_type
             serializer = relationship_item.serializer.to_s.constantize
             relationship_type = relationship_item.relationship_type
 
             included_objects = relationship_item.fetch_associated_object(record, params)
             next if included_objects.blank?
+
             included_objects = [included_objects] unless relationship_type == :has_many
 
             included_objects.each do |inc_obj|

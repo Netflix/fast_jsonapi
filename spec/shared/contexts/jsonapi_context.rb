@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'jsonapi movie class' do
   before(:context) do
     # models
@@ -46,15 +48,15 @@ RSpec.shared_context 'jsonapi movie class' do
       def initialize(data, options = {})
         @serializer = JSONAPI::Serializable::Renderer.new
         @options = options.merge(class: {
-          JSONAPIMovie: JSONAPIMovieSerializer,
-          JSONAPIActor: JSONAPIActorSerializer,
-          JSONAPIUser: JSONAPIUserSerializer,
-          JSONAPIMovieType: JSONAPIMovieTypeSerializer
-        })
+                                   JSONAPIMovie: JSONAPIMovieSerializer,
+                                   JSONAPIActor: JSONAPIActorSerializer,
+                                   JSONAPIUser: JSONAPIUserSerializer,
+                                   JSONAPIMovieType: JSONAPIMovieTypeSerializer
+                                 })
         @data = data
       end
 
-      def to_json
+      def to_json(*_args)
         @serializer.render(@data, @options).to_json
       end
 
@@ -73,7 +75,8 @@ RSpec.shared_context 'jsonapi movie class' do
       JSONAPIMovieSerializer
       JSONAPIActorSerializer
       JSONAPIUserSerializer
-      JSONAPIMovieTypeSerializer]
+      JSONAPIMovieTypeSerializer
+    ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end

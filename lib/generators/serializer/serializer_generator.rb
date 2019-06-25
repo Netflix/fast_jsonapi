@@ -13,7 +13,7 @@ class SerializerGenerator < Rails::Generators::NamedBase
 
   private
 
-    def attributes_names
-      attributes.map! { |a| a.name.to_sym.inspect }
-    end
+  def attributes_names
+    attributes.map! { |a| a.name.to_sym.inspect }
+  end
 end

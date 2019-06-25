@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe FastJsonapi::ObjectSerializer do
   include_context 'movie class'
 
   context 'instrument' do
-
     before(:each) do
       options = {}
       options[:meta] = { total: 2 }
@@ -14,7 +15,6 @@ describe FastJsonapi::ObjectSerializer do
     end
 
     context 'serializable_hash' do
-
       it 'should send not notifications' do
         events = []
 
@@ -30,11 +30,9 @@ describe FastJsonapi::ObjectSerializer do
         expect(serialized_hash.key?(:meta)).to eq(true)
         expect(serialized_hash.key?(:included)).to eq(true)
       end
-
     end
 
     context 'serialized_json' do
-
       it 'should send not notifications' do
         events = []
 
@@ -48,9 +46,6 @@ describe FastJsonapi::ObjectSerializer do
 
         expect(json.length).to be > 50
       end
-
     end
-
   end
-
 end

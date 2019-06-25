@@ -1,5 +1,6 @@
-RSpec.shared_context 'jsonapi-serializers group class' do
+# frozen_string_literal: true
 
+RSpec.shared_context 'jsonapi-serializers group class' do
   # Person, Group Classes and serializers
   before(:context) do
     # models
@@ -37,7 +38,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
         @data = data
       end
 
-      def to_json
+      def to_json(*_args)
         JSON.fast_generate(to_hash)
       end
 
@@ -52,7 +53,8 @@ RSpec.shared_context 'jsonapi-serializers group class' do
       JSPerson
       JSGroup
       JSPersonSerializer
-      JSGroupSerializer]
+      JSGroupSerializer
+    ]
     classes_to_remove.each do |klass_name|
       Object.send(:remove_const, klass_name) if Object.constants.include?(klass_name)
     end
@@ -61,7 +63,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
   let(:jsonapi_groups) do
     group_count = 0
     person_count = 0
-    3.times.map do |i|
+    3.times.map do |_i|
       group = JSGroup.new
       group.id = group_count + 1
       group.name = "Test Group #{group.id}"
@@ -92,7 +94,7 @@ RSpec.shared_context 'jsonapi-serializers group class' do
   def build_jsonapis_groups(count)
     group_count = 0
     person_count = 0
-    count.times.map do |i|
+    count.times.map do |_i|
       group = JSGroup.new
       group.id = group_count + 1
       group.name = "Test Group #{group.id}"

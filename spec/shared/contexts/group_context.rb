@@ -1,5 +1,6 @@
-RSpec.shared_context 'group class' do
+# frozen_string_literal: true
 
+RSpec.shared_context 'group class' do
   # Person, Group Classes and serializers
   before(:context) do
     # models
@@ -58,8 +59,8 @@ RSpec.shared_context 'group class' do
 
     person = Person.new
     person.id = 1
-    person.last_name = "Last Name 1"
-    person.first_name = "First Name 1"
+    person.last_name = 'Last Name 1'
+    person.first_name = 'First Name 1'
 
     child_group = Group.new
     child_group.id = 2
@@ -73,7 +74,7 @@ RSpec.shared_context 'group class' do
     group_count = 0
     person_count = 0
 
-    count.times.map do |i|
+    count.times.map do |_i|
       group = Group.new
       group.id = group_count + 1
       group.name = "Test Group #{group.id}"

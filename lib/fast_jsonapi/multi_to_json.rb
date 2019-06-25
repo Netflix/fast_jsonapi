@@ -15,9 +15,9 @@ module FastJsonapi
     class Result
       def initialize(*rescued_exceptions)
         @rescued_exceptions = if rescued_exceptions.empty?
-          [StandardError]
-        else
-          rescued_exceptions
+                                [StandardError]
+                              else
+                                rescued_exceptions
         end
 
         @value = yield
@@ -45,36 +45,37 @@ module FastJsonapi
       end
     end
 
-    def self.logger(device=nil)
+    def self.logger(device = nil)
       return @logger = Logger.new(device) if device
+
       @logger ||= Logger.new(IO::NULL)
     end
 
     # Encoder-compatible with default MultiJSON adapters and defaults
     def self.to_json_method
       encode_method = String.new(%(def _fast_to_json(object)\n ))
-      encode_method << Result.new(LoadError) {
+      encode_method << Result.new(LoadError) do
         require 'oj'
         %(::Oj.dump(object, mode: :compat, time_format: :ruby, use_to_json: true))
-      }.rescue {
+      end.rescue do
         require 'yajl'
         %(::Yajl::Encoder.encode(object))
-      }.rescue {
+      end.rescue do
         require 'jrjackson' unless defined?(::JrJackson)
         %(::JrJackson::Json.dump(object))
-      }.rescue {
+      end.rescue do
         require 'json'
         %(JSON.fast_generate(object, create_additions: false, quirks_mode: true))
-      }.rescue {
+      end.rescue do
         require 'gson'
         %(::Gson::Encoder.new({}).encode(object))
-      }.rescue {
+      end.rescue do
         require 'active_support/json/encoding'
         %(::ActiveSupport::JSON.encode(object))
-      }.rescue {
-        warn "No JSON encoder found. Falling back to `object.to_json`"
+      end.rescue do
+        warn 'No JSON encoder found. Falling back to `object.to_json`'
         %(object.to_json)
-      }.value!
+      end.value!
       encode_method << "\nend"
     end
 
