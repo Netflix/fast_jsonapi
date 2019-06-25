@@ -1,0 +1,153 @@
+version: 2
+jobs:
+  checkout_and_bundle:
+    docker:
+      - image: "circleci/ruby:2.6.3"
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys
+      - checkout
+      - restore_cache:
+          keys:
+            - 'v1-fast_jsonapi-{{ checksum "Gemfile.lock" }}'
+            - v1-fast_jsonapi-
+      - run:
+          name: Install gems
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+      - save_cache:
+          key: 'v1-fast_jsonapi-{{ checksum "Gemfile.lock" }}'
+          paths:
+            - vendor/bundle
+      - persist_to_workspace:
+          root: /home/circleci/
+          paths:
+            - repo
+  audit_code:
+    docker:
+      - image: "circleci/ruby:2.6.3"
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys
+      - attach_workspace:
+          at: /home/circleci/
+      - run:
+          name: Install gems
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+      - run:
+          name: Check linting issues
+          command: |
+            bundle exec rubocop -R -P
+      - run:
+          name: Check security vulnerabilities in gems
+          command: |
+            bundle exec bundle-audit check --update
+      - run:
+          name: Ensure gemspec version is updated
+          command: |
+            dev_version=$(ruby -e 'require "rubygems"
+              spec = Gem::Specification::load("fast_jsonapi.gemspec")
+              puts spec.version')
+            echo $dev_version
+
+            public_version=$(curl  -H "X-Api-Key: ${CLOUDSMITH_API_KEY}" -X GET https://api.cloudsmith.io/badges/version/fastcomm/backend/ruby/fast_jsonapi/0/package_identifiers/ | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+            echo $public_version
+
+            ruby -e "Gem::Version.new('${dev_version}') > Gem::Version.new('${public_version}') ? exit(0) : exit(1)"
+
+  run_tests:
+    docker:
+      - image: "circleci/ruby:2.6.3"
+        environment:
+          RAILS_ENV: test
+          RACK_ENV: test
+    working_directory: ~/repo
+    steps:
+      - add_ssh_keys
+      - attach_workspace:
+          at: /home/circleci/
+      - run:
+          name: Install gems
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+      - run: rm -f .env && env >> .env && mkdir -p log && mkdir -p /tmp/test-results
+      - run:
+          name: run tests
+          command: |
+            bundle exec rspec --profile 10 \
+                              --format RspecJunitFormatter \
+                              --out /tmp/test-results/rspec.xml \
+                              --format progress
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/test-results
+          destination: test-results
+
+  upload_to_cloudsmith:
+    docker:
+      - image: "circleci/ruby:2.6.3"
+        environment:
+          RAILS_ENV: test
+          RACK_ENV: test
+    working_directory: ~/repo
+    steps:
+      - attach_workspace:
+          at: /home/circleci/
+
+      - run: sudo apt-get update -m && sudo apt-get install python3-pip && sudo pip3 install cloudsmith-cli
+      - run:
+          name: Ensure gemspec version is updated
+          command: |
+            dev_version=$(ruby -e 'require "rubygems"
+              spec = Gem::Specification::load("fast_jsonapi.gemspec")
+              puts spec.version')
+            echo $dev_version
+
+            public_version=$(curl  -H "X-Api-Key: ${CLOUDSMITH_API_KEY}" -X GET https://api.cloudsmith.io/badges/version/fastcomm/backend/ruby/fast_jsonapi/0/package_identifiers/ | grep -o '"version": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"')
+            echo $public_version
+            
+            ruby -e "Gem::Version.new('${dev_version}') > Gem::Version.new('${public_version}') ? exit(0) : exit(1)"
+
+      - run:
+          name: Install gems
+          command: |
+            bundle install --jobs=4 --retry=3 --path vendor/bundle
+
+      - run: gem build fast_jsonapi.gemspec
+
+      - deploy:
+          name: Upload to Cloudsmith
+          command: |
+            gem_name=$(ruby -e 'require "rubygems"
+              spec = Gem::Specification::load("fast_jsonapi.gemspec")
+              puts spec.name')
+            gem_version=$(ruby -e 'require "rubygems"
+              spec = Gem::Specification::load("fast_jsonapi.gemspec")
+              puts spec.version')
+            cloudsmith push ruby fastcomm/backend ${gem_name}-${gem_version}.gem
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - checkout_and_bundle:
+          filters:
+            branches:
+              ignore:
+                - staging
+      - audit_code:
+          requires:
+            - checkout_and_bundle
+      - run_tests:
+          requires:
+            - audit_code
+            - checkout_and_bundle
+      - upload_to_cloudsmith:
+          requires:
+            - checkout_and_bundle
+            - run_tests
+          filters:
+            branches:
+              only: master
