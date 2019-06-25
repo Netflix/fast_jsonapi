@@ -56,34 +56,34 @@ jobs:
 
             ruby -e "Gem::Version.new('${dev_version}') > Gem::Version.new('${public_version}') ? exit(0) : exit(1)"
 
-  run_tests:
-    docker:
-      - image: "circleci/ruby:2.6.3"
-        environment:
-          RAILS_ENV: test
-          RACK_ENV: test
-    working_directory: ~/repo
-    steps:
-      - add_ssh_keys
-      - attach_workspace:
-          at: /home/circleci/
-      - run:
-          name: Install gems
-          command: |
-            bundle install --jobs=4 --retry=3 --path vendor/bundle
-      - run: rm -f .env && env >> .env && mkdir -p log && mkdir -p /tmp/test-results
-      - run:
-          name: run tests
-          command: |
-            bundle exec rspec --profile 10 \
-                              --format RspecJunitFormatter \
-                              --out /tmp/test-results/rspec.xml \
-                              --format progress
-      - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: test-results
+#  run_tests:
+#    docker:
+#      - image: "circleci/ruby:2.6.3"
+#        environment:
+#          RAILS_ENV: test
+#          RACK_ENV: test
+#    working_directory: ~/repo
+#    steps:
+#      - add_ssh_keys
+#      - attach_workspace:
+#          at: /home/circleci/
+#      - run:
+#          name: Install gems
+#          command: |
+#            bundle install --jobs=4 --retry=3 --path vendor/bundle
+#      - run: rm -f .env && env >> .env && mkdir -p log && mkdir -p /tmp/test-results
+#      - run:
+#          name: run tests
+#          command: |
+#            bundle exec rspec --profile 10 \
+#                              --format RspecJunitFormatter \
+#                              --out /tmp/test-results/rspec.xml \
+#                              --format progress
+#      - store_test_results:
+#          path: /tmp/test-results
+#      - store_artifacts:
+#          path: /tmp/test-results
+#          destination: test-results
 
   upload_to_cloudsmith:
     docker:
@@ -147,7 +147,7 @@ workflows:
       - upload_to_cloudsmith:
           requires:
             - checkout_and_bundle
-            - run_tests
+            - audit_code
           filters:
             branches:
               only: master
