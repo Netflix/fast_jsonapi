@@ -131,7 +131,7 @@ module FastJsonapi
 
         @reflected_record_type ||= begin
           if self.name && self.name.end_with?('Serializer')
-            self.name.split('::').last.chomp('Serializer').underscore.to_sym
+            self.name.split('::').join('_').chomp('Serializer').underscore.to_sym
           end
         end
       end
