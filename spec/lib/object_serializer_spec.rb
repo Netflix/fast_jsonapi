@@ -335,7 +335,7 @@ describe FastJsonapi::ObjectSerializer do
           include FastJsonapi::ObjectSerializer
         end
       end
-      expect(V1::BlahSerializer.record_type).to be :blah
+      expect(V1::BlahSerializer.record_type).to be :v1_blah
     end
 
     it 'shouldnt set default_type for a serializer that doesnt follow convention' do
