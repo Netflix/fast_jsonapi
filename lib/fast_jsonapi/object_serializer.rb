@@ -124,6 +124,7 @@ module FastJsonapi
         subclass.cached = cached
         subclass.set_type(subclass.reflected_record_type) if subclass.reflected_record_type
         subclass.meta_to_serialize = meta_to_serialize
+        subclass.record_id = record_id
       end
 
       def reflected_record_type
