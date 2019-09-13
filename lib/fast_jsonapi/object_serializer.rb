@@ -285,14 +285,19 @@ module FastJsonapi
         {}
       end
 
-      def link(link_name, link_method_name = nil, &block)
+      # def link(link_name, link_method_name = nil, &block)
+      def link(*params, &block)
         self.data_links = {} if self.data_links.nil?
-        link_method_name = link_name if link_method_name.nil?
+
+        options = params.last.is_a?(Hash) ? params.pop : {}
+        link_name = params.first
+        link_method_name = params[-1]
         key = run_key_transform(link_name)
 
         self.data_links[key] = Link.new(
           key: key,
-          method: block || link_method_name
+          method: block || link_method_name,
+          options: options
         )
       end
 
