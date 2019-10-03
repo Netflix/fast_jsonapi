@@ -47,8 +47,11 @@ module FastJsonapi
     end
 
     def fetch_associated_object(record, params)
-      return object_block.call(record, params) unless object_block.nil?
-      record.send(object_method_name)
+      if object_block.present?
+        object_block.arity.abs == 1 ? object_block.call(record) : object_block.call(record, params)
+      else
+        record.send(object_method_name)
+      end
     end
 
     def include_relationship?(record, serialization_params)
@@ -96,7 +99,7 @@ module FastJsonapi
 
     def fetch_id(record, params)
       if object_block.present?
-        object = object_block.call(record, params)
+        object = object_block.arity.abs == 1 ? object_block.call(record) : object_block.call(record, params)
         return object.map { |item| item.public_send(id_method_name) } if object.respond_to? :map
         return object.try(id_method_name)
       end
