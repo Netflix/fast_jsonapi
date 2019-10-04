@@ -277,6 +277,12 @@ class MovieSerializer
 end
 ```
 
+Relationship links can also be configured to be defined as a method on the object.
+
+```ruby
+  has_many :actors, links: :actor_relationship_links
+```
+
 This will create a `self` reference for the relationship, and a `related` link for loading the actors relationship later. NB: This will not automatically disable loading the data in the relationship, you'll need to do that using the `lazy_load_data` option:
 
 ```ruby

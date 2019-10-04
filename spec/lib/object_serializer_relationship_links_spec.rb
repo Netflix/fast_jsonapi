@@ -67,5 +67,28 @@ describe FastJsonapi::ObjectSerializer do
         expect(actor_hash).not_to have_key(:data)
       end
     end
+
+    context "relationship links defined by a method on the object" do
+      before(:context) do
+        class Movie
+          def relationship_links
+            { self: "http://movies.com/#{id}/relationships/actors" }
+          end
+        end
+
+        class LinksPassingMovieSerializer < MovieSerializer
+          has_many :actors, links: :relationship_links
+        end
+      end
+
+      let(:serializer) { LinksPassingMovieSerializer.new(movie) }
+      let(:links) { hash[:data][:relationships][:actors][:links] }
+      let(:relationship_url) { "http://movies.com/#{movie.id}/relationships/actors" }
+
+      it "generates relationship links in the object" do
+        expect(links).to be_present
+        expect(links[:self]).to eq(relationship_url)
+      end
+    end
   end
 end
