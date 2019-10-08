@@ -103,15 +103,14 @@ module FastJsonapi
 
       def parse_include_item(include_item)
         return [include_item.to_sym] unless include_item.to_s.include?('.')
-        include_item.to_s.split('.').map { |item| item.to_sym }
+
+        include_item.to_s.split('.').map!(&:to_sym)
       end
 
       def remaining_items(items)
         return unless items.size > 1
 
-        items_copy = items.dup
-        items_copy.delete_at(0)
-        [items_copy.join('.').to_sym]
+        [items[1..-1].join('.').to_sym]
       end
 
       # includes handler
@@ -120,6 +119,8 @@ module FastJsonapi
 
         includes_list.sort.each_with_object([]) do |include_item, included_records|
           items = parse_include_item(include_item)
+          remaining_items = remaining_items(items)
+
           items.each do |item|
             next unless relationships_to_serialize && relationships_to_serialize[item]
             relationship_item = relationships_to_serialize[item]
@@ -140,8 +141,8 @@ module FastJsonapi
                 serializer = self.compute_serializer_name(inc_obj.class.name.demodulize.to_sym).to_s.constantize
               end
 
-              if remaining_items(items)
-                serializer_records = serializer.get_included_records(inc_obj, remaining_items(items), known_included_objects, fieldsets, params)
+              if remaining_items.present?
+                serializer_records = serializer.get_included_records(inc_obj, remaining_items, known_included_objects, fieldsets, params)
                 included_records.concat(serializer_records) unless serializer_records.empty?
               end
 

@@ -104,8 +104,12 @@ module FastJsonapi
     end
 
     def add_links_hash(record, params, output_hash)
-      output_hash[key][:links] = links.each_with_object({}) do |(key, method), hash|
-        Link.new(key: key, method: method).serialize(record, params, hash)\
+      if links.is_a?(Symbol)
+        output_hash[key][:links] = record.public_send(links)
+      else
+        output_hash[key][:links] = links.each_with_object({}) do |(key, method), hash|
+          Link.new(key: key, method: method).serialize(record, params, hash)\
+        end
       end
     end
 
