@@ -150,6 +150,10 @@ json_string = MovieSerializer.new(movie).serialized_json
           {
             "id": "2",
             "type": "actor"
+          },
+          {
+            "id": "3",
+            "type": "actor"
           }
         ]
       },
@@ -157,6 +161,12 @@ json_string = MovieSerializer.new(movie).serialized_json
         "data": {
           "id": "3",
           "type": "user"
+        }
+      },
+      "movie_type": {
+        "data": {
+          "id": "1",
+          "type": "movie_type"
         }
       }
     }
