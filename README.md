@@ -32,6 +32,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Params](#params)
   * [Conditional Attributes](#conditional-attributes)
   * [Conditional Relationships](#conditional-relationships)
+  * [Conditional Relationships Subset](#conditional-relationships-subset)
   * [Sparse Fieldsets](#sparse-fieldsets)
   * [Using helper methods](#using-helper-methods)
 * [Contributing](#contributing)
@@ -433,6 +434,25 @@ end
 current_user = User.find(cookies[:current_user_id])
 serializer = MovieSerializer.new(movie, { params: { admin: current_user.admin? }})
 serializer.serializable_hash
+```
+
+### Conditional Relationships Subset
+
+Conditional relationships subset can be defined by passing a new `block` to implement a custom behaviour to get the related objects. The record and any params passed to the serializer are available inside the `block` as the first and second parameters, respectively.
+
+```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
+  # Only specified actors will be serialized if the :actors_id key of params is true
+  has_many(:actors, options: {if: Proc.new { |record| params && params[:actors_id] }}) {|record, params|
+    Actor.join(:movies).where(actor_id: params[:actors_id], movie_id: record.id)
+  }
+end
+
+# ...
+serializer = MovieSerializer.new(movie, { params: { actors_id: [42,1337] }})
+serializer.serializable_h
 ```
 
 ### Sparse Fieldsets
