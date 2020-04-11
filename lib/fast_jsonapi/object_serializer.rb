@@ -106,7 +106,7 @@ module FastJsonapi
     def is_collection?(resource, force_is_collection = nil)
       return force_is_collection unless force_is_collection.nil?
 
-      resource.respond_to?(:size) && !resource.respond_to?(:each_pair)
+      resource.respond_to?(:each) && !resource.respond_to?(:each_pair)
     end
 
     class_methods do
