@@ -43,7 +43,7 @@ module FastJsonapi
 
       return serializable_hash unless @resource
 
-      serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
+      serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type&.to_sym], @params)
       serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
       serializable_hash
     end
