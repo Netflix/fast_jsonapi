@@ -44,6 +44,8 @@ module FastJsonapi
       def attributes_hash(record, fieldset = nil, params = {})
         attributes = attributes_to_serialize
         attributes = attributes.slice(*fieldset) if fieldset
+        attributes = {} if fieldset == []
+
         attributes.each_with_object({}) do |(_k, attribute), hash|
           attribute.serialize(record, params, hash)
         end
@@ -52,6 +54,7 @@ module FastJsonapi
       def relationships_hash(record, relationships = nil, fieldset = nil, params = {})
         relationships = relationships_to_serialize if relationships.nil?
         relationships = relationships.slice(*fieldset) if fieldset
+        relationships = {} if fieldset == []
 
         relationships.each_with_object({}) do |(_k, relationship), hash|
           relationship.serialize(record, params, hash)

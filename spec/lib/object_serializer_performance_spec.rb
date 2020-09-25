@@ -33,7 +33,7 @@ describe FastJsonapi::ObjectSerializer, performance: true do
     },
     jsonapis: {
       name: 'jsonapi-serializers',
-      speed_factor: 1.5,
+      speed_factor: 1.25,
       mean_speed_factor: 1.75
     }
   }

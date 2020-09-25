@@ -4,6 +4,10 @@
 
 A lightning fast [JSON:API](http://jsonapi.org/) serializer for Ruby Objects.
 
+Note: this gem deals only with implementing the JSON:API spec. If your API
+responses are not formatted according to the JSON:API spec, this library will
+not work for you.
+
 # Performance Comparison
 
 We compare serialization times with Active Model Serializer as part of RSpec performance tests included on this library. We want to ensure that with every change on this library, serialization time is at least `20 times` faster in average than Active Model Serializers. Please read the [performance document](https://github.com/Netflix/fast_jsonapi/blob/master/performance_methodology.md) for any questions related to methodology.
@@ -101,6 +105,17 @@ movie.actor_ids = [1, 2, 3]
 movie.owner_id = 3
 movie.movie_type_id = 1
 movie
+
+movies =
+  2.times.map do |i|
+    m = Movie.new
+    m.id = i + 1
+    m.name = "test movie #{i}"
+    m.actor_ids = [1, 2, 3]
+    m.owner_id = 3
+    m.movie_type_id = 1
+    m
+  end
 ```
 
 ### Object Serialization
@@ -304,7 +319,7 @@ options[:links] = {
   prev: '...'
 }
 options[:include] = [:actors, :'actors.agency', :'actors.agency.state']
-MovieSerializer.new([movie, movie], options).serialized_json
+MovieSerializer.new(movies, options).serialized_json
 ```
 
 ### Collection Serialization
@@ -316,15 +331,15 @@ options[:links] = {
   next: '...',
   prev: '...'
 }
-hash = MovieSerializer.new([movie, movie], options).serializable_hash
-json_string = MovieSerializer.new([movie, movie], options).serialized_json
+hash = MovieSerializer.new(movies, options).serializable_hash
+json_string = MovieSerializer.new(movies, options).serialized_json
 ```
 
 #### Control Over Collection Serialization
 
 You can use `is_collection` option to have better control over collection serialization.
 
-If this option is not provided or `nil` autedetect logic is used to try understand
+If this option is not provided or `nil` autodetect logic is used to try understand
 if provided resource is a single object or collection.
 
 Autodetect logic is compatible with most DB toolkits (ActiveRecord, Sequel, etc.) but
@@ -518,7 +533,7 @@ Option | Purpose | Example
 ------------ | ------------- | -------------
 set_type | Type name of Object | ```set_type :movie ```
 key | Key of Object | ```belongs_to :owner, key: :user ```
-set_id | ID of Object | ```set_id :owner_id ``` or ```set_id { |record| "#{record.name.downcase}-#{record.id}" }```
+set_id | ID of Object | ```set_id :owner_id ``` or ```set_id { \|record\| "#{record.name.downcase}-#{record.id}" }```
 cache_options | Hash to enable caching and set cache length | ```cache_options enabled: true, cache_length: 12.hours, race_condition_ttl: 10.seconds```
 id_method_name | Set custom method name to get ID of an object (If block is provided for the relationship, `id_method_name` is invoked on the return value of the block instead of the resource object) | ```has_many :locations, id_method_name: :place_ids ```
 object_method_name | Set custom method name to get related objects | ```has_many :locations, object_method_name: :places ```
@@ -541,7 +556,7 @@ Skylight relies on `ActiveSupport::Notifications` to track these two core method
 require 'fast_jsonapi/instrumentation'
 ```
 
-The two instrumented notifcations are supplied by these two constants:
+The two instrumented notifications are supplied by these two constants:
 * `FastJsonapi::ObjectSerializer::SERIALIZABLE_HASH_NOTIFICATION`
 * `FastJsonapi::ObjectSerializer::SERIALIZED_JSON_NOTIFICATION`
 
