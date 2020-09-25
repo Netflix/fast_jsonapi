@@ -10,7 +10,7 @@ not work for you.
 
 # Performance Comparison
 
-We compare serialization times with Active Model Serializer as part of RSpec performance tests included on this library. We want to ensure that with every change on this library, serialization time is at least `25 times` faster than Active Model Serializers on up to current benchmark of 1000 records. Please read the [performance document](https://github.com/Netflix/fast_jsonapi/blob/master/performance_methodology.md) for any questions related to methodology.
+We compare serialization times with Active Model Serializer as part of RSpec performance tests included on this library. We want to ensure that with every change on this library, serialization time is at least `20 times` faster in average than Active Model Serializers. Please read the [performance document](https://github.com/Netflix/fast_jsonapi/blob/master/performance_methodology.md) for any questions related to methodology.
 
 ## Benchmark times for 250 records
 
@@ -37,6 +37,7 @@ Fast JSON API serialized 250 records in 3.01 ms
   * [Conditional Attributes](#conditional-attributes)
   * [Conditional Relationships](#conditional-relationships)
   * [Sparse Fieldsets](#sparse-fieldsets)
+  * [Using helper methods](#using-helper-methods)
 * [Contributing](#contributing)
 
 
@@ -291,7 +292,12 @@ This will create a `self` reference for the relationship, and a `related` link f
 ### Meta Per Resource
 
 For every resource in the collection, you can include a meta object containing non-standard meta-information about a resource that can not be represented as an attribute or relationship.
+
+
 ```ruby
+class MovieSerializer
+  include FastJsonapi::ObjectSerializer
+
   meta do |movie|
     {
       years_since_release: Date.current.year - movie.year
@@ -459,6 +465,68 @@ serializer = MovieSerializer.new(movie, { fields: { movie: [:name] } })
 serializer.serializable_hash
 ```
 
+### Using helper methods
+
+You can mix-in code from another ruby module into your serializer class to reuse functions across your app.
+
+Since a serializer is evaluated in a the context of a `class` rather than an `instance` of a class, you need to make sure that your methods act as `class` methods when mixed in.
+
+
+##### Using ActiveSupport::Concern
+
+``` ruby
+
+module AvatarHelper
+  extend ActiveSupport::Concern
+
+  class_methods do
+    def avatar_url(user)
+      user.image.url
+    end
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  include AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
+```
+
+##### Using Plain Old Ruby
+
+``` ruby
+module AvatarHelper
+  def avatar_url(user)
+    user.image.url
+  end
+end
+
+class UserSerializer
+  include FastJsonapi::ObjectSerializer
+
+  extend AvatarHelper # mixes in your helper method as class method
+
+  set_type :user
+
+  attributes :name, :email
+
+  attribute :avatar do |user|
+    avatar_url(user)
+  end
+end
+
+```
+
 ### Customizable Options
 
 Option | Purpose | Example
@@ -526,9 +594,3 @@ To run tests only performance tests:
 ```bash
 rspec spec --tag performance:true
 ```
-
-### We're Hiring!
-
-Join the Netflix Studio Engineering team and help us build gems like this!
-
-* [Senior Ruby Engineer](https://jobs.netflix.com/jobs/864893)

@@ -38,13 +38,13 @@ module FastJsonapi
 
     def hash_for_one_record
       serializable_hash = { data: nil }
-      serializable_hash[:meta] = @meta if @meta.present?
-      serializable_hash[:links] = @links if @links.present?
+      serializable_hash[:meta] = @meta if @meta
+      serializable_hash[:links] = @links if @links
 
       return serializable_hash unless @resource
 
       serializable_hash[:data] = self.class.record_hash(@resource, @fieldsets[self.class.record_type.to_sym], @params)
-      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes.present?
+      serializable_hash[:included] = self.class.get_included_records(@resource, @includes, @known_included_objects, @fieldsets, @params) if @includes
       serializable_hash
     end
 
@@ -61,8 +61,8 @@ module FastJsonapi
 
       serializable_hash[:data] = data
       serializable_hash[:included] = included if @includes.present?
-      serializable_hash[:meta] = @meta if @meta.present?
-      serializable_hash[:links] = @links if @links.present?
+      serializable_hash[:meta] = @meta if @meta
+      serializable_hash[:links] = @links if @links
       serializable_hash
     end
 
@@ -85,7 +85,7 @@ module FastJsonapi
       @params = options[:params] || {}
       raise ArgumentError.new("`params` option passed to serializer must be a hash") unless @params.is_a?(Hash)
 
-      if options[:include].present?
+      if options[:include]
         @includes = options[:include].reject(&:blank?).map(&:to_sym)
         self.class.validate_includes!(@includes)
       end
@@ -113,14 +113,14 @@ module FastJsonapi
 
       def inherited(subclass)
         super(subclass)
-        subclass.attributes_to_serialize = attributes_to_serialize.dup if attributes_to_serialize.present?
-        subclass.relationships_to_serialize = relationships_to_serialize.dup if relationships_to_serialize.present?
-        subclass.cachable_relationships_to_serialize = cachable_relationships_to_serialize.dup if cachable_relationships_to_serialize.present?
-        subclass.uncachable_relationships_to_serialize = uncachable_relationships_to_serialize.dup if uncachable_relationships_to_serialize.present?
+        subclass.attributes_to_serialize = attributes_to_serialize.dup if attributes_to_serialize
+        subclass.relationships_to_serialize = relationships_to_serialize.dup if relationships_to_serialize
+        subclass.cachable_relationships_to_serialize = cachable_relationships_to_serialize.dup if cachable_relationships_to_serialize
+        subclass.uncachable_relationships_to_serialize = uncachable_relationships_to_serialize.dup if uncachable_relationships_to_serialize
         subclass.transform_method = transform_method
         subclass.cache_length = cache_length
         subclass.race_condition_ttl = race_condition_ttl
-        subclass.data_links = data_links.dup if data_links.present?
+        subclass.data_links = data_links.dup if data_links
         subclass.cached = cached
         subclass.set_type(subclass.reflected_record_type) if subclass.reflected_record_type
         subclass.meta_to_serialize = meta_to_serialize
@@ -131,7 +131,7 @@ module FastJsonapi
 
         @reflected_record_type ||= begin
           if self.name && self.name.end_with?('Serializer')
-            self.name.split('::').last.chomp('Serializer').underscore.to_sym
+            self.name.split('::')[-1].chomp('Serializer').underscore.to_sym
           end
         end
       end
@@ -154,7 +154,7 @@ module FastJsonapi
       end
 
       def run_key_transform(input)
-        if self.transform_method.present?
+        if self.transform_method
           input.to_s.send(*@transform_method).to_sym
         else
           input.to_sym
@@ -181,8 +181,8 @@ module FastJsonapi
       end
 
       def attributes(*attributes_list, &block)
-        attributes_list = attributes_list.first if attributes_list.first.class.is_a?(Array)
-        options = attributes_list.last.is_a?(Hash) ? attributes_list.pop : {}
+        attributes_list = attributes_list[0] if attributes_list[0].class.is_a?(Array)
+        options = attributes_list[-1].is_a?(Hash) ? attributes_list.pop : {}
         self.attributes_to_serialize = {} if self.attributes_to_serialize.nil?
 
         attributes_list.each do |attr_name|
@@ -264,7 +264,7 @@ module FastJsonapi
       end
 
       def compute_id_method_name(custom_id_method_name, id_method_name_from_relationship, block)
-        if block.present?
+        if block
           custom_id_method_name || :id
         else
           custom_id_method_name || id_method_name_from_relationship
@@ -280,7 +280,7 @@ module FastJsonapi
 
       def fetch_polymorphic_option(options)
         option = options[:polymorphic]
-        return false unless option.present?
+        return false unless option
         return option if option.respond_to? :keys
         {}
       end

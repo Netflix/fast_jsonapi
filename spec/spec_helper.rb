@@ -1,3 +1,5 @@
+require 'simplecov'
+SimpleCov.start
 require 'active_record'
 require 'fast_jsonapi'
 require 'rspec-benchmark'
