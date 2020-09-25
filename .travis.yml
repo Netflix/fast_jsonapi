@@ -2,6 +2,7 @@ language: ruby
 rvm:
   - 2.5.0
 before_install:
-  - gem install bundler -v 1.17.3
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
 script:
   - bundle exec rspec
