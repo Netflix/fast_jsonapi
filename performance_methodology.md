@@ -22,11 +22,11 @@ This led us to build our own object serialization library that would be faster b
 
 ## Benchmark Setup
 
-The benchmark setup is simple with classes for ``` Movie, Actor, MovieType, User ``` on ```movie_context.rb``` for fast_jsonapi serializers and on ```ams_context.rb``` for AMS serializers. We benchmark the serializers with ```1, 25, 250, 1000``` movies, then we output the result. We also ensure that JSON string output is equivalent to ensure neither library is doing excess work compared to the other. Please checkout [object_serializer_performance_spec](https://github.com/Netflix/fast_jsonapi/blob/master/spec/lib/object_serializer_performance_spec.rb).
+The benchmark setup is simple with classes for ``` Movie, Actor, MovieType, User ``` on ```movie_context.rb``` for fast_jsonapi serializers and on ```ams_context.rb``` for AMS serializers. We benchmark the serializers with ```25, 50, 100, 200, 1000``` movies, then we output the result. We also ensure that JSON string output is equivalent to ensure neither library is doing excess work compared to the other. Please checkout [object_serializer_performance_spec](https://github.com/Netflix/fast_jsonapi/blob/master/spec/lib/object_serializer_performance_spec.rb).
 
 ## Benchmark Results
 
-We benchmarked results for creating a Ruby Hash. This approach removes the effect of chosen JSON string generation engines like OJ, Yajl etc. Benchmarks indicate that fast_jsonapi consistently performs around ```25 times``` faster than AMS in generating a ruby hash.
+We benchmarked results for creating a Ruby Hash. This approach removes the effect of chosen JSON string generation engines like OJ, Yajl etc. Benchmarks indicate that fast_jsonapi consistently performs around ```20 times``` faster in average than AMS in generating a ruby hash.
 
 We applied a similar benchmark on the operation to serialize the objects to a JSON string. This approach helps with ensuring some important criterias, such as:
 

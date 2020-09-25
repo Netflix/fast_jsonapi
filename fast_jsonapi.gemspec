@@ -7,7 +7,7 @@ Gem::Specification.new do |gem|
   gem.name = "fast_jsonapi"
   gem.version = FastJsonapi::VERSION
 
-  gem.required_ruby_version = '>= 2.0.0' if gem.respond_to? :required_ruby_version=
+  gem.required_ruby_version = '>= 2.5.0' if gem.respond_to? :required_ruby_version=
   gem.required_rubygems_version = Gem::Requirement.new(">= 0") if gem.respond_to? :required_rubygems_version=
   gem.metadata = { "allowed_push_host" => "https://rubygems.org" } if gem.respond_to? :metadata=
   gem.require_paths = ["lib"]
@@ -21,7 +21,7 @@ Gem::Specification.new do |gem|
   gem.files = Dir["lib/**/*"]
   gem.homepage = "http://github.com/Netflix/fast_jsonapi"
   gem.licenses = ["Apache-2.0"]
-  gem.rubygems_version = "2.5.1"
+  gem.rubygems_version = "2.5.0"
   gem.summary = "fast JSON API(jsonapi.org) serializer"
 
   gem.add_runtime_dependency(%q<activesupport>, [">= 4.2"])
@@ -32,8 +32,9 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency(%q<rspec-benchmark>, ["~> 0.3.0"])
   gem.add_development_dependency(%q<bundler>, ["~> 1.0"])
   gem.add_development_dependency(%q<byebug>, [">= 0"])
-  gem.add_development_dependency(%q<active_model_serializers>, ["~> 0.10.7"])
+  gem.add_development_dependency(%q<active_model_serializers>, ["~> 0.10.10"])
   gem.add_development_dependency(%q<sqlite3>, ["~> 1.3"])
   gem.add_development_dependency(%q<jsonapi-rb>, ["~> 0.5.0"])
-  gem.add_development_dependency(%q<jsonapi-serializers>, ["~> 1.0.0"])
+  gem.add_development_dependency(%q<jsonapi-serializers>, ["~> 1.0.1"])
+  gem.add_development_dependency(%q<simplecov>, ["~> 0.19.0"])
 end
