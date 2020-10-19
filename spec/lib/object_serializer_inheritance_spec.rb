@@ -20,7 +20,7 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   class User
-    attr_accessor :id, :first_name, :last_name
+    attr_accessor :id, :first_name, :last_name, :uuid
 
     attr_accessor :address_ids, :country_id
 
@@ -39,6 +39,7 @@ describe FastJsonapi::ObjectSerializer do
   class UserSerializer
     include FastJsonapi::ObjectSerializer
     set_type :user
+    set_id :uuid
     attributes :first_name, :last_name
 
     attribute :full_name do |user, params|
@@ -125,6 +126,14 @@ describe FastJsonapi::ObjectSerializer do
       EmployeeSerializer
       expect(UserSerializer.attributes_to_serialize).not_to have_key(:location)
     end
+
+    it 'inherits the id source' do
+      e = Employee.new
+      e.id = 2
+      e.uuid = 'dfsdfsd'
+      id = EmployeeSerializer.new(e).serializable_hash[:data][:id]
+      expect(id).to eq('dfsdfsd')
+    end
   end
 
   context 'when testing inheritance of relationship' do
@@ -158,11 +167,9 @@ describe FastJsonapi::ObjectSerializer do
   end
 
   context 'when test inheritence of other attributes' do
-
     it 'inherits the tranform method' do
       EmployeeSerializer
       expect(UserSerializer.transform_method).to eq EmployeeSerializer.transform_method
     end
-
   end
 end
