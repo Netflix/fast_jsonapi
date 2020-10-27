@@ -9,7 +9,7 @@ module FastJsonapi
     end
 
     def serialize(record, serialization_params, output_hash)
-      if include_attribute?(record, serialization_params)
+      if include_attribute?(record, serialization_params) && record.respond_to?(method)
         output_hash[key] = if method.is_a?(Proc)
           method.arity.abs == 1 ? method.call(record) : method.call(record, serialization_params)
         else
